@@ -1,0 +1,30 @@
+[project]
+name = "dynamic-des"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Jaehyeon Kim", email = "dottami@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "simpy>=4.0.0",
+    "numpy>=1.26.0",
+    "aiokafka>=0.11.0",
+    "redis>=5.0.0",
+    "asyncpg>=0.29.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.16,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mkdocs-material>=9.7.4",
+    "mkdocstrings[python]>=1.0.3",
+    "mypy>=1.19.1",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "ruff>=0.15.5",
+]
