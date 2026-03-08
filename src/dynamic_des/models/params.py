@@ -51,6 +51,6 @@ class SimParameter:
     """
 
     param_id: str
-    arrival: DistributionConfig
+    arrival: Dict[str, DistributionConfig] = field(default_factory=dict)
     service: Dict[str, DistributionConfig] = field(default_factory=dict)
     resources: Dict[str, ResourceConfig] = field(default_factory=dict)
