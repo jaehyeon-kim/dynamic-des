@@ -62,14 +62,15 @@ class SimulationRegistry:
         """
         prefix = param.param_id
 
-        # 1. Register Arrival
-        self._register_dist(f"{prefix}.arrival", param.arrival)
+        # Register Arrivals (Dictionary of DistributionConfig)
+        for arrival_name, dist_config in param.arrival.items():
+            self._register_dist(f"{prefix}.arrival.{arrival_name}", dist_config)
 
-        # 2. Register Service Steps (Dictionary of DistributionConfig)
+        # Register Service Steps (Dictionary of DistributionConfig)
         for step_name, dist_config in param.service.items():
             self._register_dist(f"{prefix}.service.{step_name}", dist_config)
 
-        # 3. Register Resources (Dictionary of ResourceConfig)
+        # Register Resources (Dictionary of ResourceConfig)
         for res_name, res_config in param.resources.items():
             self._register_resource(f"{prefix}.resources.{res_name}", res_config)
 
