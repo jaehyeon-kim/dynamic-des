@@ -1,7 +1,7 @@
 [project]
 name = "dynamic-des"
 version = "0.1.0"
-description = "Real-time SimPy control plane to dynamically update parameters or stream outputs via external systems like Kafka, Redis, or Postgres. Built for event-driven digital twins."
+description = "Real-time SimPy control plane to dynamically update parameters and stream outputs via external systems like Kafka, Redis, or Postgres. Built for event-driven digital twins."
 readme = "README.md"
 authors = [
     { name = "Jaehyeon Kim", email = "dottami@gmail.com" }
@@ -9,12 +9,17 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "simpy>=4.0.0",
-    "numpy>=1.26.0",
+    "numpy>=1.26.0"
+]
+[project.optional-dependencies]
+kafka = ["aiokafka>=0.11.0"]
+redis = ["redis>=5.0.0"]
+postgres = ["asyncpg>=0.29.0"]
+all = [
     "aiokafka>=0.11.0",
     "redis>=5.0.0",
     "asyncpg>=0.29.0",
 ]
-
 [build-system]
 requires = ["uv_build>=0.9.16,<0.10.0"]
 build-backend = "uv_build"
