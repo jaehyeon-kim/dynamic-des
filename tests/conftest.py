@@ -1,7 +1,8 @@
 import pytest
+from simpy import Environment
+
 from dynamic_des.core.registry import SimulationRegistry
 from dynamic_des.models.params import DistributionConfig, ResourceConfig, SimParameter
-from simpy import Environment
 
 
 @pytest.fixture
@@ -21,9 +22,18 @@ def sample_params():
     """Provides a standard 'Line_A' SimParameter set for testing."""
     return SimParameter(
         param_id="Line_A",
-        arrival=DistributionConfig(dist="exponential", rate=0.1),
-        service={"milling": DistributionConfig(dist="normal", mean=5.0, std=1.0)},
-        resources={"lathe": ResourceConfig(current_cap=1, max_cap=2)},
+        arrival={
+            "standard": DistributionConfig(dist="exponential", rate=1 / 10.0),
+            "priority": DistributionConfig(dist="exponential", rate=1 / 50.0),
+        },
+        service={
+            "setup": DistributionConfig(dist="normal", mean=2.0, std=0.5),
+            "milling": DistributionConfig(dist="normal", mean=5.0, std=1.2),
+        },
+        resources={
+            "lathe": ResourceConfig(current_cap=2, max_cap=5),
+            "operator": ResourceConfig(current_cap=1, max_cap=3),
+        },
     )
 
 

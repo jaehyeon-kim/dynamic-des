@@ -1,4 +1,5 @@
 import numpy as np
+
 from dynamic_des.models.params import DistributionConfig, ResourceConfig, SimParameter
 
 
@@ -27,14 +28,8 @@ def test_normal_sampling_safety():
     assert min(samples) >= 0.001
 
 
-def test_sim_parameter_structure():
+def test_sim_parameter_structure(sample_params):
     """Ensure the SimParameter correctly holds nested services and resources."""
-    param = SimParameter(
-        param_id="Line_A",
-        arrival=DistributionConfig(dist="exponential", rate=0.2),
-        service={"step1": DistributionConfig(dist="normal", mean=5, std=1)},
-        resources={"operator": ResourceConfig(current_cap=1, max_cap=2)},
-    )
-    assert param.param_id == "Line_A"
-    assert "step1" in param.service
-    assert param.resources["operator"].max_cap == 2
+    assert sample_params.param_id == "Line_A"
+    assert "setup" in sample_params.service
+    assert sample_params.resources["operator"].max_cap == 3
