@@ -197,11 +197,24 @@ name = "dynamic-des"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "numpy" },
+    { name = "simpy" },
+]
+
+[package.optional-dependencies]
+all = [
     { name = "aiokafka" },
     { name = "asyncpg" },
-    { name = "numpy" },
     { name = "redis" },
-    { name = "simpy" },
+]
+kafka = [
+    { name = "aiokafka" },
+]
+postgres = [
+    { name = "asyncpg" },
+]
+redis = [
+    { name = "redis" },
 ]
 
 [package.dev-dependencies]
@@ -216,12 +229,16 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiokafka", specifier = ">=0.11.0" },
-    { name = "asyncpg", specifier = ">=0.29.0" },
+    { name = "aiokafka", marker = "extra == 'all'", specifier = ">=0.11.0" },
+    { name = "aiokafka", marker = "extra == 'kafka'", specifier = ">=0.11.0" },
+    { name = "asyncpg", marker = "extra == 'all'", specifier = ">=0.29.0" },
+    { name = "asyncpg", marker = "extra == 'postgres'", specifier = ">=0.29.0" },
     { name = "numpy", specifier = ">=1.26.0" },
-    { name = "redis", specifier = ">=5.0.0" },
+    { name = "redis", marker = "extra == 'all'", specifier = ">=5.0.0" },
+    { name = "redis", marker = "extra == 'redis'", specifier = ">=5.0.0" },
     { name = "simpy", specifier = ">=4.0.0" },
 ]
+provides-extras = ["kafka", "redis", "postgres", "all"]
 
 [package.metadata.requires-dev]
 dev = [
