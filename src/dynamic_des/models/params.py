@@ -1,28 +1,22 @@
 from dataclasses import dataclass, field
 from typing import Dict, Literal, Optional
 
-import numpy as np
-
-# Create a global NumPy random generator for the simulation
-rng = np.random.default_rng()
-
 
 @dataclass
 class DistributionConfig:
     """
     Configuration for stochastic timing.
-    NOTE: NumPy's exponential uses 'scale' (mean), so we convert 'rate' automatically.
     """
 
     dist: Literal["exponential", "normal", "lognormal"]
-    rate: Optional[float] = None  # For exponential: 1 / mean
-    mean: Optional[float] = None  # For normal
-    std: Optional[float] = None  # For normal
+    rate: Optional[float] = None
+    mean: Optional[float] = None
+    std: Optional[float] = None
 
 
 @dataclass
-class ResourceConfig:
-    """Capacity configuration for physical constraints."""
+class CapacityConfig:
+    """Standardized config for any capacity-constrained object."""
 
     current_cap: int
     max_cap: int
@@ -35,7 +29,10 @@ class SimParameter:
     Grouped for easy 'path-based' updates from external backends.
     """
 
-    param_id: str
+    sim_id: str
     arrival: Dict[str, DistributionConfig] = field(default_factory=dict)
     service: Dict[str, DistributionConfig] = field(default_factory=dict)
-    resources: Dict[str, ResourceConfig] = field(default_factory=dict)
+    # Standardized categories
+    resources: Dict[str, CapacityConfig] = field(default_factory=dict)
+    containers: Dict[str, CapacityConfig] = field(default_factory=dict)
+    stores: Dict[str, CapacityConfig] = field(default_factory=dict)
