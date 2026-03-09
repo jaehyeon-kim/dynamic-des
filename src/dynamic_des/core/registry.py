@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from simpy import Environment
+from simpy import Environment, Store
 
 from dynamic_des.models.params import SimParameter
 
@@ -15,8 +15,8 @@ class DynamicValue:
         self.env = env
         self.name = name
         self._value = initial_value
-        # This event allows resources to 'yield' until a change occurs
-        self.change_event = env.event()
+        # Use a Store to signal changes (prevents missed events)
+        self._signal = Store(env, capacity=1)
 
     @property
     def value(self):
@@ -25,11 +25,13 @@ class DynamicValue:
     def update(self, new_value: Any):
         if self._value != new_value:
             self._value = new_value
-            # Trigger the event to wake up any 'yield'ing processes
-            if not self.change_event.triggered:
-                self.change_event.succeed(value=self._value)
-            # Replace with a fresh event for the next update
-            self.change_event = self.env.event()
+            # Signal a change if not already signaled
+            if len(self._signal.items) == 0:
+                self._signal.put(True)
+
+    def wait_for_change(self):
+        """Returns a get-request for the signal."""
+        return self._signal.get()
 
 
 class SimulationRegistry:
@@ -60,7 +62,7 @@ class SimulationRegistry:
         Takes a SimParameter instance and flattens it into the registry.
         Supports nested dictionaries (service/resources) and dataclasses.
         """
-        prefix = param.param_id
+        prefix = param.sim_id
 
         # Register Arrivals (Dictionary of DistributionConfig)
         for arrival_name, dist_config in param.arrival.items():
@@ -71,8 +73,16 @@ class SimulationRegistry:
             self._register_dist(f"{prefix}.service.{step_name}", dist_config)
 
         # Register Resources (Dictionary of ResourceConfig)
-        for res_name, res_config in param.resources.items():
-            self._register_resource(f"{prefix}.resources.{res_name}", res_config)
+        for res_name, cap_config in param.resources.items():
+            self._register_cap(f"{prefix}.resources.{res_name}", cap_config)
+
+        # Register Containers (Dictionary of ResourceConfig)
+        for name, cap_config in param.containers.items():
+            self._register_cap(f"{prefix}.containers.{name}", cap_config)
+
+        # Register Stores (Dictionary of ResourceConfig)
+        for name, cap_config in param.stores.items():
+            self._register_cap(f"{prefix}.stores.{name}", cap_config)
 
     def _register_dist(self, path_prefix: str, dist_config: Any):
         """Internal: Flattens a DistributionConfig."""
@@ -88,11 +98,11 @@ class SimulationRegistry:
                 self.env, f"{path_prefix}.std", dist_config.std
             )
 
-    def _register_resource(self, path_prefix: str, res_config: Any):
+    def _register_cap(self, path_prefix: str, cap_config: Any):
         """Internal: Flattens a ResourceConfig."""
         self._values[f"{path_prefix}.current_cap"] = DynamicValue(
-            self.env, f"{path_prefix}.current_cap", res_config.current_cap
+            self.env, f"{path_prefix}.current_cap", cap_config.current_cap
         )
         self._values[f"{path_prefix}.max_cap"] = DynamicValue(
-            self.env, f"{path_prefix}.max_cap", res_config.max_cap
+            self.env, f"{path_prefix}.max_cap", cap_config.max_cap
         )
