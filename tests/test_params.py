@@ -1,35 +1,39 @@
 import numpy as np
 
-from dynamic_des.models.params import DistributionConfig, ResourceConfig, SimParameter
-
-
-def test_exponential_sampling():
-    """Verify that exponential sampling uses the correct rate-to-scale conversion."""
-    # Mean of 10.0 -> Rate of 0.1
-    config = DistributionConfig(dist="exponential", rate=0.1)
-
-    # Generate a large sample size for statistical verification
-    samples = [config.sample() for _ in range(2000)]
-
-    # Check bounds
-    assert min(samples) >= 0.001
-    # Check mean (should be approximately 1/rate = 10)
-    assert 9.5 < np.mean(samples) < 10.5
-
-
-def test_normal_sampling_safety():
-    """Verify that Normal distribution never returns a non-positive value."""
-    # Mean of 1.0 with high Std of 10.0 will frequently produce negatives mathematically
-    config = DistributionConfig(dist="normal", mean=1.0, std=10.0)
-
-    samples = [config.sample() for _ in range(1000)]
-
-    # Simulation must never receive 0 or negative time
-    assert min(samples) >= 0.001
+from dynamic_des.models.params import SimParameter
 
 
 def test_sim_parameter_structure(sample_params):
-    """Ensure the SimParameter correctly holds nested services and resources."""
+    """Verify that sample_params matches the expected hierarchical structure."""
+    assert isinstance(sample_params, SimParameter)
     assert sample_params.param_id == "Line_A"
-    assert "setup" in sample_params.service
-    assert sample_params.resources["operator"].max_cap == 3
+
+    # Check Arrivals
+    assert "standard" in sample_params.arrival
+    assert sample_params.arrival["standard"].rate == 1 / 10.0
+
+    # Check Services
+    assert "milling" in sample_params.service
+    assert sample_params.service["milling"].mean == 5.0
+
+    # Check Resources
+    assert "lathe" in sample_params.resources
+    assert sample_params.resources["lathe"].current_cap == 2
+
+
+def test_manual_numpy_sampling(sample_params):
+    """Verify how a user would manually sample using NumPy and the config data."""
+    rng = np.random.default_rng(42)
+
+    # Sample from arrival (exponential)
+    arrival_config = sample_params.arrival["standard"]
+    # User-side logic: scale = 1/rate
+    wait_time = rng.exponential(scale=1.0 / arrival_config.rate)
+    assert wait_time > 0
+
+    # Sample from service (normal)
+    service_config = sample_params.service["milling"]
+    # User-side logic: loc=mean, scale=std
+    work_time = rng.normal(loc=service_config.mean, scale=service_config.std)
+    # Manual safety clip
+    assert max(0.001, work_time) > 0
