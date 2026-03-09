@@ -14,25 +14,10 @@ class DistributionConfig:
     NOTE: NumPy's exponential uses 'scale' (mean), so we convert 'rate' automatically.
     """
 
-    dist: Literal["exponential", "normal"]
+    dist: Literal["exponential", "normal", "lognormal"]
     rate: Optional[float] = None  # For exponential: 1 / mean
     mean: Optional[float] = None  # For normal
     std: Optional[float] = None  # For normal
-
-    def sample(self) -> float:
-        """Samples a single value from the distribution using NumPy."""
-        if self.dist == "exponential":
-            # NumPy uses scale (1/rate).
-            # We use max(0.001, ...) to prevent 0 or negative time.
-            scale = 1.0 / self.rate if self.rate and self.rate > 0 else 1.0
-            return max(0.001, rng.exponential(scale=scale))
-
-        elif self.dist == "normal":
-            # loc=mean, scale=std
-            val = rng.normal(loc=self.mean or 0, scale=self.std or 0)
-            return max(0.001, val)
-
-        return 0.001
 
 
 @dataclass
