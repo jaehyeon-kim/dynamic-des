@@ -1,7 +1,8 @@
+import queue
+
 import pytest
 
 from dynamic_des.core.environment import DynamicRealtimeEnvironment
-from dynamic_des.core.registry import SimulationRegistry
 from dynamic_des.models.params import CapacityConfig, DistributionConfig, SimParameter
 
 
@@ -45,6 +46,15 @@ def mock_ingress_queue():
     Provides a thread-safe queue to simulate data arriving from Kafka/Redis.
     This is required for aiokafka and other async providers.
     """
-    import queue
+    return queue.Queue()
 
+
+@pytest.fixture
+def mock_egress_queue():
+    """
+    Async Testing Fixtures
+
+    Provides a thread-safe queue to simulate data stresming to Kafka/Redis.
+    This is required for aiokafka and other async providers.
+    """
     return queue.Queue()
