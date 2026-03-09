@@ -29,49 +29,41 @@ def test_registry_registration_paths(registry, sample_params):
 
 
 def test_registry_distribution_update_and_event(registry, sample_params):
-    """Verify that updating a service path changes the value and triggers the SimPy event."""
+    """Verify that updating a service path changes the value and signals the store."""
     registry.register_sim_parameter(sample_params)
 
     target_path = "Line_A.service.setup.mean"
     dyn_val = registry.get(target_path)
 
-    # Capture the current event
-    initial_event = dyn_val.change_event
-    assert initial_event.triggered is False
+    # Initially, the signal store should be empty
+    assert len(dyn_val._signal.items) == 0
 
-    # Perform update
-    registry.update(target_path, 3.0)
+    # Update the value
+    registry.update(target_path, 10.0)
 
-    # Value must be updated
-    assert dyn_val.value == 3.0
-    # The event must have been triggered
-    assert initial_event.triggered is True
-    # A new, untriggered event must be ready for the next update
-    assert dyn_val.change_event is not initial_event
-    assert dyn_val.change_event.triggered is False
+    # 1. Value must be updated
+    assert dyn_val.value == 10.0
+    # 2. The signal store should now contain a signal
+    assert len(dyn_val._signal.items) == 1
 
 
 def test_registry_resource_update_and_event(registry, sample_params):
-    """Verify that updating a resource path changes the value and triggers the SimPy event."""
+    """Verify that updating a resource path changes the value and signals the store."""
     registry.register_sim_parameter(sample_params)
 
     target_path = "Line_A.resources.lathe.current_cap"
     dyn_val = registry.get(target_path)
 
-    # Capture the current event
-    initial_event = dyn_val.change_event
-    assert initial_event.triggered is False
+    # Initially, the signal store should be empty
+    assert len(dyn_val._signal.items) == 0
 
-    # Perform update
+    # Perform surgical update
     registry.update(target_path, 5)
 
-    # Value must be updated
+    # 1. Value must be updated
     assert dyn_val.value == 5
-    # The event must have been triggered
-    assert initial_event.triggered is True
-    # A new, untriggered event must be ready for the next update
-    assert dyn_val.change_event is not initial_event
-    assert dyn_val.change_event.triggered is False
+    # 2. The signal store should now contain a signal
+    assert len(dyn_val._signal.items) == 1
 
 
 def test_registry_missing_path(registry):
