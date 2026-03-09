@@ -6,7 +6,7 @@ from dynamic_des.models.params import SimParameter
 def test_sim_parameter_structure(sample_params):
     """Verify that sample_params matches the expected hierarchical structure."""
     assert isinstance(sample_params, SimParameter)
-    assert sample_params.param_id == "Line_A"
+    assert sample_params.sim_id == "Line_A"
 
     # Check Arrivals
     assert "standard" in sample_params.arrival

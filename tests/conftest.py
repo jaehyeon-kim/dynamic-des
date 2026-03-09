@@ -1,27 +1,27 @@
 import pytest
-from simpy import Environment
 
+from dynamic_des.core.environment import DynamicRealtimeEnvironment
 from dynamic_des.core.registry import SimulationRegistry
-from dynamic_des.models.params import DistributionConfig, ResourceConfig, SimParameter
+from dynamic_des.models.params import CapacityConfig, DistributionConfig, SimParameter
 
 
 @pytest.fixture
 def env():
     """Provides a fresh standard SimPy environment for each test."""
-    return Environment()
+    return DynamicRealtimeEnvironment(factor=0.0)
 
 
 @pytest.fixture
 def registry(env):
     """Provides a SimulationRegistry attached to the test environment."""
-    return SimulationRegistry(env)
+    return env.registry
 
 
 @pytest.fixture
 def sample_params():
     """Provides a standard 'Line_A' SimParameter set for testing."""
     return SimParameter(
-        param_id="Line_A",
+        sim_id="Line_A",
         arrival={
             "standard": DistributionConfig(dist="exponential", rate=1 / 10.0),
             "priority": DistributionConfig(dist="exponential", rate=1 / 50.0),
@@ -31,14 +31,14 @@ def sample_params():
             "milling": DistributionConfig(dist="normal", mean=5.0, std=1.2),
         },
         resources={
-            "lathe": ResourceConfig(current_cap=2, max_cap=5),
-            "operator": ResourceConfig(current_cap=1, max_cap=3),
+            "lathe": CapacityConfig(current_cap=2, max_cap=5),
+            "operator": CapacityConfig(current_cap=1, max_cap=3),
         },
     )
 
 
 @pytest.fixture
-def mock_bridge_queue():
+def mock_ingress_queue():
     """
     Async Testing Fixtures
 
