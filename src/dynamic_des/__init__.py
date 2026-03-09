@@ -7,6 +7,8 @@ from dynamic_des.core.sampler import Sampler
 from dynamic_des.models.params import CapacityConfig, DistributionConfig, SimParameter
 from dynamic_des.resources.resource import DynamicResource
 
+__version__ = "0.1.0"
+
 __all__ = [
     "DynamicRealtimeEnvironment",
     "Sampler",
