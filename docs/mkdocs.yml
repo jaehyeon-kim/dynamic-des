@@ -5,7 +5,7 @@ theme:
     - scheme: default
       primary: teal
       accent: purple
-    - scheme: slate # Dark mode
+    - scheme: slate
       primary: teal
       accent: purple
   features:
@@ -13,11 +13,13 @@ theme:
     - content.code.copy
 
 plugins:
-  - search
   - mkdocstrings:
       handlers:
         python:
           paths: [src]
+          options:
+            show_source: true
+            show_root_heading: true
 
 nav:
   - Home: index.md
