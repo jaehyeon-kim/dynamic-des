@@ -1,6 +1,29 @@
-from simpy import Container, Environment, PriorityItem, PriorityStore
+from __future__ import annotations
+
+from simpy import Container, Environment, Event, PriorityItem, PriorityStore
 
 from dynamic_des.resources.base import BaseDynamicResource
+
+
+class DynamicResourceRequest(Event):
+    """A context manager for DynamicResource requests."""
+
+    def __init__(self, resource: DynamicResource, priority: int):
+        super().__init__(resource.env)
+        self.resource = resource
+
+        # Put this request into the priority queue
+        self.resource.queue.put(PriorityItem(priority, self))
+
+        # Wake up the dispatcher
+        if not self.resource._request_event.triggered:
+            self.resource._request_event.succeed()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.resource.release()
 
 
 class DynamicResource(BaseDynamicResource):
@@ -23,15 +46,8 @@ class DynamicResource(BaseDynamicResource):
         return self._capacity - self.pool.level
 
     def request(self, priority: int = 1):
-        """Returns an event that succeeds when a token is granted."""
-        granted = self.env.event()
-        self.queue.put(PriorityItem(priority, granted))
-
-        # Trigger the dispatcher to wake up
-        if not self._request_event.triggered:
-            self._request_event.succeed()
-
-        return granted
+        """Returns a context-manager enabled request."""
+        return DynamicResourceRequest(self, priority)
 
     def release(self):
         """Return a token to the pool."""

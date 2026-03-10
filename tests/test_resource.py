@@ -24,9 +24,9 @@ def test_basic_request_release(env, registry, sample_params):
 
     def user():
         # Request returns a SimPy Event
-        yield res.request()
-        yield env.timeout(10)
-        yield res.release()
+        with res.request() as req:
+            yield req
+            yield env.timeout(10)
 
     env.process(user())
 
@@ -47,10 +47,10 @@ def test_priority_queuing(env, registry, sample_params):
     log = []
 
     def user(name, priority, duration):
-        yield res.request(priority=priority)
-        log.append(name)
-        yield env.timeout(duration)
-        yield res.release()
+        with res.request(priority=priority) as req:
+            yield req
+            log.append(name)
+            yield env.timeout(duration)
 
     # t=0: "First" takes the token, dispatcher then blocks waiting for next token
     env.process(user("First", priority=10, duration=10))
@@ -90,9 +90,9 @@ def test_dynamic_capacity_decrease_while_busy(env, registry, sample_params):
     res = DynamicResource(env, "Line_A", "lathe")  # Capacity 2
 
     def worker():
-        yield res.request()
-        yield env.timeout(10)
-        yield res.release()
+        with res.request() as req:
+            yield req
+            yield env.timeout(10)
 
     env.process(worker())
     env.process(worker())
