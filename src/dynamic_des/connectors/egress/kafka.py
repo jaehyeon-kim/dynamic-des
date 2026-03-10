@@ -42,7 +42,11 @@ class KafkaEgress(BaseEgress):
                         stream = data.pop("stream_type")
                         if stream == "telemetry":
                             topic = self.telemetry_topic
-                            key = None
+                            key = (
+                                str(data.get("path_id")).encode()
+                                if "key" in data
+                                else None
+                            )
                         else:
                             topic = self.event_topic
                             # Use the event_key for Kafka partitioning
