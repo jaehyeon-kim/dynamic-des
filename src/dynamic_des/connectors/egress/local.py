@@ -16,7 +16,7 @@ class ConsoleEgress(BaseEgress):
                 for data in batch:
                     # Identify the stream type for the prefix
                     stream = data.pop("stream_type", "unknown")
-                    prefix = "[TELEMETRY]" if stream == "telemetry" else "[EVENT]"
+                    prefix = "[TEL]" if stream == "telemetry" else "[EVT]"
 
                     # Print the remaining data (path_id/key, value, timestamp)
                     print(f"{prefix} {data}")
