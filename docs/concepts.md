@@ -6,9 +6,9 @@
 
 Instead of resources polling Kafka directly, the architecture is split into three layers:
 
-1.  **The Connectors (Ingress/Egress)**: Background threads handle heavy I/O (Kafka, Redis).
-2.  **The Registry (The Switchboard)**: A centralized state manager that flattens data into dot-notation paths.
-3.  **The Resources (SimPy Objects)**: Passive observers that "wake up" only when the Registry signals a change.
+1.  **Connectors (Ingress/Egress)**: Background threads handle heavy I/O (Kafka, Redis).
+2.  **Registry (Switchboard)**: A centralized state manager that flattens data into dot-notation paths.
+3.  **Resources (SimPy Objects)**: Passive observers that "wake up" only when the Registry signals a change.
 
 ## Event-Driven Capacity
 
