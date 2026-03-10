@@ -11,7 +11,7 @@ class Sampler:
     def __init__(self, rng: Optional[np.random.Generator] = None):
         self.rng = rng
 
-    def sample(self, config: DistributionConfig, min_delay: float = 0.1) -> float:
+    def sample(self, config: DistributionConfig, min_delay: float = 0.00001) -> float:
         """Samples a value. Returns the mean (clipped by min_delay) if self.rng is None."""
 
         if config.dist == "exponential":
