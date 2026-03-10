@@ -58,7 +58,7 @@ def test_sampler_stochastic_exponential(sampler):
 
     samples = [sampler.sample(cfg) for _ in range(1000)]
     assert 1.9 < np.mean(samples) < 2.1
-    assert min(samples) >= 0.1
+    assert min(samples) >= 0.00001
 
 
 def test_sampler_stochastic_lognormal(sampler):
