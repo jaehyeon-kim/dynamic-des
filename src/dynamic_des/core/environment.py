@@ -1,6 +1,7 @@
 import asyncio
 import queue
 import threading
+from datetime import datetime, timedelta
 from typing import Any, List
 
 from simpy import RealtimeEnvironment
@@ -41,60 +42,87 @@ class IngressMixIn:
 
 
 class EgressMixIn:
-    """MixIn to handle high-throughput outgoing telemetry and events."""
+    """MixIn to handle high-throughput egress with count or time-based flushing."""
 
-    def setup_egress(self, providers: List, batch_size: int = 500):
+    def setup_egress(
+        self, providers: List, batch_size: int = 500, flush_interval: float = 1.0
+    ):
         self.egress_queue = queue.Queue()
         self.egress_providers = providers
         self.egress_batch_size = batch_size
+        self.egress_flush_interval = flush_interval
         self._event_buffer = []
 
-        # Start the background thread for Egress providers
+        # Start background threads for providers
         self._egress_thread = threading.Thread(
             target=self._run_egress_loop, daemon=True
         )
         self._egress_thread.start()
 
+        # Start periodic flush process (Time-based trigger)
+        self.process(self._periodic_flush())
+
     def _run_egress_loop(self):
+        """Background thread logic for egress providers."""
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         for provider in self.egress_providers:
+            # Each provider's run method takes the egress_queue as an argument
             loop.create_task(provider.run(self.egress_queue))
         loop.run_forever()
 
+    def _periodic_flush(self):
+        """SimPy process that flushes the buffer every x seconds."""
+        while True:
+            yield self.timeout(self.egress_flush_interval)
+            self._flush_buffer()
+
+    def _flush_buffer(self):
+        """Internal helper to push data to the thread-safe queue."""
+        if self._event_buffer:
+            self.egress_queue.put(self._event_buffer)
+            self._event_buffer = []
+
     def publish_telemetry(self, path_id: str, value: Any):
-        """Low-volume vitals. Pushed to queue immediately."""
+        """Telemetry usually triggers an immediate flush to keep vitals fresh."""
         self.egress_queue.put(
             [
                 {
                     "stream_type": "telemetry",
                     "path_id": path_id,
                     "value": value,
-                    "timestamp": self.now,
+                    "sim_ts": round(self.now, 3),
+                    "timestamp": self._get_iso_timestamp(self.start_datetime, self.now),
                 }
             ]
         )
 
     def publish_event(self, event_key: str, value: Any):
-        """High-volume results. Batched locally to reduce queue lock contention."""
+        """Event data: Flushed if batch size is reached OR periodic flush occurs."""
         self._event_buffer.append(
             {
                 "stream_type": "event",
                 "key": event_key,
                 "value": value,
-                "timestamp": self.now,
+                "sim_ts": round(self.now, 3),
+                "timestamp": self._get_iso_timestamp(self.start_datetime, self.now),
             }
         )
 
         if len(self._event_buffer) >= self.egress_batch_size:
-            # Push the whole batch to the thread-safe queue
-            self.egress_queue.put(self._event_buffer)
-            self._event_buffer = []
+            self._flush_buffer()
+
+    def _get_iso_timestamp(self, start_time: datetime, sim_now: float) -> str:
+        """Converts simulation time to a real-world ISO string."""
+        return (start_time + timedelta(seconds=sim_now)).isoformat(
+            timespec="milliseconds"
+        )
 
 
 class DynamicRealtimeEnvironment(
     RealtimeEnvironment, RegistryMixIn, IngressMixIn, EgressMixIn
 ):
     def __init__(self, initial_time=0, factor=1.0, strict=False):
+        self.start_datetime = datetime.now()
         super().__init__(initial_time=initial_time, factor=factor, strict=strict)
         self.setup_registry()
