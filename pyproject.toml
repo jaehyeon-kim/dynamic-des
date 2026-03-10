@@ -6,7 +6,18 @@ readme = "README.md"
 authors = [
     { name = "Jaehyeon Kim", email = "dottami@gmail.com" }
 ]
-requires-python = ">=3.12"
+keywords = [
+    "simpy", 
+    "simulation", 
+    "digital-twin", 
+    "discrete-event-simulation", 
+    "kafka",
+    "redis",
+    "postgres",
+    "real-time", 
+    "industry-4-0"
+]
+requires-python = ">=3.10"
 dependencies = [
     "simpy>=4.0.0",
     "numpy>=1.26.0",
