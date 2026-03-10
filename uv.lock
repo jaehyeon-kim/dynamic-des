@@ -220,6 +220,7 @@ redis = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "mkdocs" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
     { name = "mypy" },
@@ -244,6 +245,7 @@ provides-extras = ["kafka", "redis", "postgres", "all"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "mkdocs", specifier = "<2.0" },
     { name = "mkdocs-material", specifier = ">=9.7.4" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.3" },
     { name = "mypy", specifier = ">=1.19.1" },

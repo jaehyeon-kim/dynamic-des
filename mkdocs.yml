@@ -1,1 +1,27 @@
-site_name: My Docs
+site_name: Dynamic DES
+site_description: Real-time SimPy control plane for event-driven digital twins.
+repo_url: https://github.com/jaehyeon-kim/dynamic-des
+repo_name: dynamic-des
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: teal
+      accent: purple
+    - scheme: slate
+      primary: teal
+      accent: purple
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Core Concepts: concepts.md
+  - API Reference: api.md
