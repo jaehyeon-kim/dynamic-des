@@ -27,6 +27,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "mkdocs<2.0",
     "mkdocs-material>=9.7.4",
     "mkdocstrings[python]>=1.0.3",
     "mypy>=1.19.1",
