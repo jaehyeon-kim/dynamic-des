@@ -1,3 +1,4 @@
+from dynamic_des.connectors.admin.kafka import KafkaAdminConnector
 from dynamic_des.connectors.egress.kafka import KafkaEgress
 from dynamic_des.connectors.egress.local import ConsoleEgress
 from dynamic_des.connectors.ingress.kafka import KafkaIngress
@@ -10,6 +11,7 @@ from dynamic_des.resources.resource import DynamicResource
 __version__ = "0.1.0"
 
 __all__ = [
+    "KafkaAdminConnector",
     "DynamicRealtimeEnvironment",
     "Sampler",
     "SimParameter",
