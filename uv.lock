@@ -283,10 +283,12 @@ dependencies = [
 all = [
     { name = "aiokafka" },
     { name = "asyncpg" },
+    { name = "kafka-python" },
     { name = "redis" },
 ]
 kafka = [
     { name = "aiokafka" },
+    { name = "kafka-python" },
 ]
 postgres = [
     { name = "asyncpg" },
@@ -312,6 +314,8 @@ requires-dist = [
     { name = "aiokafka", marker = "extra == 'kafka'", specifier = ">=0.11.0" },
     { name = "asyncpg", marker = "extra == 'all'", specifier = ">=0.29.0" },
     { name = "asyncpg", marker = "extra == 'postgres'", specifier = ">=0.29.0" },
+    { name = "kafka-python", marker = "extra == 'all'", specifier = ">=2.0.2" },
+    { name = "kafka-python", marker = "extra == 'kafka'", specifier = ">=2.0.2" },
     { name = "numpy", specifier = ">=1.26.0" },
     { name = "orjson", specifier = ">=3.10.0" },
     { name = "redis", marker = "extra == 'all'", specifier = ">=5.0.0" },
@@ -391,6 +395,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/df/bf/f7da0350254c0ed7c72f3e33cef02e048281fec7ecec5f032d4aac52226b/jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d", size = 245115, upload-time = "2025-03-05T20:05:02.478Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl", hash = "sha256:85ece4451f492d0c13c5dd7c13a64681a86afae63a5f347908daf103ce6d2f67", size = 134899, upload-time = "2025-03-05T20:05:00.369Z" },
+]
+
+[[package]]
+name = "kafka-python"
+version = "2.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/27/5c/d3b6d93ed625d2cb0265e6fe0f507be544f6edde577c1b118f42566389bf/kafka_python-2.3.0.tar.gz", hash = "sha256:de65b596d26b5c894f227c35c7d29a65cea8f8a1c4f0f2b4e3e2ea60d503acc8", size = 358391, upload-time = "2025-11-21T00:47:34.078Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4a/db/694fd552295ed091e7418d02b6268ee36092d4c93211136c448fe061fe32/kafka_python-2.3.0-py2.py3-none-any.whl", hash = "sha256:831ba6dff28144d0f1145c874d391f3ebb3c2c3e940cc78d74e83f0183497c98", size = 326260, upload-time = "2025-11-21T00:47:32.561Z" },
 ]
 
 [[package]]
