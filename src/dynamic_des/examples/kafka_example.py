@@ -36,7 +36,7 @@ line_a_params = SimParameter(
         "standard": DistributionConfig(dist="exponential", rate=1.0)
     },  # 1 every 1s
     service={"milling": DistributionConfig(dist="normal", mean=3.0, std=0.5)},
-    resources={"lathe": CapacityConfig(current_cap=1, max_cap=5)},
+    resources={"lathe": CapacityConfig(current_cap=1, max_cap=10)},
 )
 
 # 2. Setup Environment with Kafka Connectors
