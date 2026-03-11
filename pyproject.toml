@@ -22,19 +22,18 @@ dependencies = [
     "simpy>=4.0.0",
     "numpy>=1.26.0",
     "orjson>=3.10.0",
+    "lz4[frame]>=4.4.5",
 ]
 [project.optional-dependencies]
-kafka = [
-    "aiokafka>=0.11.0",
+kafka =[
+    "aiokafka[lz4]>=0.11.0",
     "kafka-python>=2.0.2"
 ]
 redis = ["redis>=5.0.0"]
-postgres = ["asyncpg>=0.29.0"]
+postgres =["asyncpg>=0.29.0"]
+dashboard = ["nicegui>=1.4.0"]
 all = [
-    "aiokafka>=0.11.0",
-    "kafka-python>=2.0.2",
-    "redis>=5.0.0",
-    "asyncpg>=0.29.0",
+    "dynamic-des[kafka,redis,postgres,dashboard]"
 ]
 [build-system]
 requires = ["uv_build>=0.9.16,<0.10.0"]
