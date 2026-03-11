@@ -24,8 +24,7 @@ class KafkaEgress(BaseEgress):
             "bootstrap_servers": bootstrap_servers,
             "linger_ms": 10,  # Batch messages for 10ms before sending
             "compression_type": "lz4",  # Fast compression for high volume
-            "batch_size": 131072,  # 128KB batch size
-            "buffer_memory": 67108864,  # 64MB buffer
+            "max_batch_size": 131072,  # 128KB batch size
             **kwargs,
         }
 
@@ -43,23 +42,19 @@ class KafkaEgress(BaseEgress):
                         if stream == "telemetry":
                             topic = self.telemetry_topic
                             key = (
-                                str(data.get("path_id")).encode()
-                                if "key" in data
-                                else None
+                                str(data["path_id"]).encode() if "key" in data else None
                             )
                         else:
                             topic = self.event_topic
                             # Use the event_key for Kafka partitioning
-                            key = (
-                                str(data.get("key")).encode() if "key" in data else None
-                            )
+                            key = str(data["key"]).encode() if "key" in data else None
 
                         # orjson.dumps returns bytes directly (faster than json.dumps + encode)
                         await producer.send(topic, value=orjson.dumps(data), key=key)
 
                 except queue.Empty:
                     # Yield to loop if queue is empty
-                    await asyncio.sleep(0.01)
+                    await asyncio.sleep(0.001)
                 except Exception as e:
                     print(f"KafkaEgress Error: {e}")
         finally:
