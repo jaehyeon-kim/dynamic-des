@@ -20,6 +20,11 @@ plugins:
       handlers:
         python:
           paths: [src]
+          options:
+            show_root_full_path: false # Removes 'dynamic_des.core...' prefix
+            show_root_toc_entry: true # Ensures class appears in TOC
+            show_root_heading: true # Shows the class name as a heading
+            show_category_heading: true # Groups methods, attributes, etc.
 
 nav:
   - Home: index.md
