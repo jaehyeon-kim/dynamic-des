@@ -1,12 +1,11 @@
 # API Reference
 
-This page provides technical documentation for all classes and methods in **Dynamic DES**, automatically generated from the source code.
-
 ## Environment
 
 <!-- prettier-ignore -->
 ::: dynamic_des.core.environment.DynamicRealtimeEnvironment
     options:
+      heading_level: 3
       show_root_heading: true
       members:
         - setup_ingress
@@ -18,38 +17,57 @@ This page provides technical documentation for all classes and methods in **Dyna
 
 <!-- prettier-ignore -->
 ::: dynamic_des.core.registry.SimulationRegistry
+    options:
+      heading_level: 3
 
 <!-- prettier-ignore -->
 ::: dynamic_des.models.params.SimParameter
-
-<!-- prettier-ignore -->
-::: dynamic_des.models.params.DistributionConfig
-
-<!-- prettier-ignore -->
-::: dynamic_des.models.params.CapacityConfig
+    options:
+      heading_level: 3
 
 ## Resources
 
 <!-- prettier-ignore -->
 ::: dynamic_des.resources.resource.DynamicResource
     options:
+      heading_level: 3
       members:
         - request
         - release
         - in_use
 
+## Admin & Infrastructure
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.admin.kafka.KafkaAdminConnector
+    options:
+      heading_level: 3
+      members:
+        - create_topics
+        - send_config
+        - collect_events
+        - get_state
+
 ## Connectors (Ingress)
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.ingress.kafka.KafkaIngress
+    options:
+      heading_level: 3
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.ingress.local.LocalIngress
+    options:
+      heading_level: 3
 
 ## Connectors (Egress)
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.egress.kafka.KafkaEgress
+    options:
+      heading_level: 3
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.egress.local.ConsoleEgress
+    options:
+      heading_level: 3
