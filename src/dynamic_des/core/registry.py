@@ -63,16 +63,35 @@ class SimulationRegistry:
     def update(self, path: str, new_value: Any):
         """Update value and synchronize the parent configuration object."""
         if path in self._values:
+            current_val = self._values[path].value
+            validated_value = new_value
+
+            # Type Validation & Casting
+            if current_val is not None:
+                expected_type = type(current_val)
+                # If types don't match, attempt a safe cast (e.g., "5" -> 5)
+                if not isinstance(new_value, expected_type):
+                    try:
+                        validated_value = expected_type(new_value)
+                        logger.debug(
+                            f"Cast '{new_value}' to {expected_type.__name__} for '{path}'"
+                        )
+                    except (ValueError, TypeError):
+                        logger.error(
+                            f"Type mismatch for '{path}'. Expected {expected_type.__name__}, "
+                            f"got {type(new_value).__name__} with value '{new_value}'. Update ignored."
+                        )
+                        return  # Exit early to prevent crashing the simulation
+
             # Update the DynamicValue (triggers SimPy events)
-            self._values[path].update(new_value)
+            self._values[path].update(validated_value)
 
             # Synchronize the attribute on the original config object
             if "." in path:
                 parent_path, attr = path.rsplit(".", 1)
                 if parent_path in self._configs:
-                    setattr(self._configs[parent_path], attr, new_value)
+                    setattr(self._configs[parent_path], attr, validated_value)
         else:
-            # Replaced print() with logger.warning()
             logger.warning(f"Attempted to update non-existent path: {path}")
 
     def register_sim_parameter(self, param: SimParameter):
