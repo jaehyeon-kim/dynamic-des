@@ -10,9 +10,10 @@ It bridges the gap between static discrete-event simulations and the live world 
 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
 - **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.rate`) that trigger instant logic changes.
-- **🚀 High Throughput**: Optimized to handle high throughtput using `orjson` and local batching.
+- **🚀 High Throughput**: Optimized to handle high throughput using `orjson` and local batching.
 - **🔋 Flexible Resources**: `DynamicResource` provides prioritized queuing with graceful capacity shrinking.
-- **🔌 Modular Connectors**: Plugin-based architecture for Kafka, Redis, and more.
+- **🔌 Modular Connectors**: Plugin-based architecture for Kafka, Redis, Postgres and Local testing.
+- **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time, exposed via the telemetry stream.
 
 ---
 

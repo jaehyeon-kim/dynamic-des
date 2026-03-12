@@ -13,6 +13,7 @@ Dynamic DES bridges the gap between static discrete-event simulations and the li
 - **🚀 High Throughput**: Optimized to handle high throughput using `orjson` and local batching.
 - **🔋 Flexible Resources**: `DynamicResource` provides prioritized queuing with graceful capacity shrinking.
 - **🔌 Modular Connectors**: Plugin-based architecture for Kafka, Redis, Postgres and Local testing.
+- **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time, exposed via the telemetry stream.
 
 ---
 
@@ -70,7 +71,7 @@ res = DynamicResource(env, "Line_A", "lathe")
 def telemetry_monitor(env: DynamicRealtimeEnvironment, res: DynamicResource):
     """Streams system health metrics every 2 seconds."""
     while True:
-        env.publish_telemetry("Line_A.resources.lathe.capacity", res._capacity)
+        env.publish_telemetry("Line_A.resources.lathe.capacity", res.capacity)
         yield env.timeout(2.0)
 
 
