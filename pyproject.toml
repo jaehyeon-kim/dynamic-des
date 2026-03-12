@@ -22,7 +22,7 @@ dependencies = [
     "simpy>=4.0.0",
     "numpy>=1.26.0",
     "orjson>=3.10.0",
-    "lz4[frame]>=4.4.5",
+    "python-on-whales>=0.70.0"
 ]
 [project.optional-dependencies]
 kafka =[
@@ -49,3 +49,11 @@ dev = [
     "pytest-asyncio>=1.3.0",
     "ruff>=0.15.5",
 ]
+[project.scripts]
+# Infrastructure
+ddes-kafka-infra-up = "dynamic_des.examples:kafka_infra_up"
+ddes-kafka-infra-down = "dynamic_des.examples:kafka_infra_down"
+# Examples & Dashboard
+ddes-local-example = "dynamic_des.examples:local_demo"
+ddes-kafka-example = "dynamic_des.examples:kafka_demo"
+ddes-kafka-dashboard = "dynamic_des.examples:kafka_dashboard_demo"
