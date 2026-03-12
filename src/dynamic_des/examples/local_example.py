@@ -83,13 +83,13 @@ def work_task(
 def telemetry_monitor(env: DynamicRealtimeEnvironment, res: DynamicResource):
     """Streams system health metrics every 2 seconds."""
     while True:
-        env.publish_telemetry("Line_A.resources.lathe.capacity", res._capacity)
+        env.publish_telemetry("Line_A.resources.lathe.capacity", res.capacity)
         env.publish_telemetry("Line_A.resources.lathe.in_use", res.in_use)
         env.publish_telemetry(
             "Line_A.resources.lathe.queue_length", len(res.queue.items)
         )
 
-        util = (res.in_use / res._capacity) * 100 if res._capacity > 0 else 0
+        util = (res.in_use / res.capacity) * 100 if res.capacity > 0 else 0
         env.publish_telemetry("Line_A.resources.lathe.utilization", util)
         yield env.timeout(2.0)
 

@@ -10,8 +10,14 @@ logger = logging.getLogger(__name__)
 
 class DynamicValue:
     """
-    The atom of the registry. Holds a value and a SimPy event
-    that triggers whenever the value changes.
+    The atom of the registry. Holds a value and a SimPy event that triggers whenever the value changes.
+
+    This class is used internally by the `SimulationRegistry` to wrap configuration
+    values so that SimPy processes can yield and wait for them to change.
+
+    Attributes:
+        env (Environment): The active SimPy environment.
+        name (str): The dot-notation path/name of this value (e.g., 'Line_A.lathe.capacity').
     """
 
     def __init__(self, env: Environment, name: str, initial_value: Any):
@@ -23,9 +29,16 @@ class DynamicValue:
 
     @property
     def value(self):
+        """The current underlying value."""
         return self._value
 
     def update(self, new_value: Any):
+        """
+        Updates the value and signals any waiting SimPy processes.
+
+        Args:
+            new_value (Any): The new value to store.
+        """
         if self._value != new_value:
             self._value = new_value
             # Signal a change if not already signaled
@@ -33,14 +46,25 @@ class DynamicValue:
                 self._signal.put(True)
 
     def wait_for_change(self):
-        """Returns a get-request for the signal."""
+        """
+        Returns a SimPy event that will be triggered when the value updates.
+
+        Returns:
+            simpy.events.StoreGet: A get-request for the internal signal.
+        """
         return self._signal.get()
 
 
 class SimulationRegistry:
     """
-    A centralized 'Switchboard' that maps dot-notation paths
-    to DynamicValue objects and their parent configuration objects.
+    A centralized 'Switchboard' that maps dot-notation paths to dynamic simulation parameters.
+
+    The Registry acts as the single source of truth for the simulation's state. It allows
+    external streams (like Kafka or Redis) to update parameters on the fly, seamlessly
+    synchronizing them with the underlying SimPy processes.
+
+    Attributes:
+        env (Environment): The active SimPy environment.
     """
 
     def __init__(self, env: Environment):
@@ -49,19 +73,51 @@ class SimulationRegistry:
         self._configs: Dict[str, Any] = {}
 
     def get(self, path: str) -> DynamicValue:
-        """Retrieve the DynamicValue object at a specific path."""
+        """
+        Retrieve the `DynamicValue` object at a specific path.
+
+        Args:
+            path (str): The dot-notation path (e.g., 'Line_A.arrival.standard.rate').
+
+        Returns:
+            DynamicValue: The wrapper object for the requested parameter.
+
+        Raises:
+            KeyError: If the path does not exist in the registry.
+        """
         if path not in self._values:
             raise KeyError(f"Path '{path}' not found in Simulation Registry.")
         return self._values[path]
 
     def get_config(self, path: str) -> Any:
-        """Retrieve the live DistributionConfig or CapacityConfig object."""
+        """
+        Retrieve the live configuration object (e.g., `DistributionConfig`).
+
+        Args:
+            path (str): The dot-notation path (e.g., 'Line_A.service.milling').
+
+        Returns:
+            Any: The synchronized configuration object.
+
+        Raises:
+            KeyError: If the config path does not exist in the registry.
+        """
         if path not in self._configs:
             raise KeyError(f"Config path '{path}' not found in Simulation Registry.")
         return self._configs[path]
 
     def update(self, path: str, new_value: Any):
-        """Update value and synchronize the parent configuration object."""
+        """
+        Update a value safely and synchronize its parent configuration object.
+
+        Includes dynamic type casting to protect the simulation from crashing if
+        external systems send improperly typed data (e.g., sending the string "5"
+        instead of the integer 5).
+
+        Args:
+            path (str): The dot-notation path to update.
+            new_value (Any): The new value to apply.
+        """
         if path in self._values:
             current_val = self._values[path].value
             validated_value = new_value
@@ -96,8 +152,10 @@ class SimulationRegistry:
 
     def register_sim_parameter(self, param: SimParameter):
         """
-        Takes a SimParameter instance and flattens it into the registry.
-        Stores references to config objects to allow retrieval via get_config.
+        Takes a `SimParameter` instance and flattens it into the registry.
+
+        Args:
+            param (SimParameter): The initial state schema to register.
         """
         prefix = param.sim_id
 

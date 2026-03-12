@@ -5,7 +5,17 @@ from typing import Dict, Literal, Optional
 @dataclass
 class DistributionConfig:
     """
-    Configuration for stochastic timing.
+    Configuration for a statistical distribution used in the simulation.
+
+    This config is dynamically updatable. For example, you can change the `rate`
+    of an 'exponential' distribution via Kafka, and the `Sampler` will instantly
+    use the new rate for the next event.
+
+    Attributes:
+        dist (str): The type of distribution (e.g., 'exponential', 'normal', 'uniform').
+        rate (Optional[float]): The rate parameter (lambda) for exponential distributions.
+        mean (Optional[float]): The mean (mu) for normal distributions.
+        std (Optional[float]): The standard deviation (sigma) for normal distributions.
     """
 
     dist: Literal["exponential", "normal", "lognormal"]
@@ -16,7 +26,13 @@ class DistributionConfig:
 
 @dataclass
 class CapacityConfig:
-    """Standardized config for any capacity-constrained object."""
+    """
+    Configuration for the capacity of a simulated resource, container, or store.
+
+    Attributes:
+        current_cap (int): The currently active capacity (e.g., number of active workers).
+        max_cap (int): The absolute physical maximum capacity. `current_cap` cannot exceed this.
+    """
 
     current_cap: int
     max_cap: int
@@ -25,8 +41,18 @@ class CapacityConfig:
 @dataclass
 class SimParameter:
     """
-    The unified parameter set for a simulation unit.
-    Grouped for easy 'path-based' updates from external backends.
+    The master schema representing the state of a specific simulation entity (like a production line).
+
+    This object is registered with the `SimulationRegistry`, which flattens
+    the nested dictionaries into dot-notation paths (e.g., 'Line_A.arrival.standard.rate').
+
+    Attributes:
+        sim_id (str): The unique prefix for this group of parameters (e.g., 'Line_A').
+        arrival (Dict[str, DistributionConfig]): Configurations for arrival generation rates.
+        service (Dict[str, DistributionConfig]): Configurations for process task durations.
+        resources (Dict[str, CapacityConfig]): Configurations for standard SimPy Resources.
+        containers (Dict[str, CapacityConfig]): Configurations for continuous SimPy Containers.
+        stores (Dict[str, CapacityConfig]): Configurations for discrete SimPy Stores.
     """
 
     sim_id: str
