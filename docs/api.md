@@ -51,6 +51,11 @@
 ## Connectors (Ingress)
 
 <!-- prettier-ignore -->
+::: dynamic_des.connectors.ingress.base.BaseIngress
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
 ::: dynamic_des.connectors.ingress.kafka.KafkaIngress
     options:
       heading_level: 3
@@ -60,7 +65,22 @@
     options:
       heading_level: 3
 
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.ingress.postgres.PostgresIngress
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.ingress.redis.RedisIngress
+    options:
+      heading_level: 3
+
 ## Connectors (Egress)
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.egress.base.BaseEgress
+    options:
+      heading_level: 3
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.egress.kafka.KafkaEgress
@@ -69,5 +89,15 @@
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.egress.local.ConsoleEgress
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.egress.postgres.PostgresEgress
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.egress.redis.RedisEgress
     options:
       heading_level: 3
