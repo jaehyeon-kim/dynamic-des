@@ -3,7 +3,7 @@
 This guide illustrates how to install Dynamic DES, run the built-in examples, and build your own real-time simulation. You can see the live control dashboard from the built-in Kafka example below.
 
 <div align="center">
-  <img src="assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
+  <img src="../assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
 </div>
 
 ## Installation
