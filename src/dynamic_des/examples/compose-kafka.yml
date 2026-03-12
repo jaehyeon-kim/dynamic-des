@@ -19,15 +19,3 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
     restart: unless-stopped
-  kpow-ce:
-    image: factorhouse/kpow-ce:latest
-    container_name: kpow-ce
-    pull_policy: always
-    ports:
-      - "3000:3000"
-    env_file:
-      - $KPOW_LICENSE
-    environment:
-      ENVIRONMENT_NAME: "Local Kafka Cluster"
-      BOOTSTRAP: "broker:29092"
-    restart: unless-stopped
