@@ -1,4 +1,5 @@
 import asyncio
+import queue
 from unittest.mock import AsyncMock, patch
 
 import orjson
@@ -8,12 +9,18 @@ from dynamic_des.connectors.egress.kafka import KafkaEgress
 
 
 @pytest.mark.asyncio
-async def test_kafka_egress_success(mock_egress_queue):
+@patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
+async def test_kafka_egress_success(MockProducer):
+    # 1. Setup Mock Producer Instance
+    mock_producer_instance = AsyncMock()
+    MockProducer.return_value = mock_producer_instance
+
     telemetry_topic = "metrics_topic"
     event_topic = "event_topic"
     servers = "localhost:9092"
 
-    # Prepare sample telemetry data
+    # 2. Prepare queue and sample telemetry data
+    mock_egress_queue = queue.Queue()
     data = {
         "stream_type": "telemetry",
         "path_id": "Line_A.lathe.queue_length",
@@ -22,32 +29,38 @@ async def test_kafka_egress_success(mock_egress_queue):
     }
     mock_egress_queue.put([data])
 
-    # Setup Mock Producer
-    mock_producer = AsyncMock()
+    egress = KafkaEgress(
+        telemetry_topic=telemetry_topic,
+        event_topic=event_topic,
+        bootstrap_servers=servers,
+    )
 
-    # Patch where used
-    with patch(
-        "dynamic_des.connectors.egress.kafka.AIOKafkaProducer",
-        return_value=mock_producer,
-    ):
-        egress = KafkaEgress(telemetry_topic, event_topic, servers)
+    # 3. Run in a task so we can cancel the infinite loop
+    task = asyncio.create_task(egress.run(mock_egress_queue))
 
-        # Run in a task so we can cancel the infinite loop
-        task = asyncio.create_task(egress.run(mock_egress_queue))
+    # Give it a moment to process the queue
+    await asyncio.sleep(0.1)
 
-        # Give it a moment to process the queue
-        await asyncio.sleep(0.2)
-        task.cancel()
+    # Trigger the clean shutdown
+    task.cancel()
+    try:
+        await task  # Yield back to the loop so the CancelledError block runs
+    except asyncio.CancelledError:
+        pass
 
-    # 4. Verify
-    assert mock_producer.start.called
-    assert mock_producer.send.called  # Verify send was called (aiokafka default)
+    # 4. Verify Lifecycle
+    mock_producer_instance.start.assert_called_once()
+    mock_producer_instance.send.assert_called_once()
+    mock_producer_instance.stop.assert_called_once()  # Proves teardown works!
 
-    # Check payload
-    call_args = mock_producer.send.call_args
-    target_topic = call_args[0][0]
-    sent_payload_bytes = call_args[1]["value"]
+    # 5. Check Payload
+    call_args = mock_producer_instance.send.call_args
+    target_topic = call_args.args[0]
+    sent_payload_bytes = call_args.kwargs["value"]
 
     assert target_topic == telemetry_topic
+
     # Use orjson to decode since the producer uses orjson.dumps
-    assert orjson.loads(sent_payload_bytes)["path_id"] == "Line_A.lathe.queue_length"
+    decoded_payload = orjson.loads(sent_payload_bytes)
+    assert decoded_payload["path_id"] == "Line_A.lathe.queue_length"
+    assert decoded_payload["value"] == 10

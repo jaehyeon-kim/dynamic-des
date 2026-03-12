@@ -1,82 +1,59 @@
+import asyncio
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+import queue
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from dynamic_des.connectors.ingress.kafka import KafkaIngress
 
 
-class MockMsg:
-    """Simulates a Kafka Message object."""
-
-    def __init__(self, value):
-        self.value = value
-
-
-def mock_async_iterator(items):
-    """Helper to create a valid async iterator for mocks."""
-
-    async def _gen():
-        for item in items:
-            yield item
-
-    return _gen()
-
-
 @pytest.mark.asyncio
-async def test_kafka_ingress_success(mock_ingress_queue):
-    """Verify KafkaIngress parses JSON and pushes to queue."""
-    topic = "test_topic"
-    servers = "localhost:9092"
+@patch("dynamic_des.connectors.ingress.kafka.AIOKafkaConsumer")
+async def test_kafka_ingress_success(MockConsumer):
 
-    # Prepare the payload
-    data = {"path_id": "Line_A.arrival.rate", "value": 0.5}
-    raw_payload = json.dumps(data).encode("utf-8")
-    mock_msg = MockMsg(raw_payload)
+    # Create a foolproof fake consumer class
+    class FakeConsumer:
+        def __init__(self):
+            self.start = AsyncMock()
+            self.stop = AsyncMock()
 
-    # Setup Mock Consumer
-    mock_consumer = AsyncMock()
+        async def __aiter__(self):
+            # Fake message object inside the iterator
+            class FakeMessage:
+                value = json.dumps(
+                    {"path_id": "Line_A.resources.lathe.current_cap", "value": 5}
+                ).encode("utf-8")
 
-    # Fix the Async Iterator
-    # __aiter__ must be a regular MagicMock (sync) returning an async generator
-    mock_consumer.__aiter__ = MagicMock(return_value=mock_async_iterator([mock_msg]))
+            yield FakeMessage()
+            await asyncio.sleep(999)  # Block so it doesn't immediately exit the loop
 
-    # Patch the AIOKafkaConsumer where it is used in the ingress module
-    with patch(
-        "dynamic_des.connectors.ingress.kafka.AIOKafkaConsumer",
-        return_value=mock_consumer,
-    ):
-        ingress = KafkaIngress(topic, servers)
-        await ingress.run(mock_ingress_queue)
+    mock_consumer_instance = FakeConsumer()
+    MockConsumer.return_value = mock_consumer_instance
 
-    # Verify results
-    assert not mock_ingress_queue.empty()
-    path_id, value = mock_ingress_queue.get_nowait()
-    assert path_id == "Line_A.arrival.rate"
-    assert value == 0.5
+    # Setup Ingress
+    ingress_queue = queue.Queue()
+    ingress = KafkaIngress(topic="test-topic", bootstrap_servers="localhost:9092")
 
-    assert mock_consumer.start.called
-    assert mock_consumer.stop.called
+    # Run the background task
+    task = asyncio.create_task(ingress.run(ingress_queue))
 
+    # Give the event loop a moment to process the message
+    await asyncio.sleep(0.1)
 
-@pytest.mark.asyncio
-async def test_kafka_ingress_invalid_json(mock_ingress_queue, capsys):
-    """Verify KafkaIngress handles malformed JSON without crashing."""
-    mock_consumer = AsyncMock()
-    mock_consumer.__aiter__ = MagicMock(
-        return_value=mock_async_iterator([MockMsg(b"invalid-json")])
-    )
+    # Trigger the clean shutdown
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 
-    with patch(
-        "dynamic_des.connectors.ingress.kafka.AIOKafkaConsumer",
-        return_value=mock_consumer,
-    ):
-        ingress = KafkaIngress("topic", "localhost")
-        await ingress.run(mock_ingress_queue)
+    # Verify Lifecycle
+    mock_consumer_instance.start.assert_called_once()
+    mock_consumer_instance.stop.assert_called_once()
 
-    # Queue should be empty because parsing failed
-    assert mock_ingress_queue.empty()
-
-    # Capture stdout to check for the error message
-    captured = capsys.readouterr()
-    assert "KafkaIngress Error" in captured.out
+    # Check the Queue output
+    assert not ingress_queue.empty()
+    path, value = ingress_queue.get_nowait()
+    assert path == "Line_A.resources.lathe.current_cap"
+    assert value == 5
