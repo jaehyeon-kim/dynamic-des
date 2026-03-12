@@ -87,7 +87,10 @@ env.process(arrival_process(env, res))
 env.process(telemetry_monitor(env, res))
 
 print("Simulation started. Watch capacity change at t=10.0s and 20.0s...")
-env.run(until=30)
+try:
+    env.run(until=30)
+finally:
+    env.teardown()
 ```
 
 ## Key Mechanisms in this Example
