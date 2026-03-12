@@ -1,8 +1,11 @@
+import logging
 from typing import Any, Dict
 
 from simpy import Environment, Store
 
 from dynamic_des.models.params import SimParameter
+
+logger = logging.getLogger(__name__)
 
 
 class DynamicValue:
@@ -69,7 +72,8 @@ class SimulationRegistry:
                 if parent_path in self._configs:
                     setattr(self._configs[parent_path], attr, new_value)
         else:
-            print(f"Warning: Attempted to update non-existent path: {path}")
+            # Replaced print() with logger.warning()
+            logger.warning(f"Attempted to update non-existent path: {path}")
 
     def register_sim_parameter(self, param: SimParameter):
         """
