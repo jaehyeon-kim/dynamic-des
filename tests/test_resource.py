@@ -13,7 +13,7 @@ def test_resource_initialization(env, registry, sample_params):
     res = DynamicResource(env, "Line_A", "lathe")
 
     # Initial capacity from sample_params: current_cap=2, max_cap=5
-    assert res._capacity == 2
+    assert res.capacity == 2
     assert res.pool.level == 2
     assert res.pool.capacity == 5
 
@@ -75,7 +75,7 @@ def test_request_cancellation(env, registry, sample_params):
     # and immediately return the token to the pool.
     env.run(until=12)
     assert res.pool.level == 1
-    assert res._capacity == 1
+    assert res.capacity == 1
 
 
 def test_priority_queuing(env, registry, sample_params):
@@ -113,7 +113,7 @@ def test_dynamic_capacity_increase(env, registry, sample_params):
     registry.update("Line_A.resources.lathe.current_cap", 4)
     env.run(until=env.now + 0.1)
 
-    assert res._capacity == 4
+    assert res.capacity == 4
     assert res.pool.level == 4
 
 
@@ -131,7 +131,7 @@ def test_dynamic_capacity_decrease_while_busy(env, registry, sample_params):
     env.process(worker())
     env.run(until=1)
 
-    assert res._capacity == 2
+    assert res.capacity == 2
     assert res.pool.level == 0
 
     # Request drop to 1
@@ -140,7 +140,7 @@ def test_dynamic_capacity_decrease_while_busy(env, registry, sample_params):
 
     # Total capacity target is now 1, but level is still 0 because
     # the 1 remaining token is still in use by a worker.
-    assert res._capacity == 1
+    assert res.capacity == 1
     assert res.pool.level == 0
 
     env.run(until=12)

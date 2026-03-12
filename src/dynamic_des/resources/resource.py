@@ -6,7 +6,12 @@ from dynamic_des.resources.base import BaseDynamicResource
 
 
 class DynamicResourceRequest(Event):
-    """A context manager for DynamicResource requests."""
+    """
+    A custom Request event for DynamicResource.
+
+    This subclass allows us to attach metadata to the request if needed
+    for future features like priority-shifting or logging.
+    """
 
     def __init__(self, resource: DynamicResource, priority: int):
         super().__init__(resource.env)
@@ -35,10 +40,28 @@ class DynamicResourceRequest(Event):
 
 class DynamicResource(BaseDynamicResource):
     """
-    A hybrid SimPy resource managing priority-based queuing and dynamic capacity.
+    A SimPy Resource with a dynamically adjustable capacity.
+
+    Unlike a standard `simpy.Resource` where capacity is fixed at creation,
+    the `DynamicResource` listens to a `SimulationRegistry` path (e.g., 'Line_A.lathe.current_cap').
+    When the registry updates the capacity, the resource automatically adjusts,
+    triggering pending requests if capacity increases.
+
+    Attributes:
+        env (DynamicRealtimeEnvironment): The active simulation environment.
+        sim_id (str): The prefix ID (e.g., 'Line_A').
+        resource_id (str): The specific resource name (e.g., 'lathe').
     """
 
     def __init__(self, env: Environment, sim_id: str, resource_id: str):
+        """
+        Initializes the DynamicResource and binds it to the registry.
+
+        Args:
+            env (Environment): The SimPy environment (must include the RegistryMixIn).
+            sim_id (str): The parent simulation ID.
+            resource_id (str): The name of the resource.
+        """
         super().__init__(env, sim_id, resource_id, "resources")
 
         max_cap = int(self._max_cap_val.value)
@@ -50,6 +73,16 @@ class DynamicResource(BaseDynamicResource):
 
         self._request_event = self.env.event()
         self.env.process(self._dispatcher())
+
+    @property
+    def capacity(self) -> int:
+        """
+        The current active capacity of the resource.
+
+        This value reflects the live state from the Registry and may change
+        during the simulation.
+        """
+        return self._capacity
 
     @property
     def in_use(self) -> int:

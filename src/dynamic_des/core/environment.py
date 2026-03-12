@@ -13,14 +13,31 @@ logger = logging.getLogger(__name__)
 
 
 class RegistryMixIn:
+    """
+    MixIn to attach a central SimulationRegistry to the environment.
+    """
+
     def setup_registry(self):
+        """Initializes the SimulationRegistry and binds it to the environment."""
         self.registry = SimulationRegistry(self)
 
 
 class IngressMixIn:
-    """Handles background I/O for Ingress (Incoming updates)."""
+    """
+    Handles background I/O for Ingress (Incoming updates).
+
+    This MixIn manages a background thread and an asyncio event loop to
+    continuously poll external sources (like Kafka or Redis) for state changes
+    without blocking the main SimPy execution loop.
+    """
 
     def setup_ingress(self, providers: List):
+        """
+        Initializes the ingress queues and starts the background listener threads.
+
+        Args:
+            providers (List[BaseIngress]): A list of initialized ingress connector instances.
+        """
         self.ingress_queue = queue.Queue()
         self.ingress_providers = providers
         self._ingress_loop = None  # Store loop reference
@@ -31,6 +48,7 @@ class IngressMixIn:
         self.process(self._ingress_monitor())
 
     def _run_ingress_loop(self):
+        """Internal: Runs the asyncio event loop for ingress providers in a background thread."""
         self._ingress_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._ingress_loop)
         for provider in self.ingress_providers:
@@ -38,8 +56,8 @@ class IngressMixIn:
         self._ingress_loop.run_forever()
 
     def _ingress_monitor(self):
+        """Internal: A SimPy process that checks the thread-safe queue for new data."""
         while True:
-            # FIX: Thread-safe queue polling to prevent race conditions
             while True:
                 try:
                     path, value = self.ingress_queue.get_nowait()
@@ -50,18 +68,32 @@ class IngressMixIn:
             yield self.timeout(0.1)
 
     def teardown_ingress(self):
-        """Safely stops the ingress event loop."""
+        """Safely stops the background ingress event loop."""
         logger.info("Tearing down ingress connectors...")
         if self._ingress_loop and self._ingress_loop.is_running():
             self._ingress_loop.call_soon_threadsafe(self._ingress_loop.stop)
 
 
 class EgressMixIn:
-    """MixIn to handle high-throughput egress with count or time-based flushing."""
+    """
+    Handles high-throughput data egress to external systems.
+
+    This MixIn manages a background thread to asynchronously push telemetry
+    and event data to destinations like Kafka, Redis, or PostgreSQL. It uses
+    a buffered approach to maximize throughput.
+    """
 
     def setup_egress(
         self, providers: List, batch_size: int = 500, flush_interval: float = 1.0
     ):
+        """
+        Initializes the egress buffers and starts the background publisher threads.
+
+        Args:
+            providers (List[BaseEgress]): A list of initialized egress connector instances.
+            batch_size (int, optional): The maximum number of events to buffer before flushing. Defaults to 500.
+            flush_interval (float, optional): Maximum simulation seconds to wait before forcing a flush. Defaults to 1.0.
+        """
         self.egress_queue = queue.Queue()
         self.egress_providers = providers
         self.egress_batch_size = batch_size
@@ -77,10 +109,10 @@ class EgressMixIn:
 
         # Start background processes
         self.process(self._periodic_flush())
-        self.process(self._lag_monitor())  # Only starts if egress is configured
+        self.process(self._lag_monitor())
 
     def _lag_monitor(self):
-        """Monitors how far the simulation time has drifted from the real-world clock."""
+        """Internal: Monitors how far the simulation time has drifted from the real-world clock."""
         while True:
             # Calculate real seconds elapsed since simulation start
             real_elapsed = (datetime.now() - self.start_datetime).total_seconds()
@@ -91,7 +123,7 @@ class EgressMixIn:
             yield self.timeout(1.0)
 
     def _run_egress_loop(self):
-        """Background thread logic for egress providers."""
+        """Internal: Runs the asyncio event loop for egress providers in a background thread."""
         self._egress_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._egress_loop)
         for provider in self.egress_providers:
@@ -99,20 +131,29 @@ class EgressMixIn:
         self._egress_loop.run_forever()
 
     def _periodic_flush(self):
-        """SimPy process that flushes the buffer every x seconds."""
+        """Internal: SimPy process that flushes the buffer at regular intervals."""
         while True:
             yield self.timeout(self.egress_flush_interval)
             self._flush_buffer()
 
     def _flush_buffer(self):
-        """Internal helper to push data to the thread-safe queue."""
+        """Internal: Pushes buffered data to the thread-safe queue."""
         if self._event_buffer:
             logger.debug(f"Flushing {len(self._event_buffer)} events to egress.")
             self.egress_queue.put(self._event_buffer)
             self._event_buffer = []
 
     def publish_telemetry(self, path_id: str, value: Any):
-        """Telemetry usually triggers an immediate flush to keep vitals fresh."""
+        """
+        Publishes a low-volume telemetry metric (e.g., utilization, queue length).
+
+        Telemetry triggers an immediate push to the egress queue to keep system
+        vitals fresh for external dashboards.
+
+        Args:
+            path_id (str): The dot-notation path of the metric (e.g., 'Line_A.lathe.utilization').
+            value (Any): The current value of the metric.
+        """
         if not hasattr(self, "egress_queue"):
             return  # Fail silently if no egress is configured
 
@@ -129,7 +170,16 @@ class EgressMixIn:
         )
 
     def publish_event(self, event_key: str, value: Any):
-        """Event data: Flushed if batch size is reached OR periodic flush occurs."""
+        """
+        Buffers a high-volume discrete event (e.g., a task starting or finishing).
+
+        Events are buffered and flushed either when `batch_size` is reached
+        or when `flush_interval` occurs to optimize external I/O throughput.
+
+        Args:
+            event_key (str): A unique identifier for the event (e.g., 'task-001').
+            value (Any): A dictionary containing the event payload.
+        """
         if not hasattr(self, "_event_buffer"):
             return  # Fail silently if no egress is configured
 
@@ -147,7 +197,7 @@ class EgressMixIn:
             self._flush_buffer()
 
     def _get_iso_timestamp(self, start_time: datetime, sim_now: float) -> str:
-        """Converts simulation time to a real-world ISO string."""
+        """Internal: Converts simulation time to a real-world ISO string."""
         return (start_time + timedelta(seconds=sim_now)).isoformat(
             timespec="milliseconds"
         )
@@ -163,15 +213,37 @@ class EgressMixIn:
 class DynamicRealtimeEnvironment(
     RealtimeEnvironment, RegistryMixIn, IngressMixIn, EgressMixIn
 ):
+    """
+    The core simulation engine for `dynamic-des`.
+
+    This environment extends SimPy's `RealtimeEnvironment` by incorporating
+    a centralized `SimulationRegistry` for dynamic state updates, and MixIns
+    for managing high-throughput asynchronous I/O with external systems.
+
+    Attributes:
+        start_datetime (datetime): The real-world clock time when the simulation started.
+    """
+
     def __init__(self, initial_time=0, factor=1.0, strict=False):
+        """
+        Initializes the real-time simulation environment.
+
+        Args:
+            initial_time (float, optional): The initial simulation time. Defaults to 0.
+            factor (float, optional): The real-time factor (e.g., 1.0 = 1 sim second per real second). Defaults to 1.0.
+            strict (bool, optional): If True, raises RuntimeError if simulation falls too far behind real time. Defaults to False.
+        """
         self.start_datetime = datetime.now()
         super().__init__(initial_time=initial_time, factor=factor, strict=strict)
         self.setup_registry()
 
     def teardown(self):
         """
-        Gracefully terminates the environment, ensuring buffers are flushed
-        and background threads are sent stop signals.
+        Gracefully terminates the environment.
+
+        Ensures that any remaining data in event buffers is flushed to the
+        egress connectors, and that background asyncio threads for both
+        ingress and egress are cleanly stopped. Should be called in a `finally` block.
         """
         logger.info("Environment teardown initiated.")
         if hasattr(self, "teardown_egress"):

@@ -10,18 +10,31 @@ from kafka.errors import TopicAlreadyExistsError
 class KafkaAdminConnector:
     """
     Unified Kafka Admin and Monitoring Connector.
-    Uses aiokafka for async data flow and kafka-python for sync admin tasks.
+
+    This connector acts as a management layer for the simulation's Kafka
+    infrastructure. It handles synchronous administrative tasks (topic creation)
+    using `kafka-python` and asynchronous data operations (sending config,
+    collecting telemetry/events) using `aiokafka`.
+
+    It maintains an internal state of simulation vitals and task lifecycles
+    by consuming from the simulation's egress topics.
+
+    Attributes:
+        bootstrap_servers (str): Kafka broker addresses.
+        max_tasks (int): The maximum number of task records to keep per service
+            in memory to prevent unbounded growth.
+        kwargs (dict): Additional arguments passed to Kafka clients.
     """
 
     def __init__(self, bootstrap_servers: str, max_tasks: int = 100, **kwargs):
         """
-        Initialize the connector.
+        Initialize the connector with broker settings and state limits.
 
         Args:
             bootstrap_servers: Kafka broker addresses.
             max_tasks: The maximum number of task records to keep per service
                 in memory (rolling window).
-            **kwargs: Additional arguments passed to Kafka clients.
+            **kwargs: Additional arguments passed to Kafka clients (e.g., security settings).
         """
         self.bootstrap_servers = bootstrap_servers
         self.max_tasks = max_tasks
@@ -34,8 +47,16 @@ class KafkaAdminConnector:
 
     def create_topics(self, topics_config: List[Dict[str, Any]]):
         """
-        Creates Kafka topics. Synchronous call to ensure infrastructure
-        is ready before simulation start.
+        Creates Kafka topics required for the simulation.
+
+        This is a synchronous call to ensure that all necessary infrastructure
+        (config, telemetry, and event topics) is ready before the simulation
+        environment starts.
+
+        Args:
+            topics_config: A list of topic configurations.
+                Each dict should contain 'name', and optionally 'partitions'
+                and 'replication'.
         """
         admin_client = KafkaAdminClient(
             bootstrap_servers=self.bootstrap_servers,
@@ -61,7 +82,16 @@ class KafkaAdminConnector:
 
     async def send_config(self, topic: str, path_id: str, value: Any):
         """
-        Sends a surgical parameter update to the simulation config topic.
+        Sends a surgical parameter update to a simulation config topic.
+
+        This method acts as an external controller, allowing users to
+        dynamically update registry paths (e.g., arrival rates or resource
+        capacities) while the simulation is running.
+
+        Args:
+            topic: The Kafka topic the simulation is listening to for config.
+            path_id: The registry dot-notation path (e.g., 'Line_A.lathe.max_cap').
+            value: The new value to be applied to the path.
         """
         producer = AIOKafkaProducer(
             bootstrap_servers=self.bootstrap_servers, **self.kwargs
@@ -74,7 +104,16 @@ class KafkaAdminConnector:
             await producer.stop()
 
     async def collect_data(self, topics: List[str], auto_offset_reset="latest"):
-        """Async loop to consume from telemetry and event topics."""
+        """
+        Async loop to consume from telemetry and event topics.
+
+        This loop continuously listens to the simulation's egress and updates
+        the connector's internal `_vitals` and `_state` attributes.
+
+        Args:
+            topics: List of topics to consume from (telemetry and events).
+            auto_offset_reset: Where to start consuming if no offset is committed.
+        """
         consumer = AIOKafkaConsumer(
             *topics,
             bootstrap_servers=self.bootstrap_servers,
@@ -90,7 +129,15 @@ class KafkaAdminConnector:
             await consumer.stop()
 
     def _process_message(self, data: Dict[str, Any]):
-        """Routes message based on JSON structure."""
+        """
+        Routes incoming messages based on their JSON structure.
+
+        Distinguishes between 'telemetry' (vitals like utilization) and
+        'events' (task lifecycle steps like 'started' or 'finished').
+
+        Args:
+            data: The decoded JSON payload from Kafka.
+        """
 
         # 1. Telemetry: 'path_id' is at the root level
         if "path_id" in data and not isinstance(data.get("value"), dict):
@@ -125,9 +172,19 @@ class KafkaAdminConnector:
             service_data[task_id][status] = ts
 
     def get_vitals(self) -> Dict[str, Any]:
-        """Returns the latest system telemetry (Capacity, Utilization, etc)."""
+        """
+        Returns the latest system telemetry metrics.
+
+        Returns:
+            A dictionary of path_id to latest value (e.g., utilization, queue length).
+        """
         return self._vitals
 
     def get_state(self) -> Dict[str, Any]:
-        """Returns the aggregated event state (Task lifecycles)."""
+        """
+        Returns the aggregated event state for task lifecycles.
+
+        Returns:
+            A nested dictionary: sim_id -> service -> task_id -> {status: timestamp}.
+        """
         return self._state
