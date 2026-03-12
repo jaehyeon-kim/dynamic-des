@@ -75,8 +75,20 @@ class EgressMixIn:
         )
         self._egress_thread.start()
 
-        # Start periodic flush process (Time-based trigger)
+        # Start background processes
         self.process(self._periodic_flush())
+        self.process(self._lag_monitor())  # Only starts if egress is configured
+
+    def _lag_monitor(self):
+        """Monitors how far the simulation time has drifted from the real-world clock."""
+        while True:
+            # Calculate real seconds elapsed since simulation start
+            real_elapsed = (datetime.now() - self.start_datetime).total_seconds()
+            lag = max(0.0, real_elapsed - self.now)
+
+            # Publish this system health metric automatically
+            self.publish_telemetry("system.simulation.lag_seconds", round(lag, 3))
+            yield self.timeout(1.0)
 
     def _run_egress_loop(self):
         """Background thread logic for egress providers."""
@@ -100,7 +112,10 @@ class EgressMixIn:
             self._event_buffer = []
 
     def publish_telemetry(self, path_id: str, value: Any):
-        # ... (Method remains unchanged) ...
+        """Telemetry usually triggers an immediate flush to keep vitals fresh."""
+        if not hasattr(self, "egress_queue"):
+            return  # Fail silently if no egress is configured
+
         self.egress_queue.put(
             [
                 {
@@ -114,7 +129,10 @@ class EgressMixIn:
         )
 
     def publish_event(self, event_key: str, value: Any):
-        # ... (Method remains unchanged) ...
+        """Event data: Flushed if batch size is reached OR periodic flush occurs."""
+        if not hasattr(self, "_event_buffer"):
+            return  # Fail silently if no egress is configured
+
         self._event_buffer.append(
             {
                 "stream_type": "event",

@@ -1,5 +1,3 @@
-import simpy
-
 from dynamic_des.resources.resource import DynamicResource
 
 

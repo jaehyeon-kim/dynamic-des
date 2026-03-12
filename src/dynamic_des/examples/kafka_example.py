@@ -1,3 +1,5 @@
+import logging
+import os
 import time
 
 import numpy as np
@@ -14,19 +16,24 @@ from dynamic_des import (
     SimParameter,
 )
 
+logging.basicConfig(
+    level=logging.INFO, format="%(levelname)s [%(asctime)s] %(name)s: %(message)s"
+)
+logger = logging.getLogger("kafka_example")
+
 # 0. Create Kafka topics
-BOOTSTRAP_SERVERS = "localhost:9092"
+BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 TOPICS_CONFIG = [
     {"name": "sim-config", "partitions": 1},
     {"name": "sim-telemetry", "partitions": 1},
     {"name": "sim-events", "partitions": 1},
 ]
 
+logger.info(f"Connecting to Kafka at {BOOTSTRAP_SERVERS}...")
 admin_connector = KafkaAdminConnector(
     bootstrap_servers=BOOTSTRAP_SERVERS, max_tasks=100
 )
 admin_connector.create_topics(topics_config=TOPICS_CONFIG)
-
 time.sleep(2)
 
 # 1. Define initial system state
@@ -41,12 +48,11 @@ line_a_params = SimParameter(
 
 # 2. Setup Environment with Kafka Connectors
 # Expects JSON: {"path_id": "Line_A.resources.lathe.current_cap", "value": 3}
-ingress = KafkaIngress(topic="sim-config", bootstrap_servers="localhost:9092")
-# Publishes JSON: {"path_id": "Line_A.queue", "value": 2, "timestamp": 10.0}
+ingress = KafkaIngress(topic="sim-config", bootstrap_servers=BOOTSTRAP_SERVERS)
 egress = KafkaEgress(
     telemetry_topic="sim-telemetry",
     event_topic="sim-events",
-    bootstrap_servers="localhost:9092",
+    bootstrap_servers=BOOTSTRAP_SERVERS,
 )
 
 env = DynamicRealtimeEnvironment(factor=1.0)
@@ -75,13 +81,12 @@ def work_task(
     env: DynamicRealtimeEnvironment, task_id: int, res: DynamicResource, path_id: str
 ):
     task_key = f"task-{task_id}"
-
-    # High-volume event stream
     env.publish_event(task_key, {"path_id": path_id, "status": "queued"})
 
     with res.request() as req:
         yield req
 
+        logger.info(f"Task {task_id} started at sim time: {env.now:.2f}s")
         env.publish_event(task_key, {"path_id": path_id, "status": "started"})
 
         # Use latest service config from registry
@@ -114,4 +119,9 @@ print("  - Listen to 'sim-telemetry' for system vitals.")
 print("  - Listen to 'sim-events' for task lifecycles.")
 print("  - Send to 'sim-config' to update parameters.")
 
-env.run()
+try:
+    env.run()
+except KeyboardInterrupt:
+    logger.info("Simulation interrupted by user.")
+finally:
+    env.teardown()
