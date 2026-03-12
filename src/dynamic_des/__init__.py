@@ -1,7 +1,10 @@
 import logging
 
+from dynamic_des.connectors.admin.kafka import KafkaAdminConnector
 from dynamic_des.connectors.egress.kafka import KafkaEgress
+from dynamic_des.connectors.egress.local import ConsoleEgress
 from dynamic_des.connectors.ingress.kafka import KafkaIngress
+from dynamic_des.connectors.ingress.local import LocalIngress
 from dynamic_des.core.environment import DynamicRealtimeEnvironment
 from dynamic_des.core.registry import SimulationRegistry
 from dynamic_des.core.sampler import Sampler
@@ -20,6 +23,9 @@ __all__ = [
     "SimParameter",
     "DistributionConfig",
     "CapacityConfig",
+    "KafkaAdminConnector",
     "KafkaIngress",
+    "LocalIngress",
     "KafkaEgress",
+    "ConsoleEgress",
 ]

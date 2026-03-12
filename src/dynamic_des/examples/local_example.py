@@ -13,10 +13,10 @@ from dynamic_des import (
     SimParameter,
 )
 
-logging.basicConfig(
-    level=logging.INFO, format="%(levelname)s [%(asctime)s] %(name)s: %(message)s"
-)
-logger = logging.getLogger("local_example")
+# logging.basicConfig(
+#     level=logging.INFO, format="%(levelname)s [%(asctime)s] %(name)s: %(message)s"
+# )
+# logger = logging.getLogger("local_example")
 
 # 1. Define the system schema
 # Line_A starts with 1 lathe, but has a physical ceiling of 5.
@@ -73,7 +73,7 @@ def work_task(
         # Late Binding: Fetch latest config only when work actually starts
         current_service_cfg = env.registry.get_config(path_id)
 
-        logger.info(f"Task {task_id} started at sim time: {env.now:.2f}s")
+        # logger.info(f"Task {task_id} started at sim time: {env.now:.2f}s")
         env.publish_event(task_key, {"path_id": path_id, "status": "started"})
 
         yield env.timeout(sampler.sample(current_service_cfg))
@@ -101,7 +101,5 @@ env.process(telemetry_monitor(env, res))
 print("Simulation started. Watch capacity change at t=10.0s and 20.0s...")
 try:
     env.run(until=30)
-except KeyboardInterrupt:
-    logger.info("Simulation interrupted by user.")
 finally:
     env.teardown()
