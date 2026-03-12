@@ -2,6 +2,10 @@
 
 **Real-time SimPy control plane for event-driven digital twins.**
 
+<div align="center">
+  <img src="docs/assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
+</div>
+
 Dynamic DES bridges the gap between static discrete-event simulations and the live world. It allows you to update simulation parameters (arrivals, service times, capacities) and stream telemetry via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation.
 
 ---
@@ -31,13 +35,47 @@ To include specific backends:
 # For Kafka support
 pip install "dynamic-des[kafka]"
 
-# For all backends (Kafka, Redis, Postgres)
+# For Kafka and Dashboard support
+pip install "dynamic-des[kafka,dashboard]"
+
+# For all backends (Kafka, Redis, Postgres, Dashboard)
 pip install "dynamic-des[all]"
 ```
 
 ---
 
-## Quick Start
+## Quick Start: Zero-Setup Demos
+
+Dynamic DES comes with built-in examples and infrastructure orchestration so you can see it in action immediately.
+
+**Run the local, dependency-free simulation:**
+
+```bash
+ddes-local-example
+```
+
+**Run the full Real-Time Digital Twin stack with Kafka and a live UI:**
+
+```bash
+# Start the background Kafka cluster (requires Docker)
+ddes-kafka-infra-up
+
+# Open a new terminal and run the simulation
+# Ctrl + C to stop
+ddes-kafka-example
+
+# Open a new terminal and start the control dashboard (opens in browser)
+# Visit http://localhost:8080
+# Ctrl + C to stop
+ddes-kafka-dashboard
+
+# Clean up the infrastructure when finished
+ddes-kafka-infra-down
+```
+
+---
+
+## Building Your Own Simulation (Local Example)
 
 The following snippet demonstrates a simple example. It initializes a production line, schedules an external capacity update, and streams telemetry to the console.
 

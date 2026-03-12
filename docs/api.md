@@ -25,6 +25,25 @@
     options:
       heading_level: 3
 
+<!-- prettier-ignore -->
+::: dynamic_des.models.params.CapacityConfig
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.models.params.DistributionConfig
+    options:
+      heading_level: 3
+
+## Utilities
+
+<!-- prettier-ignore -->
+::: dynamic_des.core.sampler.Sampler
+    options:
+      heading_level: 3
+      members:
+        - sample
+
 ## Resources
 
 <!-- prettier-ignore -->
