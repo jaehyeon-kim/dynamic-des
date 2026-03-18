@@ -7,14 +7,14 @@ authors = [
     { name = "Jaehyeon Kim", email = "dottami@gmail.com" }
 ]
 keywords = [
-    "simpy", 
-    "simulation", 
-    "digital-twin", 
-    "discrete-event-simulation", 
+    "simpy",
+    "simulation",
+    "digital-twin",
+    "discrete-event-simulation",
     "kafka",
     "redis",
     "postgres",
-    "real-time", 
+    "real-time",
     "industry-4-0"
 ]
 requires-python = ">=3.10"
@@ -45,6 +45,7 @@ dev = [
     "mkdocs<2.0",
     "mkdocs-material>=9.7.4",
     "mkdocstrings[python]>=1.0.3",
+    "mike>=2.1.0",
     "mypy>=1.19.1",
     "pytest>=9.0.2",
     "pytest-asyncio>=1.3.0",

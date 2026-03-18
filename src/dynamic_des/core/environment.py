@@ -3,7 +3,7 @@ import logging
 import queue
 import threading
 from datetime import datetime, timedelta
-from typing import Any, List
+from typing import Any, Dict, List, Optional
 
 from simpy import RealtimeEnvironment
 
@@ -20,7 +20,7 @@ class RegistryMixIn:
 
     def setup_registry(self):
         """Initializes the SimulationRegistry and binds it to the environment."""
-        self.registry = SimulationRegistry(self)
+        self.registry = SimulationRegistry(self)  # type: ignore[arg-type]
 
 
 class IngressMixIn:
@@ -39,22 +39,25 @@ class IngressMixIn:
         Args:
             providers (List[BaseIngress]): A list of initialized ingress connector instances.
         """
-        self.ingress_queue = queue.Queue()
+        self.ingress_queue: queue.Queue[Any] = queue.Queue()
         self.ingress_providers = providers
-        self._ingress_loop = None  # Store loop reference
+        self._ingress_loop: Optional[asyncio.AbstractEventLoop] = (
+            None  # Store loop reference
+        )
         self._ingress_thread = threading.Thread(
             target=self._run_ingress_loop, daemon=True
         )
         self._ingress_thread.start()
-        self.process(self._ingress_monitor())
+        self.process(self._ingress_monitor())  # type: ignore[attr-defined]
 
     def _run_ingress_loop(self):
         """Internal: Runs the asyncio event loop for ingress providers in a background thread."""
-        self._ingress_loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self._ingress_loop)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        self._ingress_loop = loop
         for provider in self.ingress_providers:
-            self._ingress_loop.create_task(provider.run(self.ingress_queue))
-        self._ingress_loop.run_forever()
+            loop.create_task(provider.run(self.ingress_queue))
+        loop.run_forever()
 
     def _ingress_monitor(self):
         """Internal: A SimPy process that checks the thread-safe queue for new data."""
@@ -63,10 +66,10 @@ class IngressMixIn:
                 try:
                     path, value = self.ingress_queue.get_nowait()
                     logger.debug(f"Ingress update received: {path} = {value}")
-                    self.registry.update(path, value)
+                    self.registry.update(path, value)  # type: ignore[attr-defined]
                 except queue.Empty:
                     break  # Queue is empty, exit the inner loop
-            yield self.timeout(0.1)
+            yield self.timeout(0.1)  # type: ignore[attr-defined]
 
     def teardown_ingress(self):
         """Safely stops the background ingress event loop."""
@@ -85,7 +88,10 @@ class EgressMixIn:
     """
 
     def setup_egress(
-        self, providers: List, batch_size: int = 500, flush_interval: float = 1.0
+        self,
+        providers: List,
+        batch_size: int = 500,
+        flush_interval: float = 1.0,
     ):
         """
         Initializes the egress buffers and starts the background publisher threads.
@@ -95,12 +101,14 @@ class EgressMixIn:
             batch_size (int, optional): The maximum number of events to buffer before flushing. Defaults to 500.
             flush_interval (float, optional): Maximum simulation seconds to wait before forcing a flush. Defaults to 1.0.
         """
-        self.egress_queue = queue.Queue()
+        self.egress_queue: queue.Queue[Any] = queue.Queue()
         self.egress_providers = providers
         self.egress_batch_size = batch_size
         self.egress_flush_interval = flush_interval
-        self._event_buffer = []
-        self._egress_loop = None  # Store loop reference
+        self._event_buffer: List[Dict[str, Any]] = []
+        self._egress_loop: Optional[asyncio.AbstractEventLoop] = (
+            None  # Store loop reference
+        )
 
         # Start background threads for providers
         self._egress_thread = threading.Thread(
@@ -109,32 +117,33 @@ class EgressMixIn:
         self._egress_thread.start()
 
         # Start background processes
-        self.process(self._periodic_flush())
-        self.process(self._lag_monitor())
+        self.process(self._periodic_flush())  # type: ignore[attr-defined]
+        self.process(self._lag_monitor())  # type: ignore[attr-defined]
 
     def _lag_monitor(self):
         """Internal: Monitors how far the simulation time has drifted from the real-world clock."""
         while True:
             # Calculate real seconds elapsed since simulation start
-            real_elapsed = (datetime.now() - self.start_datetime).total_seconds()
-            lag = max(0.0, real_elapsed - self.now)
+            real_elapsed = (datetime.now() - self.start_datetime).total_seconds()  # type: ignore[attr-defined]
+            lag = max(0.0, real_elapsed - self.now)  # type: ignore[attr-defined]
 
             # Publish this system health metric automatically
             self.publish_telemetry("system.simulation.lag_seconds", round(lag, 3))
-            yield self.timeout(1.0)
+            yield self.timeout(1.0)  # type: ignore[attr-defined]
 
     def _run_egress_loop(self):
         """Internal: Runs the asyncio event loop for egress providers in a background thread."""
-        self._egress_loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self._egress_loop)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        self._egress_loop = loop
         for provider in self.egress_providers:
-            self._egress_loop.create_task(provider.run(self.egress_queue))
-        self._egress_loop.run_forever()
+            loop.create_task(provider.run(self.egress_queue))
+        loop.run_forever()
 
     def _periodic_flush(self):
         """Internal: SimPy process that flushes the buffer at regular intervals."""
         while True:
-            yield self.timeout(self.egress_flush_interval)
+            yield self.timeout(self.egress_flush_interval)  # type: ignore[attr-defined]
             self._flush_buffer()
 
     def _flush_buffer(self):
@@ -161,8 +170,8 @@ class EgressMixIn:
         payload = TelemetryPayload(
             path_id=path_id,
             value=value,
-            sim_ts=round(self.now, 3),
-            timestamp=self._get_iso_timestamp(self.start_datetime, self.now),
+            sim_ts=round(self.now, 3),  # type: ignore[attr-defined]
+            timestamp=self._get_iso_timestamp(self.start_datetime, self.now),  # type: ignore[attr-defined]
         )
 
         self.egress_queue.put([payload.model_dump(mode="json")])
@@ -184,8 +193,8 @@ class EgressMixIn:
         payload = EventPayload(
             key=event_key,
             value=value,
-            sim_ts=round(self.now, 3),
-            timestamp=self._get_iso_timestamp(self.start_datetime, self.now),
+            sim_ts=round(self.now, 3),  # type: ignore[attr-defined]
+            timestamp=self._get_iso_timestamp(self.start_datetime, self.now),  # type: ignore[attr-defined]
         )
 
         self._event_buffer.append(payload.model_dump(mode="json"))

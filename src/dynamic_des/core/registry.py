@@ -160,34 +160,34 @@ class SimulationRegistry:
         prefix = param.sim_id
 
         # Register Arrivals
-        for name, config in param.arrival.items():
+        for name, dist_config in param.arrival.items():
             path = f"{prefix}.arrival.{name}"
-            self._configs[path] = config
-            self._register_dist(path, config)
+            self._configs[path] = dist_config
+            self._register_dist(path, dist_config)
 
         # Register Service Steps
-        for name, config in param.service.items():
+        for name, dist_config in param.service.items():
             path = f"{prefix}.service.{name}"
-            self._configs[path] = config
-            self._register_dist(path, config)
+            self._configs[path] = dist_config
+            self._register_dist(path, dist_config)
 
         # Register Resources
-        for name, config in param.resources.items():
+        for name, cap_config in param.resources.items():
             path = f"{prefix}.resources.{name}"
-            self._configs[path] = config
-            self._register_cap(path, config)
+            self._configs[path] = cap_config
+            self._register_cap(path, cap_config)
 
         # Register Containers
-        for name, config in param.containers.items():
+        for name, cap_config in param.containers.items():
             path = f"{prefix}.containers.{name}"
-            self._configs[path] = config
-            self._register_cap(path, config)
+            self._configs[path] = cap_config
+            self._register_cap(path, cap_config)
 
         # Register Stores
-        for name, config in param.stores.items():
+        for name, cap_config in param.stores.items():
             path = f"{prefix}.stores.{name}"
-            self._configs[path] = config
-            self._register_cap(path, config)
+            self._configs[path] = cap_config
+            self._register_cap(path, cap_config)
 
     def _register_dist(self, path_prefix: str, dist_config: Any):
         """Internal: Flattens a DistributionConfig."""

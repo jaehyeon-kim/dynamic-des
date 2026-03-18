@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any, DefaultDict, Dict, List
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
 from kafka.admin import KafkaAdminClient, NewTopic
@@ -41,7 +41,9 @@ class KafkaAdminConnector:
         self.kwargs = kwargs
 
         # Event State: sim_id -> service -> task_id -> {status: timestamp}
-        self._state = defaultdict(lambda: defaultdict(dict))
+        self._state: DefaultDict[str, DefaultDict[str, Dict[str, Any]]] = defaultdict(
+            lambda: defaultdict(dict)
+        )
         # Telemetry State: path_id -> latest_value
         self._vitals: Dict[str, Any] = {}
 

@@ -11,7 +11,6 @@ from dynamic_des.connectors.ingress.kafka import KafkaIngress
 @pytest.mark.asyncio
 @patch("dynamic_des.connectors.ingress.kafka.AIOKafkaConsumer")
 async def test_kafka_ingress_success(MockConsumer):
-
     # Create a foolproof fake consumer class
     class FakeConsumer:
         def __init__(self):
