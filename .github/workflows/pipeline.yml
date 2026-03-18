@@ -28,9 +28,18 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
 
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+
       - name: Run Tests
-        # --all-extras ensures Kafka/Redis/Postgres dependencies are available for tests
-        run: uv run --all-extras pytest
+        # Inject pytest-cov on the fly and output the XML report
+        run: uv run --with pytest-cov --all-extras pytest --cov=src/dynamic_des --cov-report=xml
+
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     file: ./coverage.xml
 
   docs:
     needs: test

@@ -1,0 +1,13 @@
+version: 2
+updates:
+  # Automate GitHub Actions updates (e.g., checkout@v6 -> v7)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Automate Python dependency updates via pyproject.toml
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
