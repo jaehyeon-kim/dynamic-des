@@ -1,7 +1,10 @@
 import asyncio
+import logging
 import queue
 
 from dynamic_des.connectors.egress.base import BaseEgress
+
+logger = logging.getLogger(__name__)
 
 
 class ConsoleEgress(BaseEgress):
@@ -41,8 +44,8 @@ class ConsoleEgress(BaseEgress):
                     stream = data.pop("stream_type", "unknown")
                     prefix = "[TEL]" if stream == "telemetry" else "[EVT]"
 
-                    # Print the remaining data (path_id/key, value, timestamp)
-                    print(f"{prefix} {data}")
+                    # Log the remaining data (path_id/key, value, timestamp)
+                    logger.info(f"{prefix} {data}")
 
             except queue.Empty:
                 # Yield to the event loop
