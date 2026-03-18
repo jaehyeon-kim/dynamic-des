@@ -26,6 +26,10 @@ plugins:
             show_root_heading: true # Shows the class name as a heading
             show_category_heading: true # Groups methods, attributes, etc.
 
+extra:
+  version:
+    provider: mike
+
 nav:
   - Home: index.md
   - Getting Started: getting-started.md

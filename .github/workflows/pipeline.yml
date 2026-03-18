@@ -47,11 +47,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # Mike needs the full history to pull the gh-pages branch
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
-      - name: Build and Deploy Docs
+      - name: Build and Deploy Docs (Versioned)
         run: |
-          uv run mkdocs build
-          uv run mkdocs gh-deploy --force
+          # Configure Git for the bot commit
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Dynamically extract the version string from pyproject.toml
+          VERSION=$(grep -m 1 '^version = ' pyproject.toml | cut -d '"' -f 2)
+          echo "Extracted version: $VERSION"
+
+          # Deploy the extracted version and tag it as 'latest'
+          uv run mike deploy --push --update-aliases $VERSION latest
+
+          # Set 'latest' as the default landing page when navigating to the root URL
+          uv run mike set-default --push latest
