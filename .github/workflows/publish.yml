@@ -1,0 +1,30 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published] # ONLY triggers when a drafted release is published
+
+jobs:
+  pypi-publish:
+    name: Build and publish Python package
+    runs-on: ubuntu-latest
+    # These permissions are strictly required for PyPI OIDC Trusted Publishing
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Set up Python
+        run: uv python install 3.10
+
+      - name: Build Wheel and sdist
+        run: uv build
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
