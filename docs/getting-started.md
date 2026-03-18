@@ -58,8 +58,6 @@ ddes-kafka-dashboard
 ddes-kafka-infra-down
 ```
 
----
-
 ## Building Your Own Simulation (Local Example)
 
 The following snippet demonstrates a simple example. It initializes a production line, schedules an external capacity update, and streams telemetry to the console.
@@ -114,6 +112,42 @@ finally:
 2.  **Live Ingress**: The `LocalIngress` simulates an external event (like a Kafka message) arriving 5 seconds into the run.
 3.  **Zero-Polling Update**: The `DynamicResource` listens to the Registry. The moment the ingress updates the value, the resource automatically expands its internal token pool without any manual checking.
 4.  **Telemetry Egress**: The `ConsoleEgress` prints system vitals to your terminal, mimicking a live dashboard feed.
+
+### Data Egress JSON Schemas
+
+To ensure strict data contracts with external consumers (like Kafka, Redis, or PostgreSQL), `dynamic-des` uses Pydantic to validate all outbound payloads. Users can expect two distinct JSON structures depending on the stream type:
+
+#### Telemetry Stream
+
+Used for scalar metrics like resource utilization, queue lengths, or simulation lag.
+
+```json
+{
+  "stream_type": "telemetry",
+  "path_id": "Line_A.resources.lathe.utilization",
+  "value": 85.5,
+  "sim_ts": 120.5,
+  "timestamp": "2023-10-25T14:30:00.000Z"
+}
+```
+
+#### Event Stream
+
+Used for discrete task lifecycle events (e.g., a part arriving, entering a queue, or finishing processing).
+
+```json
+{
+  "stream_type": "event",
+  "key": "task-001",
+  "value": {
+    "status": "finished",
+    "duration": 45.2,
+    "path_id": "Line_A.service.lathe"
+  },
+  "sim_ts": 125.0,
+  "timestamp": "2023-10-25T14:30:04.500Z"
+}
+```
 
 ### More Examples
 

@@ -601,6 +601,7 @@ dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "numpy", version = "2.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "orjson" },
+    { name = "pydantic" },
     { name = "python-on-whales" },
     { name = "simpy" },
 ]
@@ -647,6 +648,7 @@ requires-dist = [
     { name = "nicegui", marker = "extra == 'dashboard'", specifier = ">=1.4.0" },
     { name = "numpy", specifier = ">=1.26.0" },
     { name = "orjson", specifier = ">=3.10.0" },
+    { name = "pydantic", specifier = ">=2.0.0" },
     { name = "python-on-whales", specifier = ">=0.70.0" },
     { name = "redis", marker = "extra == 'redis'", specifier = ">=5.0.0" },
     { name = "simpy", specifier = ">=4.0.0" },
