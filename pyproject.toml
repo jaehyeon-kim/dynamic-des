@@ -18,6 +18,24 @@ keywords = [
     "industry-4-0"
 ]
 requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Manufacturing",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+]
 dependencies = [
     "simpy>=4.0.0",
     "numpy>=1.26.0",
@@ -25,6 +43,13 @@ dependencies = [
     "pydantic>=2.0.0",
     "python-on-whales>=0.70.0"
 ]
+
+[project.urls]
+Homepage = "https://jaehyeon-kim.github.io/dynamic-des/"
+Repository = "https://github.com/jaehyeon-kim/dynamic-des"
+Documentation = "https://jaehyeon-kim.github.io/dynamic-des/"
+Issues = "https://github.com/jaehyeon-kim/dynamic-des/issues"
+
 [project.optional-dependencies]
 kafka =[
     "aiokafka[lz4]>=0.11.0",
