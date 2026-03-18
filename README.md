@@ -8,8 +8,6 @@
 
 Dynamic DES bridges the gap between static discrete-event simulations and the live world. It allows you to update simulation parameters (arrivals, service times, capacities) and stream telemetry via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation.
 
----
-
 ## Key Features
 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
@@ -18,8 +16,6 @@ Dynamic DES bridges the gap between static discrete-event simulations and the li
 - **🔋 Flexible Resources**: `DynamicResource` provides prioritized queuing with graceful capacity shrinking.
 - **🔌 Modular Connectors**: Plugin-based architecture for Kafka, Redis, Postgres and Local testing.
 - **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time, exposed via the telemetry stream.
-
----
 
 ## Installation
 
@@ -41,8 +37,6 @@ pip install "dynamic-des[kafka,dashboard]"
 # For all backends (Kafka, Redis, Postgres, Dashboard)
 pip install "dynamic-des[all]"
 ```
-
----
 
 ## Quick Start: Zero-Setup Demos
 
@@ -72,8 +66,6 @@ ddes-kafka-dashboard
 # Clean up the infrastructure when finished
 ddes-kafka-infra-down
 ```
-
----
 
 ## Building Your Own Simulation (Local Example)
 
@@ -130,27 +122,71 @@ finally:
 3.  **Zero-Polling Update**: The `DynamicResource` listens to the Registry. The moment the ingress updates the value, the resource automatically expands its internal token pool without any manual checking.
 4.  **Telemetry Egress**: The `ConsoleEgress` prints system vitals to your terminal, mimicking a live dashboard feed.
 
+### Data Egress JSON Schemas
+
+To ensure strict data contracts with external consumers (like Kafka, Redis, or PostgreSQL), `dynamic-des` uses Pydantic to validate all outbound payloads. Users can expect two distinct JSON structures depending on the stream type:
+
+#### Telemetry Stream
+
+Used for scalar metrics like resource utilization, queue lengths, or simulation lag.
+
+```json
+{
+  "stream_type": "telemetry",
+  "path_id": "Line_A.resources.lathe.utilization",
+  "value": 85.5,
+  "sim_ts": 120.5,
+  "timestamp": "2023-10-25T14:30:00.000Z"
+}
+```
+
+#### Event Stream
+
+Used for discrete task lifecycle events (e.g., a part arriving, entering a queue, or finishing processing).
+
+```json
+{
+  "stream_type": "event",
+  "key": "task-001",
+  "value": {
+    "status": "finished",
+    "duration": 45.2,
+    "path_id": "Line_A.service.lathe"
+  },
+  "sim_ts": 125.0,
+  "timestamp": "2023-10-25T14:30:04.500Z"
+}
+```
+
 ### More Examples
 
 For more examples, including implementations using **Kafka** providers, please explore the [examples](./src/dynamic_des/examples/) folder.
 
----
-
 ## Core Concepts
+
+**Dynamic DES** is built on the **Switchboard Pattern**, decoupling data sourcing from simulation logic.
 
 ### Switchboard Pattern
 
-Instead of resources polling Kafka directly, Dynamic DES uses a centralized **Registry**.
+Instead of resources polling Kafka directly, the architecture is split into three layers:
 
-1. **Connectors** push data from Kafka/Redis/Postgres into the Registry.
-2. **Registry** flattens data into addressable paths and triggers SimPy events.
-3. **Resources** are passive observers that wake up only when their specific path changes.
+1.  **Connectors (Ingress/Egress)**: Background threads handle heavy I/O (Kafka, Redis).
+2.  **Registry (Switchboard)**: A centralized state manager that flattens data into dot-notation paths.
+3.  **Resources (SimPy Objects)**: Passive observers that "wake up" only when the Registry signals a change.
 
-### Capacity Management
+### Event-Driven Capacity
 
-`DynamicResource` ensures physical integrity. When capacity is reduced via an external update, the resource waits for busy tasks to finish before removing tokens from the pool, preventing loss of work-in-progress.
+Standard SimPy resources have static capacities. `DynamicResource` wraps a `Container` and a `PriorityStore`. When the Registry updates:
 
----
+- **Growing**: Extra tokens are added to the pool immediately.
+- **Shrinking**: The resource requests tokens back. If they are busy, it waits until they are released, ensuring no work-in-progress is lost.
+
+### High-Throughput Events
+
+To handle high throughput, the `EgressMixIn` uses:
+
+- **Batching**: Pushing lists of events to the I/O thread to reduce lock contention.
+- **orjson**: Rust-powered serialization for maximum speed.
 
 ## Documentation
 

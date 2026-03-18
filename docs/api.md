@@ -35,6 +35,23 @@
     options:
       heading_level: 3
 
+## Data Payloads
+
+<!-- prettier-ignore -->
+::: dynamic_des.models.schemas.TelemetryPayload
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.models.schemas.EventPayload
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.models.schemas.BaseStreamPayload
+    options:
+      heading_level: 3
+
 ## Utilities
 
 <!-- prettier-ignore -->
@@ -64,8 +81,9 @@
       members:
         - create_topics
         - send_config
-        - collect_events
+        - collect_data
         - get_state
+        - get_vitals
 
 ## Connectors (Ingress)
 

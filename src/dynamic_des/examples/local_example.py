@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 
 from dynamic_des import (
@@ -10,6 +12,11 @@ from dynamic_des import (
     Sampler,
     SimParameter,
 )
+
+logging.basicConfig(
+    level=logging.INFO, format="%(levelname)s [%(asctime)s] %(message)s"
+)
+logger = logging.getLogger("local_example")
 
 
 def run():
@@ -91,7 +98,7 @@ def run():
     env.process(arrival_process(env, res))
     env.process(telemetry_monitor(env, res))
 
-    print("Simulation started. Watch capacity change at t=10.0s and 20.0s...")
+    logging.info("Simulation started. Watch capacity change at t=10.0s and 20.0s...")
     try:
         env.run(until=30)
     finally:

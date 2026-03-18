@@ -8,6 +8,7 @@ from typing import Any, List
 from simpy import RealtimeEnvironment
 
 from dynamic_des.core.registry import SimulationRegistry
+from dynamic_des.models.schemas import EventPayload, TelemetryPayload
 
 logger = logging.getLogger(__name__)
 
@@ -157,17 +158,14 @@ class EgressMixIn:
         if not hasattr(self, "egress_queue"):
             return  # Fail silently if no egress is configured
 
-        self.egress_queue.put(
-            [
-                {
-                    "stream_type": "telemetry",
-                    "path_id": path_id,
-                    "value": value,
-                    "sim_ts": round(self.now, 3),
-                    "timestamp": self._get_iso_timestamp(self.start_datetime, self.now),
-                }
-            ]
+        payload = TelemetryPayload(
+            path_id=path_id,
+            value=value,
+            sim_ts=round(self.now, 3),
+            timestamp=self._get_iso_timestamp(self.start_datetime, self.now),
         )
+
+        self.egress_queue.put([payload.model_dump(mode="json")])
 
     def publish_event(self, event_key: str, value: Any):
         """
@@ -183,15 +181,14 @@ class EgressMixIn:
         if not hasattr(self, "_event_buffer"):
             return  # Fail silently if no egress is configured
 
-        self._event_buffer.append(
-            {
-                "stream_type": "event",
-                "key": event_key,
-                "value": value,
-                "sim_ts": round(self.now, 3),
-                "timestamp": self._get_iso_timestamp(self.start_datetime, self.now),
-            }
+        payload = EventPayload(
+            key=event_key,
+            value=value,
+            sim_ts=round(self.now, 3),
+            timestamp=self._get_iso_timestamp(self.start_datetime, self.now),
         )
+
+        self._event_buffer.append(payload.model_dump(mode="json"))
 
         if len(self._event_buffer) >= self.egress_batch_size:
             self._flush_buffer()

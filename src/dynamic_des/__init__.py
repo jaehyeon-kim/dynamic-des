@@ -9,6 +9,7 @@ from dynamic_des.core.environment import DynamicRealtimeEnvironment
 from dynamic_des.core.registry import SimulationRegistry
 from dynamic_des.core.sampler import Sampler
 from dynamic_des.models.params import CapacityConfig, DistributionConfig, SimParameter
+from dynamic_des.models.schemas import EventPayload, TelemetryPayload
 from dynamic_des.resources.resource import DynamicResource
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
@@ -28,4 +29,6 @@ __all__ = [
     "LocalIngress",
     "KafkaEgress",
     "ConsoleEgress",
+    "EventPayload",
+    "TelemetryPayload",
 ]
