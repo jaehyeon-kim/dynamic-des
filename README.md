@@ -1,5 +1,11 @@
 # Dynamic DES
 
+[![CI Pipeline](https://github.com/jaehyeon-kim/dynamic-des/actions/workflows/pipeline.yml/badge.svg)](https://github.com/jaehyeon-kim/dynamic-des/actions/workflows/pipeline.yml)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://jaehyeon-kim.github.io/dynamic-des/)
+[![PyPI version](https://badge.fury.io/py/dynamic-des.svg)](https://badge.fury.io/py/dynamic-des)
+[![Python Versions](https://img.shields.io/pypi/pyversions/dynamic-des.svg)](https://pypi.org/project/dynamic-des/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **Real-time SimPy control plane for event-driven digital twins.**
 
 <div align="center">
