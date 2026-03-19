@@ -89,8 +89,9 @@ class IngressMixIn:
     def teardown_ingress(self):
         """Safely stops the background ingress event loop."""
         logger.info("Tearing down ingress connectors...")
-        if self._ingress_loop and self._ingress_loop.is_running():
-            self._ingress_loop.call_soon_threadsafe(self._ingress_loop.stop)
+        loop = getattr(self, "_ingress_loop", None)
+        if loop and loop.is_running():
+            loop.call_soon_threadsafe(loop.stop)
 
 
 class EgressMixIn:
@@ -241,9 +242,12 @@ class EgressMixIn:
     def teardown_egress(self):
         """Flushes final buffer contents and safely stops the egress event loop."""
         logger.info("Tearing down egress connectors, flushing final events...")
-        self._flush_buffer()
-        if self._egress_loop and self._egress_loop.is_running():
-            self._egress_loop.call_soon_threadsafe(self._egress_loop.stop)
+        if hasattr(self, "_event_buffer"):
+            self._flush_buffer()
+
+        loop = getattr(self, "_egress_loop", None)
+        if loop and loop.is_running():
+            loop.call_soon_threadsafe(loop.stop)
 
 
 class DynamicRealtimeEnvironment(
