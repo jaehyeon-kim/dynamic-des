@@ -6,7 +6,7 @@ from nicegui import app, ui
 
 from dynamic_des import KafkaAdminConnector
 
-# 1. Initialize Admin Connector Globally (Safe to share across clients)
+# Initialize Admin Connector Globally (Safe to share across clients)
 admin = KafkaAdminConnector(bootstrap_servers="localhost:9092", max_tasks=200)
 
 app.on_startup(
@@ -17,7 +17,7 @@ app.on_startup(
 
 
 def run():
-    # 3. UI Layout
+    # UI Layout
     @ui.page("/")
     async def index():
         # --- ISOLATED SESSION STATE ---
