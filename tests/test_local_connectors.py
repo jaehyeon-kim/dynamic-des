@@ -15,8 +15,7 @@ async def test_local_ingress():
     schedule = [(0.01, "Line_A.lathe.capacity", 5), (0.02, "Line_A.lathe.capacity", 10)]
     ingress = LocalIngress(schedule)
 
-    task = asyncio.create_task(ingress.run(ingress_queue))
-    await asyncio.sleep(0.05)  # Wait for both events to trigger
+    await ingress.run(ingress_queue)
 
     assert ingress_queue.qsize() == 2
     assert ingress_queue.get_nowait() == ("Line_A.lathe.capacity", 5)
