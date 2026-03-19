@@ -55,9 +55,24 @@ class IngressMixIn:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self._ingress_loop = loop
-        for provider in self.ingress_providers:
+
+        # Keep a list of the running tasks
+        tasks = [
             loop.create_task(provider.run(self.ingress_queue))
-        loop.run_forever()
+            for provider in self.ingress_providers
+        ]
+
+        try:
+            # Run the loop until teardown() calls loop.stop()
+            loop.run_forever()
+        finally:
+            # Cancel all pending tasks
+            for task in tasks:
+                task.cancel()
+            # Briefly run the loop again to let the CancelledError propagate cleanly
+            loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
+            # Safely close the loop
+            loop.close()
 
     def _ingress_monitor(self):
         """Internal: A SimPy process that checks the thread-safe queue for new data."""
@@ -136,9 +151,24 @@ class EgressMixIn:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self._egress_loop = loop
-        for provider in self.egress_providers:
+
+        # Keep a list of the running tasks
+        tasks = [
             loop.create_task(provider.run(self.egress_queue))
-        loop.run_forever()
+            for provider in self.egress_providers
+        ]
+
+        try:
+            # Run the loop until teardown() calls loop.stop()
+            loop.run_forever()
+        finally:
+            # Cancel all pending tasks
+            for task in tasks:
+                task.cancel()
+            # Briefly run the loop again to let the CancelledError propagate cleanly
+            loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
+            # Safely close the loop
+            loop.close()
 
     def _periodic_flush(self):
         """Internal: SimPy process that flushes the buffer at regular intervals."""
