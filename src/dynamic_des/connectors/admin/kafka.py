@@ -105,7 +105,7 @@ class KafkaAdminConnector:
         finally:
             await producer.stop()
 
-    async def collect_data(self, topics: List[str], auto_offset_reset="latest"):
+    async def collect_data(self, topics: List[str], auto_offset_reset: str = "latest"):
         """
         Async loop to consume from telemetry and event topics.
 
