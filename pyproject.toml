@@ -1,6 +1,6 @@
 [project]
 name = "dynamic-des"
-version = "0.1.0"
+version = "0.1.1"
 description = "Real-time SimPy control plane to dynamically update parameters and stream outputs via external systems like Kafka, Redis, or Postgres. Built for event-driven digital twins."
 readme = "README.md"
 authors = [
