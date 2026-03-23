@@ -13,39 +13,6 @@ It bridges the gap between static discrete-event simulations and the live world 
 - **🔌 Modular Connectors**: Plugin-based architecture for Kafka, Redis, Postgres and Local testing.
 - **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time, exposed via the telemetry stream.
 
-## Installation
-
-Install the core library using `pip` or `uv`:
-
-```bash
-pip install dynamic-des
-```
-
-To include specific backends:
-
-```bash
-# For Kafka support
-pip install "dynamic-des[kafka]"
-
-# For all backends
-pip install "dynamic-des[all]"
-```
-
-## Quick Start
-
-```python
-from dynamic_des import DynamicRealtimeEnvironment, DynamicResource
-
-# Initialize the real-time environment
-env = DynamicRealtimeEnvironment(factor=1.0)
-
-# The resource will automatically listen to its registry path
-resource = DynamicResource(env, sim_id="Line_A", resource_id="lathe")
-
-# Start your simulation
-env.run(until=100)
-```
-
 ## Project Layout
 
 - [Getting Started](getting-started.md): A walkthrough of the local example.
