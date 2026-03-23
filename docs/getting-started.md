@@ -63,11 +63,17 @@ ddes-kafka-infra-down
 The following snippet demonstrates a simple example. It initializes a production line, schedules an external capacity update, and streams telemetry to the console.
 
 ```python
+import logging
 import numpy as np
 from dynamic_des import (
     CapacityConfig, ConsoleEgress, DistributionConfig,
     DynamicRealtimeEnvironment, DynamicResource, LocalIngress, SimParameter
 )
+
+logging.basicConfig(
+    level=logging.INFO, format="%(levelname)s [%(asctime)s] %(message)s"
+)
+logger = logging.getLogger("local_example")
 
 # 1. Define initial system state
 params = SimParameter(
