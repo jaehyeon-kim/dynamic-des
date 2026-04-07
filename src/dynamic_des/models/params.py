@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Literal, Optional
+from typing import Dict, Literal, Optional, Union
 
 
 @dataclass
@@ -30,12 +30,12 @@ class CapacityConfig:
     Configuration for the capacity of a simulated resource, container, or store.
 
     Attributes:
-        current_cap (int): The currently active capacity (e.g., number of active workers).
-        max_cap (int): The absolute physical maximum capacity. `current_cap` cannot exceed this.
+        current_cap (Union[int, float]): The currently active capacity.
+        max_cap (Union[int, float]): The absolute physical maximum capacity.
     """
 
-    current_cap: int
-    max_cap: int
+    current_cap: Union[int, float]
+    max_cap: Union[int, float]
 
 
 @dataclass
