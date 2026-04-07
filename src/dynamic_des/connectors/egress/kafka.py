@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import queue
-from typing import Any
+from typing import Any, Callable, Optional
 
 import orjson
 from aiokafka import AIOKafkaProducer
@@ -17,22 +17,53 @@ class KafkaEgress(BaseEgress):
 
     This connector utilizes `aiokafka` for asynchronous I/O and `orjson` for fast
     serialization. It implements a resilient connection loop with exponential
-    backoff and handles two distinct data streams:
-    1. Telemetry: Typically mapped to single-partition topics for system metrics.
-    2. Events: Mapped to partitioned topics using event keys for ordering guarantees.
+    backoff.
+
+    By default, data is routed to the `telemetry_topic` or `event_topic` based on
+    its `stream_type`. If a `topic_router` callable is provided, topic selection
+    is delegated to that function instead, allowing for advanced multiplexing
+    (e.g., splitting ML vs. UI events).
 
     Attributes:
-        telemetry_topic (str): The Kafka topic name for telemetry data.
-        event_topic (str): The Kafka topic name for lifecycle events.
-        producer_config (dict): Configuration dictionary passed to AIOKafkaProducer,
-            including performance optimizations like lz4 compression and batch lingering.
+        bootstrap_servers (str): Comma-separated list of Kafka brokers.
+        telemetry_topic (str): The default topic name for telemetry data.
+        event_topic (str): The default topic name for lifecycle events.
+        topic_router (Callable): Optional external logic to determine the topic.
+        producer_config (dict): Configuration dictionary passed to AIOKafkaProducer.
+
+    Examples:
+        Defining a custom topic router to split machine learning events from standard telemetry:
+
+        ```python
+        def custom_topic_router(data: dict) -> str:
+            stream_type = data.get("stream_type")
+            if stream_type == "telemetry":
+                return "sim-telemetry"
+
+            value = data.get("value", {})
+            if isinstance(value, dict):
+                event_type = value.get("event_type")
+                if event_type == "prediction_request":
+                    return "mill-predictions"
+                elif event_type == "ground_truth":
+                    return "mill-groundtruth"
+
+            return "mill-lifecycle"
+
+        # Pass it to the egress connector
+        egress = KafkaEgress(
+            bootstrap_servers="localhost:9092",
+            topic_router=custom_topic_router
+        )
+        ```
     """
 
     def __init__(
         self,
-        telemetry_topic: str,
-        event_topic: str,
         bootstrap_servers: str,
+        telemetry_topic: str = "sim-telemetry",
+        event_topic: str = "sim-events",
+        topic_router: Optional[Callable[[dict], str]] = None,
         **kwargs: Any,
     ):
         """
@@ -46,6 +77,7 @@ class KafkaEgress(BaseEgress):
         """
         self.telemetry_topic = telemetry_topic
         self.event_topic = event_topic
+        self.topic_router = topic_router
 
         # High-performance defaults for 100k/sec
         self.producer_config = {
@@ -90,23 +122,35 @@ class KafkaEgress(BaseEgress):
                             batch = egress_queue.get_nowait()
 
                             for data in batch:
-                                stream = data.pop("stream_type")
+                                if self.topic_router:
+                                    # Use externalized logic if provided
+                                    topic = self.topic_router(data)
+                                    stream = data.pop("stream_type", "event")
+                                else:
+                                    # Fallback to standard dynamic-des routing
+                                    stream = data.pop("stream_type")
+                                    topic = (
+                                        self.telemetry_topic
+                                        if stream == "telemetry"
+                                        else self.event_topic
+                                    )
+
+                                # Extract the Kafka Key
+                                key = None
                                 if stream == "telemetry":
-                                    topic = self.telemetry_topic
                                     key = (
                                         str(data["path_id"]).encode()
-                                        if "key" in data
+                                        if "path_id" in data
                                         else None
                                     )
                                 else:
-                                    topic = self.event_topic
-                                    # Use the event_key for Kafka partitioning
                                     key = (
                                         str(data["key"]).encode()
                                         if "key" in data
                                         else None
                                     )
 
+                                # Serialize and Send
                                 # orjson.dumps returns bytes directly (faster than json.dumps + encode)
                                 await producer.send(
                                     topic, value=orjson.dumps(data), key=key
