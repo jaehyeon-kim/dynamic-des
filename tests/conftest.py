@@ -35,6 +35,12 @@ def sample_params():
             "lathe": CapacityConfig(current_cap=2, max_cap=5),
             "operator": CapacityConfig(current_cap=1, max_cap=3),
         },
+        containers={
+            "tank1": CapacityConfig(current_cap=50.0, max_cap=100.0),
+        },
+        stores={
+            "buffer1": CapacityConfig(current_cap=5, max_cap=10),
+        },
     )
 
 
