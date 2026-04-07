@@ -71,6 +71,27 @@
         - request
         - release
         - in_use
+        - capacity
+
+<!-- prettier-ignore -->
+::: dynamic_des.resources.container.DynamicContainer
+    options:
+      heading_level: 3
+      members:
+        - put
+        - get
+        - level
+        - capacity
+
+<!-- prettier-ignore -->
+::: dynamic_des.resources.store.DynamicStore
+    options:
+      heading_level: 3
+      members:
+        - put
+        - get
+        - items
+        - capacity
 
 ## Admin & Infrastructure
 

@@ -64,7 +64,6 @@ The following snippet demonstrates a simple example. It initializes a production
 
 ```python
 import logging
-import numpy as np
 from dynamic_des import (
     CapacityConfig, ConsoleEgress, DistributionConfig,
     DynamicRealtimeEnvironment, DynamicResource, LocalIngress, SimParameter
