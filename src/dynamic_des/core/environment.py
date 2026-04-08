@@ -108,6 +108,7 @@ class EgressMixIn:
         providers: List,
         batch_size: int = 500,
         flush_interval: float = 1.0,
+        lag_monitor_interval: Optional[float] = 1.0,
     ):
         """
         Initializes the egress buffers and starts the background publisher threads.
@@ -121,6 +122,7 @@ class EgressMixIn:
         self.egress_providers = providers
         self.egress_batch_size = batch_size
         self.egress_flush_interval = flush_interval
+        self.egress_lag_monitor_interval = lag_monitor_interval
         self._event_buffer: List[Dict[str, Any]] = []
         self._egress_loop: Optional[asyncio.AbstractEventLoop] = (
             None  # Store loop reference
@@ -134,7 +136,9 @@ class EgressMixIn:
 
         # Start background processes
         self.process(self._periodic_flush())  # type: ignore[attr-defined]
-        self.process(self._lag_monitor())  # type: ignore[attr-defined]
+        # Only start the lag monitor if an interval > 0 is provided
+        if self.egress_lag_monitor_interval and self.egress_lag_monitor_interval > 0:
+            self.process(self._lag_monitor())  # type: ignore[attr-defined]
 
     def _lag_monitor(self):
         """Internal: Monitors how far the simulation time has drifted from the real-world clock."""
@@ -145,7 +149,9 @@ class EgressMixIn:
 
             # Publish this system health metric automatically
             self.publish_telemetry("system.simulation.lag_seconds", round(lag, 3))
-            yield self.timeout(1.0)  # type: ignore[attr-defined]
+
+            # Yield based on the configurable interval
+            yield self.timeout(self.egress_lag_monitor_interval)  # type: ignore[attr-defined]
 
     def _run_egress_loop(self):
         """Internal: Runs the asyncio event loop for egress providers in a background thread."""
