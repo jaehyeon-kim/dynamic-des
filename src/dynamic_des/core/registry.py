@@ -146,7 +146,12 @@ class SimulationRegistry:
             if "." in path:
                 parent_path, attr = path.rsplit(".", 1)
                 if parent_path in self._configs:
-                    setattr(self._configs[parent_path], attr, validated_value)
+                    parent_obj = self._configs[parent_path]
+                    # Check if the parent is a dictionary (like `variables`)
+                    if isinstance(parent_obj, dict):
+                        parent_obj[attr] = validated_value
+                    else:
+                        setattr(parent_obj, attr, validated_value)
         else:
             logger.warning(f"Attempted to update non-existent path: {path}")
 
@@ -188,6 +193,12 @@ class SimulationRegistry:
             path = f"{prefix}.stores.{name}"
             self._configs[path] = cap_config
             self._register_cap(path, cap_config)
+
+        # Register Custom Variables
+        self._configs[f"{prefix}.variables"] = param.variables
+        for name, value in param.variables.items():
+            path = f"{prefix}.variables.{name}"
+            self._values[path] = DynamicValue(self.env, path, value)
 
     def _register_dist(self, path_prefix: str, dist_config: Any):
         """Internal: Flattens a DistributionConfig."""

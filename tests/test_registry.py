@@ -1,5 +1,7 @@
 import pytest
 
+from dynamic_des.models.params import SimParameter
+
 
 def test_registry_registration_paths(registry, sample_params):
     """Verify that SimParameter is flattened into the correct dot-notation paths."""
@@ -108,3 +110,40 @@ def test_registry_missing_path(registry):
 
     # Updating a missing path should not raise an error but should be handled/logged
     registry.update("Missing.Path", 10)  # Should print warning based on our logic
+
+
+def test_registry_variables_registration_and_sync(registry):
+    """Verify that custom variables are registered, synced via dict assignment, and signal events."""
+    # Create a localized parameter with custom variables to avoid depending on sample_params
+    params = SimParameter(
+        sim_id="Line_B",
+        variables={"is_active": True, "speed_limit": 1.5, "mode": "auto"},
+    )
+    registry.register_sim_parameter(params)
+
+    # 1. Check Registration Paths
+    assert registry.get("Line_B.variables.is_active").value is True
+    assert registry.get("Line_B.variables.speed_limit").value == 1.5
+    assert registry.get("Line_B.variables.mode").value == "auto"
+
+    # 2. Check Config Retrieval (Should return the raw dictionary)
+    var_dict = registry.get_config("Line_B.variables")
+    assert isinstance(var_dict, dict)
+    assert var_dict["mode"] == "auto"
+
+    # 3. Check Sync and Events
+    target_path = "Line_B.variables.speed_limit"
+    dyn_val = registry.get(target_path)
+
+    # Initially, the signal store should be empty
+    assert len(dyn_val._signal.items) == 0
+
+    # Update via registry
+    registry.update(target_path, 2.5)
+
+    # Validate DynamicValue updated and signaled
+    assert dyn_val.value == 2.5
+    assert len(dyn_val._signal.items) == 1
+
+    # Validate underlying dictionary was synced correctly (testing the `isinstance(dict)` block)
+    assert var_dict["speed_limit"] == 2.5
