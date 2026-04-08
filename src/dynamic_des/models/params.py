@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Literal, Optional, Union
+from typing import Any, Dict, Literal, Optional, Union
 
 
 @dataclass
@@ -53,6 +53,8 @@ class SimParameter:
         resources (Dict[str, CapacityConfig]): Configurations for standard SimPy Resources.
         containers (Dict[str, CapacityConfig]): Configurations for continuous SimPy Containers.
         stores (Dict[str, CapacityConfig]): Configurations for discrete SimPy Stores.
+        variables (Dict[str, Any]): Flexible user-defined state variables (e.g., int, float, bool, str)
+            used to drive custom logic, track string-based states, or act as external control dials.
     """
 
     sim_id: str
@@ -62,3 +64,5 @@ class SimParameter:
     resources: Dict[str, CapacityConfig] = field(default_factory=dict)
     containers: Dict[str, CapacityConfig] = field(default_factory=dict)
     stores: Dict[str, CapacityConfig] = field(default_factory=dict)
+    # Custom / User-Defined states
+    variables: Dict[str, Any] = field(default_factory=dict)
