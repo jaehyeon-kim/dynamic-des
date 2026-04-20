@@ -8,13 +8,20 @@ It bridges the gap between static discrete-event simulations and the live world 
 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
 - **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.rate`) that trigger instant logic changes.
-- **🚀 High Throughput**: Optimized to handle high throughput using `orjson` and local batching.
+- **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
+- **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers.
+- **🦆 Pydantic Duck-Typing**: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.
 - **🔋 Flexible Resources**: `DynamicResource` provides prioritized queuing with graceful capacity shrinking.
-- **🔌 Modular Connectors**: Plugin-based architecture for Kafka, Redis, Postgres and Local testing.
-- **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time, exposed via the telemetry stream.
+- **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time.
 
-## Project Layout
+## Documentation Layout
 
-- [Getting Started](getting-started.md): A walkthrough of the local example.
-- [Core Concepts](concepts.md): Learn about the Switchboard Pattern.
+- [Getting Started](getting-started.md): Quick installation and zero-setup demo commands.
+- [Core Concepts](concepts.md): Deep dive into the architecture, the Switchboard Pattern, and the shrinking paradox.
+- **Examples**
+    - [Local Simulation](examples/local.md): A dependency-free approach to testing and deterministic scheduling.
+    - [Kafka Digital Twin](examples/kafka.md): A full event-driven architecture showcasing dynamic state updates and Pydantic event routing.
+- **Advanced Guides**
+    - [Cluster Authentication](guides/kafka-security.md): Connect to enterprise environments natively (SASL, mTLS, OAuth, and AWS IAM).
+    - [Avro Schemas & Pydantic](guides/avro-and-pydantic.md): Leverage pluggable serialization, duck-typing, and schema registries (Confluent & AWS Glue).
 - [API Reference](api.md): Detailed documentation of classes and methods.
