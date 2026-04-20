@@ -3,6 +3,7 @@ import os
 import time
 
 import numpy as np
+from pydantic import BaseModel
 
 from dynamic_des import (
     CapacityConfig,
@@ -22,8 +23,22 @@ logging.basicConfig(
 logger = logging.getLogger("kafka_example")
 
 
+# ==========================================
+# 1. Define Strongly-Typed Event Payloads
+# ==========================================
+class TaskEvent(BaseModel):
+    """
+    Thanks to dynamic-des's duck-typing, we can pass this Pydantic model
+    directly into env.publish_event(). The KafkaEgress layer will seamlessly
+    extract it and serialize it (either to JSON or Avro).
+    """
+
+    path_id: str
+    status: str
+
+
 def run():
-    # 0. Create Kafka topics
+    # 2. Create Kafka topics
     BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
     TOPICS_CONFIG = [
         {"name": "sim-config", "partitions": 1},
@@ -38,7 +53,7 @@ def run():
     admin_connector.create_topics(topics_config=TOPICS_CONFIG)
     time.sleep(2)
 
-    # 1. Define initial system state
+    # 3. Define initial system state
     line_a_params = SimParameter(
         sim_id="Line_A",
         arrival={
@@ -48,9 +63,14 @@ def run():
         resources={"lathe": CapacityConfig(current_cap=1, max_cap=10)},
     )
 
-    # 2. Setup Environment with Kafka Connectors
-    # Expects JSON: {"path_id": "Line_A.resources.lathe.current_cap", "value": 3}
+    # 4. Setup Environment with Kafka Connectors
+    # (Optional: Pass **kwargs like `security_protocol="SASL_SSL"` for enterprise clusters)
     ingress = KafkaIngress(topic="sim-config", bootstrap_servers=BOOTSTRAP_SERVERS)
+
+    # By default, this uses JsonSerializer. To use Avro for enterprise environments:
+    # from dynamic_des.connectors.egress.kafka import ConfluentAvroSerializer
+    # avro_serializer = ConfluentAvroSerializer("http://localhost:8081", TaskEvent.avro_schema())
+    # Then pass: topic_serializers={"sim-events": avro_serializer}
     egress = KafkaEgress(
         telemetry_topic="sim-telemetry",
         event_topic="sim-events",
@@ -62,11 +82,11 @@ def run():
     env.setup_ingress([ingress])
     env.setup_egress([egress])
 
-    # 3. Initialize Resources and Sampler
+    # 5. Initialize Resources and Sampler
     res = DynamicResource(env, "Line_A", "lathe")
     sampler = Sampler(rng=np.random.default_rng(42))
 
-    # 4. Define Simulation Logic
+    # 6. Define Simulation Logic
     def arrival_process(env: DynamicRealtimeEnvironment, res: DynamicResource):
         arrival_cfg = env.registry.get_config("Line_A.arrival.standard")
         service_path = "Line_A.service.milling"
@@ -84,19 +104,21 @@ def run():
         path_id: str,
     ):
         task_key = f"task-{task_id}"
-        env.publish_event(task_key, {"path_id": path_id, "status": "queued"})
+
+        # Publish Pydantic model instead of raw dictionary
+        env.publish_event(task_key, TaskEvent(path_id=path_id, status="queued"))
 
         with res.request() as req:
             yield req
 
             logger.info(f"Task {task_id} started at sim time: {env.now:.2f}s")
-            env.publish_event(task_key, {"path_id": path_id, "status": "started"})
+            env.publish_event(task_key, TaskEvent(path_id=path_id, status="started"))
 
             # Use latest service config from registry
             service_cfg = env.registry.get_config(path_id)
             yield env.timeout(sampler.sample(service_cfg))
 
-            env.publish_event(task_key, {"path_id": path_id, "status": "finished"})
+            env.publish_event(task_key, TaskEvent(path_id=path_id, status="finished"))
 
     def telemetry_monitor(env: DynamicRealtimeEnvironment, res: DynamicResource):
         """Low-volume system health stream."""
@@ -111,7 +133,7 @@ def run():
 
             yield env.timeout(2.0)
 
-    # 5. Run
+    # 7. Run
     env.process(arrival_process(env, res))
     env.process(telemetry_monitor(env, res))
 
