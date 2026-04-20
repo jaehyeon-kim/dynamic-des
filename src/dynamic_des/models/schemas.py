@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -61,6 +61,6 @@ class EventPayload(BaseStreamPayload):
         ...,
         description="A unique identifier/partition key for the event (e.g., 'task-001').",
     )
-    value: Dict[str, Any] = Field(
-        ..., description="A dictionary containing the event payload."
+    value: Any = Field(
+        ..., description="A dictionary or Pydantic model containing the event payload."
     )
