@@ -1,6 +1,6 @@
 [project]
 name = "dynamic-des"
-version = "0.6.0"
+version = "0.7.0"
 description = "Real-time SimPy control plane to dynamically update parameters and stream outputs via external systems like Kafka, Redis, or Postgres. Built for event-driven digital twins."
 readme = "README.md"
 authors = [
@@ -58,8 +58,17 @@ kafka =[
 redis = ["redis>=5.0.0"]
 postgres =["asyncpg>=0.29.0"]
 dashboard = ["nicegui>=1.4.0"]
+confluent = [
+    "confluent-kafka>=2.0.0",
+    "dataclasses-avroschema[pydantic]"
+]
+glue = [
+    "aws-glue-schema-registry",
+    "boto3",
+    "dataclasses-avroschema[pydantic]"
+]
 all = [
-    "dynamic-des[kafka,redis,postgres,dashboard]"
+    "dynamic-des[kafka,redis,postgres,dashboard,confluent,glue]"
 ]
 [build-system]
 requires = ["uv_build>=0.9.16,<0.12.0"]
