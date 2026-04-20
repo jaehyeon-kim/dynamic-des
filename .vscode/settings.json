@@ -13,6 +13,11 @@
       "source.organizeImports": "explicit"
     }
   },
+  "[markdown]": {
+    "editor.defaultFormatter": null,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false
+  },
   "python.terminal.activateEnvironment": false,
   "terminal.integrated.suggest.enabled": false
 }
