@@ -19,9 +19,10 @@ Dynamic DES bridges the gap between static discrete-event simulations and the li
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
 - **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.rate`) that trigger instant logic changes.
 - **🚀 High Throughput**: Optimized to handle high throughput using `orjson` and local batching.
-- **🔋 Flexible Resources**: `DynamicResource` provides prioritized queuing with graceful capacity shrinking.
-- **🔌 Modular Connectors**: Plugin-based architecture for Kafka, Redis, Postgres and Local testing.
-- **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time, exposed via the telemetry stream.
+- **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
+- **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers (Confluent & AWS Glue).
+- **🦆 Pydantic Duck-Typing**: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.
+- **🌍 Domain Agnostic**: Perfect for factory floors, crypto trading bots, or RPG game state management.
 
 ## Installation
 
@@ -31,16 +32,19 @@ Install the core library:
 pip install dynamic-des
 ```
 
-To include specific backends:
+To include specific backends and enterprise features:
 
 ```bash
 # For Kafka support
 pip install "dynamic-des[kafka]"
 
-# For Kafka and Dashboard support
-pip install "dynamic-des[kafka,dashboard]"
+# For Confluent Schema Registry (Avro)
+pip install "dynamic-des[kafka,confluent]"
 
-# For all backends (Kafka, Redis, Postgres, Dashboard)
+# For AWS Glue Schema Registry (Avro)
+pip install "dynamic-des[kafka,glue]"
+
+# For all backends (Kafka, Redis, Postgres, Dashboard, Avro)
 pip install "dynamic-des[all]"
 ```
 

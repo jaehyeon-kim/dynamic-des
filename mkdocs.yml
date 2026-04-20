@@ -42,6 +42,14 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - Core Concepts: concepts.md
+  - Examples:
+      - Local Simulation: examples/local.md
+      - Kafka Digital Twin: examples/kafka.md
+      #- Crypto Trading Bot: examples/crypto-trading.md
+      #- RPG Adventure Game: examples/rpg-adventure.md
+  - Advanced Guides:
+      - Connecting to Secure Kafka: guides/kafka-security.md
+      - Avro Schemas & Pydantic: guides/avro-and-pydantic.md
   - API Reference: api.md
 
 markdown_extensions:
