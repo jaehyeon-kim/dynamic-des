@@ -602,7 +602,7 @@
   <span class="md-ellipsis">
     
   
-    Avro Schemas & Pydantic
+    Advanced Serialization
   
 
     
@@ -721,6 +721,10 @@
 <h1 id="dynamic-des">Dynamic DES</h1>
 <p><strong>Dynamic DES</strong> is a high-performance, real-time control plane for <a href="https://simpy.readthedocs.io/">SimPy</a>.</p>
 <p>It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via <strong>Kafka</strong>, <strong>Redis</strong>, or <strong>PostgreSQL</strong> without stopping the simulation.</p>
+<div align="center">
+  <img src="../assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
+</div>
+
 <h2 id="key-features">Key Features</h2>
 <ul>
 <li><strong>⚡ Real-Time Control</strong>: Synchronize SimPy with the system clock using <code>DynamicRealtimeEnvironment</code>.</li>
@@ -741,8 +745,8 @@
 </ul>
 </li>
 <li><strong>Advanced Guides</strong><ul>
-<li><a href="guides/kafka-security/">Cluster Authentication</a>: Connect to enterprise environments natively (SASL, mTLS, OAuth, and AWS IAM).</li>
-<li><a href="guides/avro-and-pydantic/">Avro Schemas &amp; Pydantic</a>: Leverage pluggable serialization, duck-typing, and schema registries (Confluent &amp; AWS Glue).</li>
+<li><a href="guides/kafka-security/">Connecting to Secure Kafka Clusters</a>: Connect to enterprise environments natively (SASL, mTLS, OAuth, and AWS IAM).</li>
+<li><a href="guides/avro-and-pydantic/">Advanced Serialization: Avro &amp; Pydantic</a>: Leverage pluggable serialization, duck-typing, and schema registries (Confluent &amp; AWS Glue).</li>
 </ul>
 </li>
 <li><a href="api/">API Reference</a>: Detailed documentation of classes and methods.</li>

@@ -606,7 +606,7 @@
   <span class="md-ellipsis">
     
   
-    Avro Schemas & Pydantic
+    Advanced Serialization
   
 
     
@@ -725,6 +725,10 @@
 <h1 id="kafka-digital-twin">Kafka Digital Twin</h1>
 <p>This example demonstrates how to integrate <code>dynamic-des</code> into a full event-driven architecture.</p>
 <p>By replacing the Local connectors with <code>KafkaIngress</code> and <code>KafkaEgress</code>, the simulation becomes a fully detached microservice. It listens for external JSON commands to mutate its state, and streams telemetry and strictly-typed Pydantic events to outbound topics.</p>
+<div align="center">
+  <img src="../../assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
+</div>
+
 <h2 id="execution">Execution</h2>
 <p>To run this example, you need the Kafka and Dashboard extras installed. You will also need <strong>Docker</strong> running to host the local Kafka infrastructure.</p>
 <p><strong>1. Install Dependencies</strong></p>
