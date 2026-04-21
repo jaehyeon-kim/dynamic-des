@@ -2,7 +2,7 @@
 
 This example demonstrates how to build a dynamic simulation using **Local Connectors**.
 
-Local connectors do not require Docker, Kafka, or any external databases. They are perfect for testing, benchmarking, or scenarios where parameter changes need to occur at specific wall-clock intervals deterministically.
+Local connectors do not require Docker, Kafka, or any external data stores. They are perfect for testing, benchmarking, or scenarios where parameter changes need to occur at specific wall-clock intervals deterministically.
 
 ## Execution
 

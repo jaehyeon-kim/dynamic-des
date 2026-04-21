@@ -1,6 +1,6 @@
 # Getting Started
 
-Dynamic DES bridges the gap between static discrete-event simulations and the live world. It allows you to update simulation parameters (arrivals, service times, capacities) and stream telemetry via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation.
+Ready to build real-time digital twins? This guide will walk you through installing Dynamic DES, running the built-in zero-setup demos, and exploring the core infrastructure.
 
 ## Installation
 
@@ -61,7 +61,7 @@ ddes-kafka-infra-down
 
 Ready to build your own system? We have prepared a gallery of real-world use cases to demonstrate how to architect your simulation.
 
-- [Local Simulation](): A dependency-free approach to testing.
-- [Kafka Digital Twin](): A full manufacturing architecture with dynamic queues.
+- [Local Simulation](examples/local.md): A dependency-free approach to testing.
+- [Kafka Digital Twin](examples/kafka.md): A full manufacturing architecture with dynamic queues.
 <!-- - [Crypto Trading Bot](): Simulating order books, slippage, and API rate limits.
 - [RPG Adventure Game](): Managing live game states, monster spawns, and server capacity. -->
