@@ -4,6 +4,10 @@ This example demonstrates how to integrate `dynamic-des` into a full event-drive
 
 By replacing the Local connectors with `KafkaIngress` and `KafkaEgress`, the simulation becomes a fully detached microservice. It listens for external JSON commands to mutate its state, and streams telemetry and strictly-typed Pydantic events to outbound topics.
 
+<div align="center">
+  <img src="../../assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
+</div>
+
 ## Execution
 
 To run this example, you need the Kafka and Dashboard extras installed. You will also need **Docker** running to host the local Kafka infrastructure.

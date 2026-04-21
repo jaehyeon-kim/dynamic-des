@@ -133,6 +133,23 @@
     options:
       heading_level: 3
 
+## Deserializers
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.ingress.kafka.JsonDeserializer
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.ingress.kafka.ConfluentAvroDeserializer
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.ingress.kafka.GlueAvroDeserializer
+    options:
+      heading_level: 3
+
 ## Connectors (Egress)
 
 <!-- prettier-ignore -->
@@ -157,5 +174,22 @@
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.egress.redis.RedisEgress
+    options:
+      heading_level: 3
+
+## Serializers
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.egress.kafka.JsonSerializer
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.egress.kafka.ConfluentAvroSerializer
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.egress.kafka.GlueAvroSerializer
     options:
       heading_level: 3

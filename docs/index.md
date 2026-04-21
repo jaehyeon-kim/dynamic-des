@@ -4,6 +4,11 @@
 
 It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation.
 
+<div align="center">
+  <img src="../assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
+</div>
+
+
 ## Key Features
 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
@@ -22,6 +27,6 @@ It bridges the gap between static discrete-event simulations and the live world 
     - [Local Simulation](examples/local.md): A dependency-free approach to testing and deterministic scheduling.
     - [Kafka Digital Twin](examples/kafka.md): A full event-driven architecture showcasing dynamic state updates and Pydantic event routing.
 - **Advanced Guides**
-    - [Cluster Authentication](guides/kafka-security.md): Connect to enterprise environments natively (SASL, mTLS, OAuth, and AWS IAM).
-    - [Avro Schemas & Pydantic](guides/avro-and-pydantic.md): Leverage pluggable serialization, duck-typing, and schema registries (Confluent & AWS Glue).
+    - [Connecting to Secure Kafka Clusters](guides/kafka-security.md): Connect to enterprise environments natively (SASL, mTLS, OAuth, and AWS IAM).
+    - [Advanced Serialization: Avro & Pydantic](guides/avro-and-pydantic.md): Leverage pluggable serialization, duck-typing, and schema registries (Confluent & AWS Glue).
 - [API Reference](api.md): Detailed documentation of classes and methods.

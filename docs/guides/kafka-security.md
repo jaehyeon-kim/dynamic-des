@@ -68,4 +68,4 @@ admin = KafkaAdminConnector(
 )
 ```
 
-> **Tip:** You can use this exact same `OAUTHBEARER` pattern with custom token provider classes to authenticate against Okta, Auth0, or other enterprise SSO providers\!
+> **Tip:** You can use this exact same `OAUTHBEARER` pattern with custom token provider classes to authenticate against Okta, Auth0, or other enterprise SSO providers!

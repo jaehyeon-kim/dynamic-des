@@ -1,4 +1,4 @@
-# Avro Schemas & Pydantic
+# Advanced Serialization: Avro & Pydantic
 
 By default, `KafkaEgress` strictly dumps all payloads as highly optimized JSON. While great for lightweight lifecycle and telemetry events, high-velocity ML streams (like `PredictionRequests`) often require compact, schema-validated binary payloads using Avro.
 
@@ -25,6 +25,8 @@ def work_task(env: DynamicRealtimeEnvironment, task_id: int):
 ```
 
 ## Pluggable Topic Routing
+
+Now that you are yielding Pydantic models, you need a way to tell Dynamic DES which models should remain standard JSON, and which ones need to be serialized as Avro. We do this using Topic Routing.
 
 You can configure `KafkaEgress` to route different events to different topics, and apply specific serializers (like Confluent or AWS Glue Schema Registries) only where needed. Any topic that does not have an explicit serializer mapped will safely fall back to the default `JsonSerializer`.
 
@@ -64,8 +66,6 @@ egress = KafkaEgress(
 )
 ```
 
----
-
 ## Auto-Generating Avro Schemas
 
 Hardcoding Avro JSON strings in Python is prone to error and schema drift. The industry best practice is to generate your Avro schema _directly_ from your Pydantic model.
@@ -87,20 +87,32 @@ class MLPrediction(AvroBaseModel):
         namespace = "com.dynamic_des.ml"
         schema_name = "PredictionEvent"
 
-# MAGIC: Automatically generate the Avro schema string!
+# Automatically generate the Avro schema string!
 schema_string = MLPrediction.avro_schema()
 ```
 
-### Pass the generated string into Dynamic DES
+### Plug it into the Egress Connector
 
-Both `ConfluentAvroSerializer` and `GlueAvroSerializer` accept the `schema_str` argument.
+Both `ConfluentAvroSerializer` and `GlueAvroSerializer` accept the `schema_str` argument. 
+
+Once you have initialized the serializer with your auto-generated schema, the final step is to pass it into your `KafkaEgress` topic configuration.
 
 ```python
-from dynamic_des.connectors.egress.kafka import GlueAvroSerializer
+from dynamic_des.connectors.egress.kafka import ConfluentAvroSerializer
+from dynamic_des import KafkaEgress
 
-glue_serializer = GlueAvroSerializer(
-    registry_name="my-production-registry",
-    schema_str=MLPrediction.avro_schema(), # Always up to date!
-    region_name="us-east-1"
+# 1. Initialize with the auto-generated schema
+confluent_serializer = ConfluentAvroSerializer(
+    registry_url="http://localhost:8081",
+    schema_str=MLPrediction.avro_schema() # Always up to date!
+)
+
+# 2. Map it to your topic router!
+egress = KafkaEgress(
+    bootstrap_servers="localhost:9092",
+    topic_router=ml_topic_router,
+    topic_serializers={
+        "ml-predictions": confluent_serializer, # Specify the serializer for a topic!
+    }
 )
 ```
