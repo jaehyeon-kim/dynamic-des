@@ -93,7 +93,7 @@ schema_string = MLPrediction.avro_schema()
 
 ### Plug it into the Egress Connector
 
-Both `ConfluentAvroSerializer` and `GlueAvroSerializer` accept the `schema_str` argument. 
+Both `ConfluentAvroSerializer` and `GlueAvroSerializer` accept the `schema_str` argument.
 
 Once you have initialized the serializer with your auto-generated schema, the final step is to pass it into your `KafkaEgress` topic configuration.
 
