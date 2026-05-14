@@ -55,21 +55,21 @@ def history_router(data: dict) -> str | None:
     """Routes data to specific Parquet files and drops useless metrics."""
     # Drop lag_seconds entirely—meaningless in fast-forward mode
     if data.get("path_id") == "system.simulation.lag_seconds":
-        return None 
-        
+        return None
+
     stream_type = data.get("stream_type")
-    
+
     # Drop telemetry for this specific run, keeping only events
     if stream_type == "telemetry":
         return None
-        
+
     return "data/events.parquet"
 
 
 def run():
     # 1. Ensure our target directory exists
     os.makedirs("data", exist_ok=True)
-    
+
     line_a_params = SimParameter(
         sim_id="Line_A",
         arrival={"standard": DistributionConfig(dist="exponential", rate=2.0)},
@@ -80,7 +80,7 @@ def run():
     # 2. Setup Environment for Historical Fast-Forward
     # Start the simulation exactly 7 days ago
     start_time = datetime.now() - timedelta(days=7)
-    
+
     # factor=0.0 runs the simulation as fast as possible
     env = DynamicRealtimeEnvironment(
         factor=0.0,
@@ -90,7 +90,7 @@ def run():
 
     # Initialize Egress with the custom router
     egress = ParquetStorageEgress(path_router=history_router)
-    
+
     # batch_size=5000 ensures good Parquet compression.
     # flush_interval=86400 (1 day) prevents premature flushing in fast-forward mode.
     env.setup_egress([egress], batch_size=5000, flush_interval=86400)
@@ -127,10 +127,10 @@ def run():
     # Run for exactly 1 logical week
     run_duration_str = "1 week"
     run_duration_sec = time_to_seconds(run_duration_str)
-    
+
     logger.info(f"Generating historical data from {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     logger.info("Fast-forwarding (factor=0.0)...")
-    
+
     try:
         env.run(until=run_duration_sec)
     finally:
