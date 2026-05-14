@@ -506,6 +506,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="examples/history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Historical Data & Forecasting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -603,6 +631,34 @@
     
   
     Advanced Serialization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guides/data-lake-ingestion/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Lake Ingestion & Storage
   
 
     
@@ -720,7 +776,7 @@
 
 <h1 id="dynamic-des">Dynamic DES</h1>
 <p><strong>Dynamic DES</strong> is a high-performance, real-time control plane for <a href="https://simpy.readthedocs.io/">SimPy</a>.</p>
-<p>It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via <strong>Kafka</strong>, <strong>Redis</strong>, or <strong>PostgreSQL</strong> without stopping the simulation. It also supports high-speed historical data generation by fast-forwarding through simulation time to backfill Data Lakes with schema-enforced <strong>Parquet</strong> or <strong>JSONL</strong> files.</p>
+<p>It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via <strong>Kafka</strong>, <strong>Redis</strong>, or <strong>PostgreSQL</strong> without stopping the simulation. It also transforms your models into <strong>synchronized forecasting engines</strong> by fast-forwarding through simulation time to predict future states or backfill Data Lakes with schema-enforced <strong>Parquet</strong> or <strong>JSONL</strong> files directly to <strong>AWS S3, Google Cloud Storage (GCS), Azure Blob, and SeaweedFS</strong> using PyArrow VFS.</p>
 <div align="center">
   <img src="../assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
 </div>
@@ -731,6 +787,7 @@
 <li><strong>🔗 Dynamic Registry</strong>: Dynamic, path-based updates (e.g., <code>Line_A.arrival.rate</code>) that trigger instant logic changes.</li>
 <li><strong>🛡️ Enterprise Ready</strong>: Native <code>**kwargs</code> passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.</li>
 <li><strong>📦 Pluggable Serialization</strong>: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded <strong>Avro/Schema Registry</strong> serializers.</li>
+<li><strong>🗄️ Data Lake Ready</strong>: Write chunked Parquet and JSONL datasets directly to object storage via PyArrow VFS, with built-in schema inference and drift prevention.</li>
 <li><strong>🦆 Pydantic Duck-Typing</strong>: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.</li>
 <li><strong>🔋 Flexible Resources</strong>: <code>DynamicResource</code> provides prioritized queuing with graceful capacity shrinking.</li>
 <li><strong>📊 System Observability</strong>: Built-in lag monitoring to track simulation drift from real-world time.</li>
@@ -742,11 +799,13 @@
 <li><strong>Examples</strong><ul>
 <li><a href="examples/local/">Local Simulation</a>: A dependency-free approach to testing and deterministic scheduling.</li>
 <li><a href="examples/kafka/">Kafka Digital Twin</a>: A full event-driven architecture showcasing dynamic state updates and Pydantic event routing.</li>
+<li><a href="examples/history/">Historical Data &amp; Forecasting</a>: Fast-forward simulation time to generate datasets or predict future states.</li>
 </ul>
 </li>
 <li><strong>Advanced Guides</strong><ul>
 <li><a href="guides/kafka-security/">Connecting to Secure Kafka Clusters</a>: Connect to enterprise environments natively (SASL, mTLS, OAuth, and AWS IAM).</li>
 <li><a href="guides/avro-and-pydantic/">Advanced Serialization: Avro &amp; Pydantic</a>: Leverage pluggable serialization, duck-typing, and schema registries (Confluent &amp; AWS Glue).</li>
+<li><a href="guides/data-lake-ingestion/">Data Lake Ingestion &amp; Storage</a>: Configure PyArrow VFS for AWS S3, UUID chunking, and schema drift prevention.</li>
 </ul>
 </li>
 <li><a href="api/">API Reference</a>: Detailed documentation of classes and methods.</li>

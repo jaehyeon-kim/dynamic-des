@@ -11,28 +11,28 @@
       
       
       
-        <link rel="prev" href="../getting-started/">
+        <link rel="prev" href="../avro-and-pydantic/">
       
       
-        <link rel="next" href="../examples/local/">
+        <link rel="next" href="../../api/">
       
       
         
       
       
-      <link rel="icon" href="../assets/favicon.png">
+      <link rel="icon" href="../../assets/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
     
     
       
-        <title>Core Concepts - Dynamic DES</title>
+        <title>Data Lake Ingestion & Storage - Dynamic DES</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -51,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#core-concepts" class="md-skip">
+        <a href="#data-lake-ingestion-storage" class="md-skip">
           Skip to content
         </a>
       
@@ -98,9 +98,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="Dynamic DES" class="md-header__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
+    <a href="../.." title="Dynamic DES" class="md-header__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
       
-  <img src="../assets/favicon.png" alt="logo">
+  <img src="../../assets/favicon.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -117,7 +117,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Core Concepts
+              Data Lake Ingestion & Storage
             
           </span>
         </div>
@@ -233,9 +233,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="Dynamic DES" class="md-nav__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
+    <a href="../.." title="Dynamic DES" class="md-nav__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
       
-  <img src="../assets/favicon.png" alt="logo">
+  <img src="../../assets/favicon.png" alt="logo">
 
     </a>
     Dynamic DES
@@ -262,7 +262,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -289,7 +289,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../getting-started/" class="md-nav__link">
+      <a href="../../getting-started/" class="md-nav__link">
         
   
   
@@ -313,37 +313,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Core Concepts
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../concepts/" class="md-nav__link">
         
   
   
@@ -359,92 +332,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#switchboard-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Switchboard Pattern
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#synchronized-forecasting-temporal-decoupling" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Synchronized Forecasting &amp; Temporal Decoupling
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#event-driven-capacity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Event-Driven Capacity
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#high-throughput-egress-batching" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        High-Throughput Egress &amp; Batching
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-lake-ingestion-schema-stability" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data Lake Ingestion &amp; Schema Stability
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#duck-typing-and-pluggable-serialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Duck-Typing and Pluggable Serialization
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -503,7 +390,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../examples/local/" class="md-nav__link">
+      <a href="../../examples/local/" class="md-nav__link">
         
   
   
@@ -531,7 +418,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../examples/kafka/" class="md-nav__link">
+      <a href="../../examples/kafka/" class="md-nav__link">
         
   
   
@@ -559,7 +446,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../examples/history/" class="md-nav__link">
+      <a href="../../examples/history/" class="md-nav__link">
         
   
   
@@ -591,18 +478,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -623,7 +512,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -641,7 +530,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/kafka-security/" class="md-nav__link">
+      <a href="../kafka-security/" class="md-nav__link">
         
   
   
@@ -669,7 +558,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guides/avro-and-pydantic/" class="md-nav__link">
+      <a href="../avro-and-pydantic/" class="md-nav__link">
         
   
   
@@ -694,10 +583,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../guides/data-lake-ingestion/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Lake Ingestion & Storage
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -713,6 +629,87 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#pyarrow-vfs-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PyArrow VFS Integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PyArrow VFS Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aws-s3-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS S3 Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#google-cloud-storage-gcs-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Cloud Storage (GCS) Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automatic-uuid-chunking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic UUID Chunking
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strict-schema-drift-prevention-parquet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strict Schema Drift Prevention (Parquet)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -732,7 +729,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/" class="md-nav__link">
+      <a href="../../api/" class="md-nav__link">
         
   
   
@@ -779,10 +776,49 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#switchboard-pattern" class="md-nav__link">
+  <a href="#pyarrow-vfs-integration" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Switchboard Pattern
+        PyArrow VFS Integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PyArrow VFS Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aws-s3-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AWS S3 Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#google-cloud-storage-gcs-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Google Cloud Storage (GCS) Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automatic-uuid-chunking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automatic UUID Chunking
       
     </span>
   </a>
@@ -790,54 +826,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#synchronized-forecasting-temporal-decoupling" class="md-nav__link">
+  <a href="#strict-schema-drift-prevention-parquet" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Synchronized Forecasting &amp; Temporal Decoupling
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#event-driven-capacity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Event-Driven Capacity
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#high-throughput-egress-batching" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        High-Throughput Egress &amp; Batching
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#data-lake-ingestion-schema-stability" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data Lake Ingestion &amp; Schema Stability
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#duck-typing-and-pluggable-serialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Duck-Typing and Pluggable Serialization
+        Strict Schema Drift Prevention (Parquet)
       
     </span>
   </a>
@@ -864,49 +856,62 @@
   
 
 
-<h1 id="core-concepts">Core Concepts</h1>
-<p><strong>Dynamic DES</strong> was built to solve a fundamental problem with traditional Discrete-Event Simulation (DES): once a simulation starts, its parameters are usually locked in memory. If you want to connect a simulation to a live data feed (like a Kafka stream), you run the risk of blocking the simulation clock while waiting for network I/O.</p>
-<p>To solve this, Dynamic DES uses a highly decoupled, asynchronous architecture.</p>
-<h2 id="switchboard-pattern">Switchboard Pattern</h2>
-<p>Instead of simulation resources polling Kafka directly, the architecture is split into three isolated layers:</p>
-<ol>
-<li><strong>Connectors (Ingress/Egress)</strong>: Background <code>asyncio</code> threads handle heavy network I/O (Kafka, Redis) or File I/O (S3, local disk) independently of the simulation clock.</li>
-<li><strong>Registry (Switchboard)</strong>: A centralized state manager that flattens nested configurations into dot-notation paths (e.g., <code>Line_A.lathe.capacity</code>). It acts as the single source of truth.</li>
-<li><strong>Resources (SimPy Objects)</strong>: Passive observers. They do not poll for data. Instead, they "wake up" only when the Registry signals a specific path has changed.</li>
-</ol>
-<p>This pattern ensures that network latency or dropped connections never freeze the internal <code>SimPy</code> clock.</p>
-<h2 id="synchronized-forecasting-temporal-decoupling">Synchronized Forecasting &amp; Temporal Decoupling</h2>
-<p>While real-time synchronization (<code>factor=1.0</code>) is perfect for live digital twins, Dynamic DES can also detach its logical simulation clock from the real-world wall clock by setting <code>factor=0.0</code>.</p>
-<p>This transforms your model into a <strong>Synchronized Forecasting Engine</strong>.</p>
-<p>By querying your live production database for the exact current state of your factory (e.g., current capacities, queue lengths, active tasks) and injecting them into the <code>SimParameter</code> registry, you can fast-forward the simulation to instantly predict what the system will look like 8 hours into the future. Because the architecture remains identical, the exact same simulation logic scales seamlessly from real-time monitoring to high-speed batch forecasting.</p>
-<h2 id="event-driven-capacity">Event-Driven Capacity</h2>
-<p>Standard SimPy resources have static capacities. If you create a <code>simpy.Resource(capacity=5)</code>, it is forever 5.</p>
-<p>Dynamic DES introduces <code>DynamicResource</code>, <code>DynamicContainer</code>, and <code>DynamicStore</code>. These wrap native SimPy objects and listen directly to the Registry.</p>
-<p>When the control plane dictates a capacity change:</p>
-<ul>
-<li><strong>Growing is easy:</strong> If capacity increases from 5 to 10, 5 new tokens are immediately added to the pool, instantly waking up any pending requests.</li>
-<li><strong>Shrinking is complex:</strong> If capacity shrinks from 5 to 2, but 4 tasks are currently processing, what happens? <strong>Dynamic DES never destroys Work-In-Progress (WIP).</strong> The resource enters a temporary "over-capacity" state. It will wait for tasks to naturally finish and release their tokens, intercepting those tokens until the physical pool matches the new, smaller capacity limit.</li>
-</ul>
-<h2 id="high-throughput-egress-batching">High-Throughput Egress &amp; Batching</h2>
-<p>Sending an individual HTTP/Kafka request (or performing a disk write) for every single simulation event would instantly crash the network or I/O limits.</p>
-<p>To handle high throughput, the <code>EgressMixIn</code> buffers events in a thread-safe queue.</p>
-<ul>
-<li>Events are pushed to the background network/file thread in <strong>batches</strong> (e.g., 5000 at a time).</li>
-<li>In real-time mode, the queue flushes automatically if the <code>flush_interval</code> (e.g., 1 second) is reached to ensure UI dashboards don't feel "laggy".</li>
-<li>In fast-forward forecasting mode, these large batches are crucial for generating highly compressed Data Lake files.</li>
-</ul>
-<h2 id="data-lake-ingestion-schema-stability">Data Lake Ingestion &amp; Schema Stability</h2>
-<p>When running forecasting engines, you often generate millions of records that need to be stored in Data Lakes (AWS S3, Google Cloud Storage, Databricks). Dynamic DES utilizes PyArrow VFS to natively support object storage.</p>
-<p>To support massive parallel processing downstream, Dynamic DES enforces two key storage concepts:
-1. <strong>UUID Chunking</strong>: Every time a batch flushes, it is written to a uniquely named chunk (e.g., <code>events_a1b2c3d4.parquet</code>). This prevents file locking and overwrite collisions.
-2. <strong>Schema Drift Prevention</strong>: When writing Parquet datasets, the framework infers the schema from the very first batch. If a subsequent batch introduces schema drift (e.g., a float unexpectedly arrives as an integer), the egress connector intercepts it and automatically casts it to match the canonical schema, ensuring your analytical pipelines never break.</p>
-<h2 id="duck-typing-and-pluggable-serialization">Duck-Typing and Pluggable Serialization</h2>
-<p>Dynamic DES enforces a strict separation of concerns between your <strong>simulation logic</strong> and your <strong>data infrastructure</strong>.</p>
-<p>Your simulation code shouldn't care if a data science team wants Avro messages in Kafka, or if a data engineering team wants Parquet files in S3. Using <strong>Duck-Typing</strong>, you can yield native <code>Pydantic</code> models directly to the environment:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># In your simulation logic:</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">env</span><span class="o">.</span><span class="n">publish_event</span><span class="p">(</span><span class="s2">&quot;task-1&quot;</span><span class="p">,</span> <span class="n">TaskEvent</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="s2">&quot;finished&quot;</span><span class="p">))</span>
+<h1 id="data-lake-ingestion-storage">Data Lake Ingestion &amp; Storage</h1>
+<p>When running long-term historical simulations or predicting future system states, streaming data to live message brokers like Kafka is often overkill. Instead, you'll want to ingest the vast amounts of generated data directly into a Data Lake (like AWS S3 or Databricks) for downstream analytics.</p>
+<p>Dynamic DES provides robust, enterprise-grade storage connectors (<code>ParquetStorageEgress</code> and <code>JsonlStorageEgress</code>) designed specifically to handle high-velocity I/O, parallel processing compatibility, and schema stability.</p>
+<h2 id="pyarrow-vfs-integration">PyArrow VFS Integration</h2>
+<p>Dynamic DES natively wraps the <code>pyarrow.fs</code> Virtual File System. This allows you to hot-swap your target destination from your local hard drive to cloud object storage without changing your core application logic.</p>
+<p>You simply inject your configured PyArrow filesystem into the connector.</p>
+<h3 id="aws-s3-example">AWS S3 Example</h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pyarrow</span><span class="w"> </span><span class="kn">import</span> <span class="n">fs</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dynamic_des</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParquetStorageEgress</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Configure standard AWS credentials</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">s3</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">S3FileSystem</span><span class="p">(</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">access_key</span><span class="o">=</span><span class="s2">&quot;&lt;YOUR_AWS_ACCESS_KEY&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">secret_key</span><span class="o">=</span><span class="s2">&quot;&lt;YOUR_AWS_SECRET_KEY&gt;&quot;</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">region</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="p">)</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Pass the filesystem to the egress connector</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="n">egress</span> <span class="o">=</span> <span class="n">ParquetStorageEgress</span><span class="p">(</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">default_path</span><span class="o">=</span><span class="s2">&quot;my-data-lake-bucket/simulation_runs/events.parquet&quot;</span><span class="p">,</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">filesystem</span><span class="o">=</span><span class="n">s3</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">)</span>
 </span></code></pre></div>
-<p>The Egress Connectors handle the rest using a <strong>Strategy Pattern</strong>. The connector detects the Python object, automatically extracts the dictionary via <code>.model_dump()</code>, routes it to the correct topic or file path, and applies the designated serialization format (JSON, Avro, or Parquet).</p>
+<h3 id="google-cloud-storage-gcs-example">Google Cloud Storage (GCS) Example</h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pyarrow</span><span class="w"> </span><span class="kn">import</span> <span class="n">fs</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dynamic_des</span><span class="w"> </span><span class="kn">import</span> <span class="n">JsonlStorageEgress</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">gcs</span> <span class="o">=</span> <span class="n">fs</span><span class="o">.</span><span class="n">GcsFileSystem</span><span class="p">(</span><span class="n">anonymous</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">egress</span> <span class="o">=</span> <span class="n">JsonlStorageEgress</span><span class="p">(</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">default_path</span><span class="o">=</span><span class="s2">&quot;my-gcp-bucket/simulation_runs/events.jsonl&quot;</span><span class="p">,</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">filesystem</span><span class="o">=</span><span class="n">gcs</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="automatic-uuid-chunking">Automatic UUID Chunking</h2>
+<p>Massive parallel processing engines like AWS Athena, Databricks, or Presto work best when reading from a partitioned directory of multiple files, rather than one massive monolithic file.</p>
+<p>Furthermore, if the simulation was writing to a single file, network interruptions or crashes could corrupt the entire dataset. To solve this, Dynamic DES implements an <strong>Automatic Chunking Strategy</strong>.</p>
+<p>Every time the internal buffer flushes (based on your <code>batch_size</code>), the egress connector generates a uniquely named chunk by injecting a short UUID into the filename.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># What you specify in code:
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>default_path = &quot;data/events.parquet&quot;
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a># What gets written to S3 over time:
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>data/events_a1b2c3d4.parquet
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>data/events_f5e6d7c8.parquet
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>data/events_9b8a7c6d.parquet
+</span></code></pre></div>
+<p>This guarantees <strong>lock-free</strong> parallel writing, ensuring no file overwrite collisions occur.</p>
+<h2 id="strict-schema-drift-prevention-parquet">Strict Schema Drift Prevention (Parquet)</h2>
+<p>Parquet is a highly optimized, columnar binary format. Unlike JSON, its schema is incredibly strict. If your first batch of data dictates that a column named <code>utilization</code> is a <code>FLOAT64</code>, but a later batch attempts to write the integer <code>100</code> into that column, standard file writers will crash or create incompatible files that break your Data Lake.</p>
+<p>The <code>ParquetStorageEgress</code> connector protects you from this via <strong>Schema Caching and Inference</strong>:</p>
+<ol>
+<li><strong>Inference:</strong> On the very first flush to a specific path, the connector examines the batch and infers the canonical PyArrow Schema. It caches this schema in memory.</li>
+<li><strong>Enforcement:</strong> For every subsequent batch destined for that path, the connector compares the incoming data against the cached schema.</li>
+<li><strong>Casting:</strong> If it detects a mismatch (e.g., an <code>int</code> attempting to enter a <code>float</code> column), it automatically up-casts the data to match the canonical schema before writing it to storage.</li>
+</ol>
+<p>This allows your simulation logic to remain dynamic and Pythonic, while guaranteeing your Data Lake datasets remain perfectly structured.</p>
 
 
 
@@ -956,10 +961,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
