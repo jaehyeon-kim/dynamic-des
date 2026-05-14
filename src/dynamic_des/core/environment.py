@@ -2,6 +2,7 @@ import asyncio
 import logging
 import queue
 import threading
+import time
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
@@ -194,12 +195,8 @@ class EgressMixIn:
         """
         Publishes a low-volume telemetry metric (e.g., utilization, queue length).
 
-        Telemetry triggers an immediate push to the egress queue to keep system
-        vitals fresh for external dashboards.
-
-        Args:
-            path_id (str): The dot-notation path of the metric (e.g., 'Line_A.lathe.utilization').
-            value (Any): The current value of the metric.
+        Telemetry shares the main event buffer to ensure efficient batching for
+        high-throughput file storage (like Parquet or S3).
         """
         if not hasattr(self, "egress_queue"):
             return  # Fail silently if no egress is configured
@@ -211,7 +208,10 @@ class EgressMixIn:
             timestamp=self._get_iso_timestamp(self.start_datetime, self.now),  # type: ignore[attr-defined]
         )
 
-        self.egress_queue.put([payload.model_dump(mode="json")])
+        self._event_buffer.append(payload.model_dump(mode="json"))
+
+        if len(self._event_buffer) >= self.egress_batch_size:
+            self._flush_buffer()
 
     def publish_event(self, event_key: str, value: Any):
         """
@@ -251,6 +251,25 @@ class EgressMixIn:
         if hasattr(self, "_event_buffer"):
             self._flush_buffer()
 
+        # Wait until the background I/O threads have fully drained the queue to disk
+        if hasattr(self, "egress_queue"):
+            drain_timeout = 5.0
+            start_time = time.time()
+
+            while (
+                not self.egress_queue.empty()
+                and (time.time() - start_time) < drain_timeout
+            ):
+                time.sleep(0.1)
+
+            if not self.egress_queue.empty():
+                logger.warning(
+                    "Egress queue did not drain fully within the timeout. Some final records may be lost."
+                )
+            else:
+                # Give the final pyarrow operation a half-second to safely close the file
+                time.sleep(0.5)
+
         loop = getattr(self, "_egress_loop", None)
         if loop and loop.is_running():
             loop.call_soon_threadsafe(loop.stop)
@@ -270,7 +289,13 @@ class DynamicRealtimeEnvironment(
         start_datetime (datetime): The real-world clock time when the simulation started.
     """
 
-    def __init__(self, initial_time=0, factor=1.0, strict=False):
+    def __init__(
+        self,
+        initial_time=0,
+        factor=1.0,
+        strict=False,
+        logical_start_time: Optional[datetime] = None,
+    ):
         """
         Initializes the real-time simulation environment.
 
@@ -278,8 +303,12 @@ class DynamicRealtimeEnvironment(
             initial_time (float, optional): The initial simulation time. Defaults to 0.
             factor (float, optional): The real-time factor (e.g., 1.0 = 1 sim second per real second). Defaults to 1.0.
             strict (bool, optional): If True, raises RuntimeError if simulation falls too far behind real time. Defaults to False.
+            logical_start_time (datetime, optional): Overrides the environment's base clock.
+                Crucial for historical backfilling (e.g., generating data from last week).
         """
-        self.start_datetime = datetime.now()
+        # Inject the custom time, or default to the exact moment the script executes
+        self.start_datetime = logical_start_time or datetime.now()
+
         super().__init__(initial_time=initial_time, factor=factor, strict=strict)
         self.setup_registry()
 
