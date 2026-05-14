@@ -12,7 +12,7 @@
   <img src="https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/docs/assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
 </div>
 
-Dynamic DES bridges the gap between static discrete-event simulations and the live world. It allows you to update simulation parameters (arrivals, service times, capacities) and stream telemetry via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. Beyond live streaming, it enables rapid historical data generation to export compressed, chunked datasets directly to local storage or S3 compatible systems.
+Dynamic DES bridges the gap between static discrete-event simulations and the live world. It allows you to update simulation parameters (arrivals, service times, capacities) and stream telemetry via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. Beyond live streaming, it transforms static models into **synchronized forecasting engines**, enabling rapid historical data generation and future state prediction. Export compressed, chunked datasets (Parquet, JSONL) directly to local storage, **AWS S3, Google Cloud Storage, Azure Blob, or SeaweedFS** using PyArrow VFS, complete with strict schema drift prevention.
 
 ## Key Features
 
@@ -21,6 +21,7 @@ Dynamic DES bridges the gap between static discrete-event simulations and the li
 - **🚀 High Throughput**: Optimized to handle high throughput using `orjson` and local batching.
 - **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
 - **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers (Confluent & AWS Glue).
+- **🗄️ Data Lake Ingestion**: Native PyArrow VFS integration for fast chunked writing (Parquet/JSONL) directly to object storage, with built-in schema inference and drift enforcement.
 - **🦆 Pydantic Duck-Typing**: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.
 - **🌍 Domain Agnostic**: Perfect for factory floors, crypto trading bots, or RPG game state management.
 
@@ -44,7 +45,10 @@ pip install "dynamic-des[kafka,confluent]"
 # For AWS Glue Schema Registry (Avro)
 pip install "dynamic-des[kafka,glue]"
 
-# For all backends (Kafka, Redis, Postgres, Dashboard, Avro)
+# For Data Lake Storage (Parquet & PyArrow VFS)
+pip install "dynamic-des[parquet]"
+
+# For all backends (Kafka, Redis, Postgres, Dashboard, Avro, Parquet)
 pip install "dynamic-des[all]"
 ```
 

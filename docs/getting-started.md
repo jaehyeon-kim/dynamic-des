@@ -22,6 +22,9 @@ pip install "dynamic-des[kafka,confluent]"
 # For AWS Glue Schema Registry (Avro)
 pip install "dynamic-des[kafka,glue]"
 
+# For Parquet support (required for data lake integration)
+pip install "dynamic-des[parquet]"
+
 # For all backends (Kafka, Redis, Postgres, Dashboard, Avro)
 pip install "dynamic-des[all]"
 ```

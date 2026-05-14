@@ -45,11 +45,13 @@ nav:
   - Examples:
       - Local Simulation: examples/local.md
       - Kafka Digital Twin: examples/kafka.md
+      - Historical Data & Forecasting: examples/history.md
       #- Crypto Trading Bot: examples/crypto-trading.md
       #- RPG Adventure Game: examples/rpg-adventure.md
   - Advanced Guides:
       - Connecting to Secure Kafka: guides/kafka-security.md
       - Advanced Serialization: guides/avro-and-pydantic.md
+      - Data Lake Ingestion & Storage: guides/data-lake-ingestion.md
   - API Reference: api.md
 
 markdown_extensions:
