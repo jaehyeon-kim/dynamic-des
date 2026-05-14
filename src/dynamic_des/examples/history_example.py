@@ -13,8 +13,6 @@ from dynamic_des import (
     Sampler,
     SimParameter,
 )
-
-# Assuming you added `time_to_seconds` to `utils.py` and exported it
 from dynamic_des.utils import time_to_seconds
 
 logging.basicConfig(
@@ -23,24 +21,68 @@ logging.basicConfig(
 logger = logging.getLogger("history_example")
 
 
-def history_router(data: dict) -> str | None:
-    """Routes data to specific Parquet files and drops useless metrics."""
-    # Drop lag_seconds entirely—meaningless in fast-forward mode
-    if data.get("path_id") == "system.simulation.lag_seconds":
-        return None
+def create_history_router(base_path: str):
+    """
+    Router Factory: Generates a router function injected with the correct
+    base path, and flattens nested event payloads for Parquet.
+    """
 
-    stream_type = data.get("stream_type")
+    def history_router(data: dict) -> str | None:
+        if data.get("path_id") == "system.simulation.lag_seconds":
+            return None
 
-    # Split into two separate data lakes
-    if stream_type == "telemetry":
-        return None
+        stream_type = data.get("stream_type")
 
-    return "data/events.parquet"
+        if stream_type == "telemetry":
+            return None
+
+        # FLATTEN EVENT FOR PARQUET
+        # If it's an event and has a nested 'value' dictionary, flatten it
+        if (
+            stream_type == "event"
+            and "value" in data
+            and isinstance(data["value"], dict)
+        ):
+            # Extract and remove the nested 'value' object
+            nested_value = data.pop("value")
+            # Merge the nested keys (path_id, status) directly into the root dict
+            data.update(nested_value)
+
+        return f"{base_path}/events.parquet"
+
+    return history_router
 
 
 def run():
-    os.makedirs("data", exist_ok=True)
+    # ---------------------------------------------------------
+    # 1. DUAL-MODE STORAGE CONFIGURATION
+    # ---------------------------------------------------------
+    use_s3 = os.getenv("USE_S3", "false").lower() == "true"
+    base_path = os.getenv("DEST_PATH", "dml-dev/history" if use_s3 else "data")
+    filesystem = None
 
+    if use_s3:
+        # Lazy import PyArrow so the script doesn't crash if running purely local
+        # without the [parquet] extra installed (though it is needed for ParquetEgress)
+        from pyarrow import fs
+
+        logger.info(f"Configuring S3 Egress. Target Bucket: '{base_path}'")
+        filesystem = fs.S3FileSystem(
+            access_key=os.getenv("S3_ACCESS_KEY", "user"),
+            secret_key=os.getenv("S3_SECRET_KEY", "password"),
+            endpoint_override=os.getenv("S3_ENDPOINT", "localhost:8333"),
+            scheme="http",
+        )
+        # Ensure S3 Bucket exists
+        filesystem.create_dir(base_path)
+    else:
+        logger.info(f"Configuring Local Egress. Target Folder: '{base_path}'")
+        # Ensure local directory exists
+        os.makedirs(base_path, exist_ok=True)
+
+    # ---------------------------------------------------------
+    # 2. SIMULATION SETUP
+    # ---------------------------------------------------------
     line_a_params = SimParameter(
         sim_id="Line_A",
         arrival={"standard": DistributionConfig(dist="exponential", rate=2.0)},
@@ -52,11 +94,11 @@ def run():
     env = DynamicRealtimeEnvironment(factor=0.0, logical_start_time=start_time)
     env.registry.register_sim_parameter(line_a_params)
 
-    # Initialize Egress with the router
-    egress = ParquetStorageEgress(path_router=history_router)
+    # Initialize Egress with the dynamic router and conditional filesystem
+    router = create_history_router(base_path)
+    egress = ParquetStorageEgress(path_router=router, filesystem=filesystem)
 
     # batch_size=5000 for compression, flush_interval=86400 (1 day in sim time)
-    # so we don't accidentally flush tiny files due to fast-forwarding!
     env.setup_egress([egress], batch_size=5000, flush_interval=86400)
 
     res = DynamicResource(env, "Line_A", "lathe")
@@ -114,7 +156,7 @@ def run():
         env.run(until=run_duration_sec)
     finally:
         env.teardown()
-        logger.info("Data generation complete. Check the 'data/' directory for chunks.")
+        logger.info(f"Data generation complete. Check '{base_path}/' for chunks.")
 
 
 if __name__ == "__main__":
