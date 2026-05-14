@@ -77,7 +77,22 @@ def local_demo():
     logger.info("Starting local-only simulation...")
     from .local_example import run
 
-    run()
+    try:
+        run()
+    except KeyboardInterrupt:
+        logger.info("User gracefully interrupted the simulation.")
+
+
+def history_demo():
+    """CLI entry point: Runs the historical batch generation demo."""
+    setup_example_logging()
+    logger.info("Starting historical data generation to Parquet...")
+    from .history_example import run
+
+    try:
+        run()
+    except KeyboardInterrupt:
+        logger.info("User gracefully interrupted the simulation.")
 
 
 def kafka_demo(auto_down: bool = False):
