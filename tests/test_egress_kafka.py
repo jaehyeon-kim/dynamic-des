@@ -7,11 +7,11 @@ import orjson
 import pytest
 from pydantic import BaseModel
 
+from dynamic_des.connectors.egress.base import extract_dict
 from dynamic_des.connectors.egress.kafka import (
     ConfluentAvroSerializer,
     GlueAvroSerializer,
     KafkaEgress,
-    _extract_dict,
 )
 
 
@@ -27,11 +27,11 @@ def test_extract_dict_helper():
     """Verify duck-typing helper extracts dicts from raw dicts and Pydantic models."""
     # 1. Raw dict
     raw = {"path_id": "A", "value": 1}
-    assert _extract_dict(raw) == raw
+    assert extract_dict(raw) == raw
 
     # 2. Pydantic V2 Model
     model = DummyModel(path_id="B", value=2)
-    extracted = _extract_dict(model)
+    extracted = extract_dict(model)
     assert extracted["path_id"] == "B"
     assert extracted["value"] == 2
     assert extracted["stream_type"] == "telemetry"
