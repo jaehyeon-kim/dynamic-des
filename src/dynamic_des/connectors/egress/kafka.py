@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Optional, Protocol
 import orjson
 from aiokafka import AIOKafkaProducer
 
-from dynamic_des.connectors.egress.base import BaseEgress
+from dynamic_des.connectors.egress.base import BaseEgress, extract_dict
 
 logger = logging.getLogger(__name__)
 
@@ -40,25 +40,6 @@ class MessageSerializer(Protocol):
         ...
 
 
-def _extract_dict(data: Any) -> dict:
-    """
-    Helper to seamlessly extract dicts from Pydantic V1/V2 objects.
-
-    Args:
-        data (Any): A raw dictionary or a Pydantic model.
-
-    Returns:
-        dict: The extracted dictionary representation of the data.
-    """
-    if isinstance(data, dict):
-        return data
-    if hasattr(data, "model_dump"):
-        return data.model_dump(mode="json")
-    if hasattr(data, "dict"):
-        return data.dict()
-    return data
-
-
 class JsonSerializer:
     """
     Default fallback serializer providing backward compatibility via orjson.
@@ -78,7 +59,7 @@ class JsonSerializer:
         Returns:
             bytes: The JSON-encoded byte string.
         """
-        payload = _extract_dict(data)
+        payload = extract_dict(data)
         return orjson.dumps(payload)
 
 
@@ -134,7 +115,7 @@ class ConfluentAvroSerializer:
         Returns:
             bytes: The Avro-encoded byte string.
         """
-        payload = _extract_dict(data)
+        payload = extract_dict(data)
         ctx = self.SerializationContext(topic, self.MessageField.VALUE)
         return self.avro_serializer(payload, ctx)
 
@@ -194,7 +175,7 @@ class GlueAvroSerializer:
         Returns:
             bytes: The Avro-encoded byte string.
         """
-        payload = _extract_dict(data)
+        payload = extract_dict(data)
         return self.serializer.serialize(topic, payload)
 
 
