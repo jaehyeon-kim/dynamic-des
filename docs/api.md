@@ -177,6 +177,16 @@
     options:
       heading_level: 3
 
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.egress.storage.JsonlStorageEgress
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.egress.storage.ParquetStorageEgress
+    options:
+      heading_level: 3
+
 ## Serializers
 
 <!-- prettier-ignore -->
