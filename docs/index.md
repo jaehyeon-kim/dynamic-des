@@ -2,7 +2,7 @@
 
 **Dynamic DES** is a high-performance, real-time control plane for [SimPy](https://simpy.readthedocs.io/).
 
-It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation.
+It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. It also supports high-speed historical data generation by fast-forwarding through simulation time to backfill Data Lakes with schema-enforced **Parquet** or **JSONL** files.
 
 <div align="center">
   <img src="../assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
