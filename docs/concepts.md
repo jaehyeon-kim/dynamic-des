@@ -16,9 +16,9 @@ This pattern ensures that network latency or dropped connections never freeze th
 
 ## Synchronized Forecasting & Temporal Decoupling
 
-While real-time synchronization (`factor=1.0`) is perfect for live digital twins, Dynamic DES can also detach its logical simulation clock from the real-world wall clock by setting `factor=0.0`. 
+While real-time synchronization (`factor=1.0`) is perfect for live digital twins, Dynamic DES can also detach its logical simulation clock from the real-world wall clock by setting `factor=0.0`.
 
-This transforms your model into a **Synchronized Forecasting Engine**. 
+This transforms your model into a **Synchronized Forecasting Engine**.
 
 By querying your live production database for the exact current state of your factory (e.g., current capacities, queue lengths, active tasks) and injecting them into the `SimParameter` registry, you can fast-forward the simulation to instantly predict what the system will look like 8 hours into the future. Because the architecture remains identical, the exact same simulation logic scales seamlessly from real-time monitoring to high-speed batch forecasting.
 
@@ -45,7 +45,7 @@ To handle high throughput, the `EgressMixIn` buffers events in a thread-safe que
 
 ## Data Lake Ingestion & Schema Stability
 
-When running forecasting engines, you often generate millions of records that need to be stored in Data Lakes (AWS S3, Google Cloud Storage, Databricks). Dynamic DES utilizes PyArrow VFS to natively support object storage. 
+When running forecasting engines, you often generate millions of records that need to be stored in Data Lakes (AWS S3, Google Cloud Storage, Databricks). Dynamic DES utilizes PyArrow VFS to natively support object storage.
 
 To support massive parallel processing downstream, Dynamic DES enforces two key storage concepts:
 1. **UUID Chunking**: Every time a batch flushes, it is written to a uniquely named chunk (e.g., `events_a1b2c3d4.parquet`). This prevents file locking and overwrite collisions.

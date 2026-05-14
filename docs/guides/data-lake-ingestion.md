@@ -44,7 +44,7 @@ egress = JsonlStorageEgress(
 
 ## Automatic UUID Chunking
 
-Massive parallel processing engines like AWS Athena, Databricks, or Presto work best when reading from a partitioned directory of multiple files, rather than one massive monolithic file. 
+Massive parallel processing engines like AWS Athena, Databricks, or Presto work best when reading from a partitioned directory of multiple files, rather than one massive monolithic file.
 
 Furthermore, if the simulation was writing to a single file, network interruptions or crashes could corrupt the entire dataset. To solve this, Dynamic DES implements an **Automatic Chunking Strategy**.
 
