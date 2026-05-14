@@ -144,13 +144,17 @@ class JsonlStorageEgress(BaseEgress):
         Args:
             batch (list): A list of dictionaries or Pydantic models to be written.
         """
-        grouped_batches = {}
+        if self.filesystem is None:
+            logger.error("Filesystem not initialized. Batch dropped.")
+            return
+
+        grouped_batches: dict[str, list[dict]] = {}
 
         for data in batch:
             target_path = (
                 self.path_router(data) if self.path_router else self.default_path
             )
-            if not target_path:
+            if not target_path or not self.filesystem:
                 continue
 
             if target_path not in grouped_batches:
@@ -293,7 +297,7 @@ class ParquetStorageEgress(BaseEgress):
             pa (Any): Injected reference to the `pyarrow` module.
             pq (Any): Injected reference to the `pyarrow.parquet` module.
         """
-        grouped_batches = {}
+        grouped_batches: dict[str, list[dict]] = {}
 
         for data in batch:
             target_path = (
@@ -307,6 +311,9 @@ class ParquetStorageEgress(BaseEgress):
             grouped_batches[target_path].append(extract_dict(data))
 
         for target_path, records in grouped_batches.items():
+            if not self.filesystem:
+                continue
+
             table = pa.Table.from_pylist(records)
 
             # Infer schema on first batch and cache it
