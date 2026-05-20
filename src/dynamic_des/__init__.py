@@ -1,14 +1,10 @@
 import logging
 from importlib.metadata import PackageNotFoundError, version
 
-from dynamic_des.connectors.admin.kafka import KafkaAdminConnector
-from dynamic_des.connectors.egress.kafka import KafkaEgress
+# ---------------------------------------------------------
+# Core & Local Components (Always Available)
+# ---------------------------------------------------------
 from dynamic_des.connectors.egress.local import ConsoleEgress
-from dynamic_des.connectors.egress.storage import (
-    JsonlStorageEgress,
-    ParquetStorageEgress,
-)
-from dynamic_des.connectors.ingress.kafka import KafkaIngress
 from dynamic_des.connectors.ingress.local import LocalIngress
 from dynamic_des.core.environment import DynamicRealtimeEnvironment
 from dynamic_des.core.registry import SimulationRegistry
@@ -25,7 +21,7 @@ except PackageNotFoundError:
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
-
+# Base exports that require no extra dependencies
 __all__ = [
     "DynamicRealtimeEnvironment",
     "Sampler",
@@ -34,14 +30,34 @@ __all__ = [
     "SimParameter",
     "DistributionConfig",
     "CapacityConfig",
-    "KafkaAdminConnector",
-    "KafkaIngress",
     "LocalIngress",
-    "KafkaEgress",
     "ConsoleEgress",
-    "JsonlStorageEgress",
-    "ParquetStorageEgress",
     "EventPayload",
     "TelemetryPayload",
     "time_to_seconds",
 ]
+
+# ---------------------------------------------------------
+# Optional: Kafka Connectors (Requires `pip install dynamic-des[kafka]`)
+# ---------------------------------------------------------
+try:
+    from dynamic_des.connectors.admin.kafka import KafkaAdminConnector  # noqa: F401
+    from dynamic_des.connectors.egress.kafka import KafkaEgress  # noqa: F401
+    from dynamic_des.connectors.ingress.kafka import KafkaIngress  # noqa: F401
+
+    __all__.extend(["KafkaAdminConnector", "KafkaEgress", "KafkaIngress"])
+except ImportError:
+    pass
+
+# ---------------------------------------------------------
+# Optional: Storage Connectors (Requires `pip install dynamic-des[parquet]`)
+# ---------------------------------------------------------
+try:
+    from dynamic_des.connectors.egress.storage import (
+        JsonlStorageEgress,  # noqa: F401
+        ParquetStorageEgress,  # noqa: F401
+    )
+
+    __all__.extend(["JsonlStorageEgress", "ParquetStorageEgress"])
+except ImportError:
+    pass
