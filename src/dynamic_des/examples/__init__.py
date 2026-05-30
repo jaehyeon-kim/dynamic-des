@@ -22,8 +22,13 @@ def setup_example_logging(level: int = logging.INFO):
     # Target the top-level namespace of the library
     library_logger = logging.getLogger("dynamic_des")
 
+    # Specifically check for a StreamHandler (ignoring the core NullHandler)
+    has_console_handler = any(
+        isinstance(h, logging.StreamHandler) for h in library_logger.handlers
+    )
+
     # Prevent duplicate logs if the function is called multiple times
-    if not library_logger.handlers:
+    if not has_console_handler:
         handler = logging.StreamHandler(sys.stdout)
         formatter = logging.Formatter(
             fmt="%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%H:%M:%S"
@@ -73,12 +78,46 @@ def manage_infrastructure(profile: str, down: bool = False):
             sys.exit(1)
 
 
-# CLI Entry Points
-def local_demo():
+# ==========================================
+# CLI Entry Points: Declarative (Context API)
+# ==========================================
+def declarative_local_demo():
+    setup_example_logging()
+    from .declarative.local_example import run
+
+    run()
+
+
+def declarative_history_demo(auto_down: bool = False):
+    setup_example_logging()
+    from .declarative.history_example import run
+
+    try:
+        run()
+    finally:
+        if auto_down:
+            manage_infrastructure("storage", down=True)
+
+
+def declarative_kafka_demo(auto_down: bool = False):
+    setup_example_logging()
+    from .declarative.kafka_example import run
+
+    try:
+        run()
+    finally:
+        if auto_down:
+            manage_infrastructure("kafka", down=True)
+
+
+# ==========================================
+# CLI Entry Points: Imperative (Env API)
+# ==========================================
+def imperative_local_demo():
     """CLI entry point: Runs the local-only simulation demo."""
     setup_example_logging()
     logger.info("Starting local-only simulation...")
-    from .local_example import run
+    from .imperative.local_example import run
 
     try:
         run()
@@ -86,27 +125,11 @@ def local_demo():
         logger.info("User gracefully interrupted the simulation.")
 
 
-def history_demo(auto_down: bool = False):
-    """CLI entry point: Runs the historical batch generation demo."""
-    setup_example_logging()
-    logger.info("Starting historical data generation to S3/Parquet...")
-    from .history_example import run
-
-    try:
-        run()
-    except KeyboardInterrupt:
-        logger.info("User gracefully interrupted the simulation.")
-    finally:
-        if auto_down:
-            logger.info("Auto-teardown enabled. Cleaning up storage infrastructure...")
-            manage_infrastructure(profile="storage", down=True)
-
-
-def kafka_demo(auto_down: bool = False):
+def imperative_kafka_demo(auto_down: bool = False):
     """CLI entry point: Runs the Kafka-integrated simulation demo."""
     setup_example_logging()
     logger.info("Starting Kafka-integrated simulation...")
-    from .kafka_example import run
+    from .imperative.kafka_example import run
 
     try:
         run()
@@ -116,6 +139,22 @@ def kafka_demo(auto_down: bool = False):
         if auto_down:
             logger.info("Auto-teardown enabled. Cleaning up Kafka infrastructure...")
             manage_infrastructure(profile="kafka", down=True)
+
+
+def imperative_history_demo(auto_down: bool = False):
+    """CLI entry point: Runs the historical batch generation demo."""
+    setup_example_logging()
+    logger.info("Starting historical data generation to S3/Parquet...")
+    from .imperative.history_example import run
+
+    try:
+        run()
+    except KeyboardInterrupt:
+        logger.info("User gracefully interrupted the simulation.")
+    finally:
+        if auto_down:
+            logger.info("Auto-teardown enabled. Cleaning up storage infrastructure...")
+            manage_infrastructure(profile="storage", down=True)
 
 
 def kafka_dashboard_demo():

@@ -99,7 +99,12 @@ ddes-storage-infra-up = "dynamic_des.examples:storage_infra_up"
 ddes-storage-infra-down = "dynamic_des.examples:storage_infra_down"
 
 # Examples & Dashboard
-ddes-local-example = "dynamic_des.examples:local_demo"
-ddes-history-example = "dynamic_des.examples:history_demo"
-ddes-kafka-example = "dynamic_des.examples:kafka_demo"
+ddes-local = "dynamic_des.examples:declarative_local_demo"
+ddes-kafka = "dynamic_des.examples:declarative_kafka_demo"
+ddes-history = "dynamic_des.examples:declarative_history_demo"
+
+ddes-imperative-local = "dynamic_des.examples:imperative_local_demo"
+ddes-imperative-kafka = "dynamic_des.examples:imperative_kafka_demo"
+ddes-imperative-history = "dynamic_des.examples:imperative_history_demo"
+
 ddes-kafka-dashboard = "dynamic_des.examples:kafka_dashboard_demo"
