@@ -6,7 +6,7 @@ from python_on_whales import DockerClient
 
 # Configuration & Pathing
 EXAMPLE_DIR = Path(__file__).parent
-KAFKA_COMPOSE = EXAMPLE_DIR / "compose-kafka.yml"
+DOCKER_COMPOSE_FILE = EXAMPLE_DIR / "docker-compose.yml"
 
 # Initialize a logger specifically for the examples orchestration
 logger = logging.getLogger(__name__)
@@ -39,29 +39,32 @@ def setup_example_logging(level: int = logging.INFO):
 
 
 # Infrastructure Lifecycle (IaC)
-def kafka_cluster(down: bool = False):
+def manage_infrastructure(profile: str, down: bool = False):
     """
-    Orchestrates the Kafka infrastructure lifecycle using Docker Compose.
+    Orchestrates the infrastructure lifecycle using Docker Compose profiles.
     """
     # Ensure our CLI logger is ready
     setup_example_logging()
 
-    # Bind the Docker client to our specific compose file
-    docker = DockerClient(compose_files=[str(KAFKA_COMPOSE)])
+    # Bind the Docker client to our specific compose file AND the requested profile
+    docker = DockerClient(
+        compose_files=[str(DOCKER_COMPOSE_FILE)], compose_profiles=[profile]
+    )
 
     if down:
-        logger.info("Initiating teardown: Stopping Kafka infrastructure...")
+        logger.info(f"Initiating teardown: Stopping '{profile}' infrastructure...")
         try:
-            docker.compose.down()
-            logger.info("Kafka infrastructure cleanly stopped and removed.")
+            # volumes=True mimics the `docker compose down -v` command
+            docker.compose.down(volumes=True)
+            logger.info(f"'{profile}' infrastructure cleanly stopped and removed.")
         except Exception as e:
             logger.error(f"Failed to stop infrastructure: {e}")
             sys.exit(1)
     else:
-        logger.info(f"Bootstrapping Kafka via {KAFKA_COMPOSE.name}...")
+        logger.info(f"Bootstrapping '{profile}' via {DOCKER_COMPOSE_FILE.name}...")
         try:
             docker.compose.up(detach=True)
-            logger.info("Infrastructure is up. Broker reachable at localhost:9092")
+            logger.info(f"'{profile}' infrastructure is up and running.")
         except Exception as e:
             logger.critical(f"Docker orchestration failed: {e}")
             logger.critical(
@@ -83,16 +86,20 @@ def local_demo():
         logger.info("User gracefully interrupted the simulation.")
 
 
-def history_demo():
+def history_demo(auto_down: bool = False):
     """CLI entry point: Runs the historical batch generation demo."""
     setup_example_logging()
-    logger.info("Starting historical data generation to Parquet...")
+    logger.info("Starting historical data generation to S3/Parquet...")
     from .history_example import run
 
     try:
         run()
     except KeyboardInterrupt:
         logger.info("User gracefully interrupted the simulation.")
+    finally:
+        if auto_down:
+            logger.info("Auto-teardown enabled. Cleaning up storage infrastructure...")
+            manage_infrastructure(profile="storage", down=True)
 
 
 def kafka_demo(auto_down: bool = False):
@@ -107,8 +114,8 @@ def kafka_demo(auto_down: bool = False):
         logger.info("User gracefully interrupted the simulation.")
     finally:
         if auto_down:
-            logger.info("Auto-teardown enabled. Cleaning up infrastructure...")
-            kafka_cluster(down=True)
+            logger.info("Auto-teardown enabled. Cleaning up Kafka infrastructure...")
+            manage_infrastructure(profile="kafka", down=True)
 
 
 def kafka_dashboard_demo():
@@ -123,11 +130,22 @@ def kafka_dashboard_demo():
         logger.info("Dashboard shutdown requested.")
 
 
+# Infrastructure Wrappers
 def kafka_infra_up():
     """Starts the Kafka Docker containers in the background."""
-    kafka_cluster(down=False)
+    manage_infrastructure(profile="kafka", down=False)
 
 
 def kafka_infra_down():
     """Stops and removes the Kafka Docker containers."""
-    kafka_cluster(down=True)
+    manage_infrastructure(profile="kafka", down=True)
+
+
+def storage_infra_up():
+    """Starts the SeaweedFS/S3 Docker containers in the background."""
+    manage_infrastructure(profile="storage", down=False)
+
+
+def storage_infra_down():
+    """Stops and removes the SeaweedFS/S3 Docker containers."""
+    manage_infrastructure(profile="storage", down=True)

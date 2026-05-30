@@ -90,9 +90,14 @@ dev = [
     "pytest-cov>=5.0.0",
 ]
 [project.scripts]
-# Infrastructure
+# Infrastructure - Kafka
 ddes-kafka-infra-up = "dynamic_des.examples:kafka_infra_up"
 ddes-kafka-infra-down = "dynamic_des.examples:kafka_infra_down"
+
+# Infrastructure - Storage
+ddes-storage-infra-up = "dynamic_des.examples:storage_infra_up"
+ddes-storage-infra-down = "dynamic_des.examples:storage_infra_down"
+
 # Examples & Dashboard
 ddes-local-example = "dynamic_des.examples:local_demo"
 ddes-history-example = "dynamic_des.examples:history_demo"

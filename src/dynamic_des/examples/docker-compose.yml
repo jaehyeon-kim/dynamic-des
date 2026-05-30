@@ -1,0 +1,115 @@
+name: dynamic-des
+
+networks:
+  des:
+    driver: bridge
+
+services:
+  # ==========================================
+  # PROFILE: KAFKA (Streaming Infrastructure)
+  # ==========================================
+  broker:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: broker
+    ports:
+      - "9092:9092"
+    networks:
+      - des
+    profiles:
+      - kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@broker:29093"
+      KAFKA_LISTENERS: "PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+
+  karapace:
+    image: ghcr.io/aiven-open/karapace:6.1.3
+    container_name: karapace
+    depends_on:
+      - broker
+    entrypoint:
+      - python3
+      - -m
+      - karapace
+    ports:
+      - "8081:8081"
+    networks:
+      - des
+    profiles:
+      - kafka
+    environment:
+      KARAPACE_KARAPACE_REGISTRY: "true"
+      KARAPACE_ADVERTISED_HOSTNAME: karapace
+      KARAPACE_ADVERTISED_PROTOCOL: http
+      KARAPACE_BOOTSTRAP_URI: broker:29092
+      KARAPACE_PORT: 8081
+      KARAPACE_HOST: 0.0.0.0
+      KARAPACE_CLIENT_ID: karapace-0
+      KARAPACE_GROUP_ID: karapace
+      KARAPACE_MASTER_ELECTION_STRATEGY: highest
+      KARAPACE_MASTER_ELIGIBILITY: "true"
+      KARAPACE_TOPIC_NAME: _schema
+      KARAPACE_COMPATIBILITY: "BACKWARD"
+
+  # ==========================================
+  # PROFILE: STORAGE (Data Lakehouse)
+  # ==========================================
+  seaweed:
+    image: chrislusf/seaweedfs:4.22
+    container_name: seaweed
+    ports:
+      - "8333:8333" # S3 API
+      - "8889:8888" # Filer UI
+      - "9333:9333" # Master UI
+    networks:
+      des:
+        aliases:
+          - warehouse.seaweed
+    profiles:
+      - storage
+    volumes:
+      # Mount the S3 credentials configuration
+      - ./seaweed/s3.json:/etc/seaweedfs/s3.json:ro
+    # Explicitly tell the S3 gateway to enforce the config file
+    command: "server -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -s3.domainName=warehouse.seaweed"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8888/ || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  seaweed-init:
+    image: chrislusf/seaweedfs:4.22
+    container_name: seaweed-init
+    depends_on:
+      seaweed:
+        condition: service_healthy
+    networks:
+      - des
+    profiles:
+      - storage
+    entrypoint: |
+      sh -c "
+      echo '...waiting for SeaweedFS Master...'
+      sleep 2
+
+      BUCKETS='des-dev'
+      for bucket in $$BUCKETS; do
+        echo \"--- Creating S3 bucket natively: $$bucket ---\"
+        echo \"s3.bucket.create -name $$bucket\" | weed shell -master=seaweed:9333
+      done
+
+      echo '--- SeaweedFS Native Setup Complete ---'
+      exit 0
+      "

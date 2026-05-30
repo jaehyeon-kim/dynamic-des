@@ -1,0 +1,15 @@
+{
+  "identities": [
+    {
+      "name": "admin",
+      "credentials": [
+        {
+          "accessKey": "user",
+          "secretKey": "password"
+        }
+      ],
+      "actions": ["Admin", "Read", "Write", "List", "Tagging"]
+    }
+  ],
+  "signingKey": "dml-key-please-change"
+}
