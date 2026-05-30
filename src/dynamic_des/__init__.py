@@ -6,6 +6,7 @@ from importlib.metadata import PackageNotFoundError, version
 # ---------------------------------------------------------
 from dynamic_des.connectors.egress.local import ConsoleEgress
 from dynamic_des.connectors.ingress.local import LocalIngress
+from dynamic_des.core.context import SimulationContext
 from dynamic_des.core.environment import DynamicRealtimeEnvironment
 from dynamic_des.core.registry import SimulationRegistry
 from dynamic_des.core.sampler import Sampler
@@ -25,6 +26,7 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 __all__ = [
     "DynamicRealtimeEnvironment",
     "Sampler",
+    "SimulationContext",
     "SimulationRegistry",
     "DynamicResource",
     "SimParameter",
