@@ -4,7 +4,7 @@ At the heart of every simulation run is the `DynamicRealtimeEnvironment`, which 
 
 ---
 
-## The Temporal Factor
+## Temporal Factor
 
 Dynamic DES decoupling is achieved by setting the `factor` parameter on the environment. This determines how simulated seconds relate to real-world wall-clock seconds:
 

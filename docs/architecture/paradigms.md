@@ -4,7 +4,7 @@ Dynamic DES provides two ways to build your event-driven simulations, allowing y
 
 ---
 
-## The Two Paradigms
+## Two Paradigms
 
 | Feature | Standard API (Declarative) | Low-Level API (Imperative) |
 |---|---|---|

@@ -1,5 +1,13 @@
 # API Reference
 
+## Simulation Context
+
+<!-- prettier-ignore -->
+::: dynamic_des.core.context.SimulationContext
+    options:
+      heading_level: 3
+      show_root_heading: true
+
 ## Environment
 
 <!-- prettier-ignore -->
