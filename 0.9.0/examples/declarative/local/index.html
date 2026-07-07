@@ -11,26 +11,28 @@
       
       
       
+        <link rel="prev" href="../../../architecture/resources/">
       
-        <link rel="next" href="getting-started/">
+      
+        <link rel="next" href="../kafka/">
       
       
         
       
       
-      <link rel="icon" href="assets/favicon.png">
+      <link rel="icon" href="../../../assets/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
     
     
       
-        <title>Dynamic DES</title>
+        <title>Local Simulation - Dynamic DES</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -49,9 +51,9 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#dynamic-des" class="md-skip">
+        <a href="#local-simulation-standard-declarative-api" class="md-skip">
           Skip to content
         </a>
       
@@ -96,9 +98,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="Dynamic DES" class="md-header__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
+    <a href="../../.." title="Dynamic DES" class="md-header__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
       
-  <img src="assets/favicon.png" alt="logo">
+  <img src="../../../assets/favicon.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -115,7 +117,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Local Simulation
             
           </span>
         </div>
@@ -231,9 +233,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Dynamic DES" class="md-nav__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
+    <a href="../../.." title="Dynamic DES" class="md-nav__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
       
-  <img src="assets/favicon.png" alt="logo">
+  <img src="../../../assets/favicon.png" alt="logo">
 
     </a>
     Dynamic DES
@@ -257,37 +259,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -303,48 +278,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key Features
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-layout" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Documentation Layout
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -356,7 +289,7 @@
   
   
     <li class="md-nav__item">
-      <a href="getting-started/" class="md-nav__link">
+      <a href="../../../getting-started/" class="md-nav__link">
         
   
   
@@ -430,7 +363,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/01-first-factory/" class="md-nav__link">
+      <a href="../../../tutorials/01-first-factory/" class="md-nav__link">
         
   
   
@@ -458,7 +391,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/02-distributions-resources/" class="md-nav__link">
+      <a href="../../../tutorials/02-distributions-resources/" class="md-nav__link">
         
   
   
@@ -486,7 +419,7 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/03-connecting-kafka/" class="md-nav__link">
+      <a href="../../../tutorials/03-connecting-kafka/" class="md-nav__link">
         
   
   
@@ -568,7 +501,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/paradigms/" class="md-nav__link">
+      <a href="../../../architecture/paradigms/" class="md-nav__link">
         
   
   
@@ -596,7 +529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/context/" class="md-nav__link">
+      <a href="../../../architecture/context/" class="md-nav__link">
         
   
   
@@ -624,7 +557,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/environment/" class="md-nav__link">
+      <a href="../../../architecture/environment/" class="md-nav__link">
         
   
   
@@ -652,7 +585,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/connectors/" class="md-nav__link">
+      <a href="../../../architecture/connectors/" class="md-nav__link">
         
   
   
@@ -680,7 +613,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/resources/" class="md-nav__link">
+      <a href="../../../architecture/resources/" class="md-nav__link">
         
   
   
@@ -712,18 +645,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -744,7 +679,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -759,18 +694,20 @@
                 
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" checked>
         
           
           <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
@@ -791,7 +728,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5_1">
             <span class="md-nav__icon md-icon"></span>
             
@@ -806,10 +743,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="examples/declarative/local/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Simulation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -825,6 +789,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -837,7 +832,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/declarative/kafka/" class="md-nav__link">
+      <a href="../kafka/" class="md-nav__link">
         
   
   
@@ -865,7 +860,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/declarative/history/" class="md-nav__link">
+      <a href="../history/" class="md-nav__link">
         
   
   
@@ -948,7 +943,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/imperative/local/" class="md-nav__link">
+      <a href="../../imperative/local/" class="md-nav__link">
         
   
   
@@ -976,7 +971,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/imperative/kafka/" class="md-nav__link">
+      <a href="../../imperative/kafka/" class="md-nav__link">
         
   
   
@@ -1004,7 +999,7 @@
   
   
     <li class="md-nav__item">
-      <a href="examples/imperative/history/" class="md-nav__link">
+      <a href="../../imperative/history/" class="md-nav__link">
         
   
   
@@ -1094,7 +1089,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/complex-routing/" class="md-nav__link">
+      <a href="../../../guides/complex-routing/" class="md-nav__link">
         
   
   
@@ -1122,7 +1117,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/avro-and-pydantic/" class="md-nav__link">
+      <a href="../../../guides/avro-and-pydantic/" class="md-nav__link">
         
   
   
@@ -1150,7 +1145,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/kafka-security/" class="md-nav__link">
+      <a href="../../../guides/kafka-security/" class="md-nav__link">
         
   
   
@@ -1232,7 +1227,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/multi-resource-handoffs/" class="md-nav__link">
+      <a href="../../../guides/multi-resource-handoffs/" class="md-nav__link">
         
   
   
@@ -1260,7 +1255,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/preemptive-breakdowns/" class="md-nav__link">
+      <a href="../../../guides/preemptive-breakdowns/" class="md-nav__link">
         
   
   
@@ -1288,7 +1283,7 @@
   
   
     <li class="md-nav__item">
-      <a href="guides/dynamic-topology/" class="md-nav__link">
+      <a href="../../../guides/dynamic-topology/" class="md-nav__link">
         
   
   
@@ -1323,7 +1318,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/" class="md-nav__link">
+      <a href="../../../api/" class="md-nav__link">
         
   
   
@@ -1370,21 +1365,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
+  <a href="#code" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key Features
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-layout" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Documentation Layout
+        Code
       
     </span>
   </a>
@@ -1411,42 +1395,61 @@
   
 
 
-<h1 id="dynamic-des">Dynamic DES</h1>
-<p><strong>Dynamic DES</strong> is a high-performance, real-time control plane for <a href="https://simpy.readthedocs.io/">SimPy</a>.</p>
-<p>It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via <strong>Kafka</strong>, <strong>Redis</strong>, or <strong>PostgreSQL</strong> without stopping the simulation. It also transforms your models into <strong>synchronized forecasting engines</strong> by fast-forwarding through simulation time to predict future states or backfill Data Lakes with schema-enforced <strong>Parquet</strong> or <strong>JSONL</strong> files directly to <strong>AWS S3, Google Cloud Storage (GCS), Azure Blob, and SeaweedFS</strong> using PyArrow VFS.</p>
-<div align="center">
-  <img src="assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
-</div>
-
+<h1 id="local-simulation-standard-declarative-api">Local Simulation (Standard Declarative API)</h1>
+<p>This example demonstrates how to build a dynamic simulation using the declarative <strong>Standard API (<code>SimulationContext</code>)</strong> and <strong>Local Connectors</strong>.</p>
+<p>Local connectors do not require Docker, Kafka, or any external data stores. They are perfect for testing, benchmarking, or scenarios where parameter changes need to occur at specific wall-clock intervals deterministically.</p>
 <hr />
-<h2 id="key-features">Key Features</h2>
-<ul>
-<li><strong>⚡ Real-Time Control</strong>: Synchronize SimPy with the system clock using <code>DynamicRealtimeEnvironment</code>.</li>
-<li><strong>🔗 Builder Pattern</strong>: Construct digital twins declaratively with <code>SimulationContext</code> and decorators like <code>@app.task</code>.</li>
-<li><strong>🔗 Dynamic Registry</strong>: Dynamic, path-based updates (e.g., <code>Line_A.arrival.rate</code>) that trigger instant logic changes.</li>
-<li><strong>🛡️ Enterprise Ready</strong>: Native <code>**kwargs</code> passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.</li>
-<li><strong>📦 Pluggable Serialization</strong>: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded <strong>Avro/Schema Registry</strong> serializers.</li>
-<li><strong>🗄️ Data Lake Ready</strong>: Write chunked Parquet and JSONL datasets directly to object storage via PyArrow VFS, with built-in schema inference and drift prevention.</li>
-<li><strong>🦆 Pydantic Duck-Typing</strong>: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.</li>
-<li><strong>📊 System Observability</strong>: Built-in lag monitoring to track simulation drift from real-world time.</li>
-</ul>
-<hr />
-<h2 id="documentation-layout">Documentation Layout</h2>
-<ul>
-<li><strong><a href="getting-started/">Getting Started</a></strong>: Quick installation and zero-setup demo commands.</li>
-<li><strong>Basics (Tutorials)</strong>:</li>
-<li><strong><a href="tutorials/01-first-factory/">1. Your First Factory (Local)</a></strong>: Define a local factory lifecycle.</li>
-<li><strong><a href="tutorials/02-distributions-resources/">2. Adding Randomness and Rules</a></strong>: Add stochastic distributions and ingress scheduled capacity updates.</li>
-<li><strong><a href="tutorials/03-connecting-kafka/">3. Going Distributed (Kafka)</a></strong>: Connect standard simulation logic to live Kafka streams.</li>
-<li><strong>Core Architecture</strong>:</li>
-<li><strong><a href="architecture/paradigms/">Standard vs. Low-Level Paradigms</a></strong>: Declarative vs. Imperative styles.</li>
-<li><strong><a href="architecture/context/">Simulation Context</a></strong>: Chained builder details and temporal factor control.</li>
-<li><strong><a href="architecture/environment/">Realtime Environment</a></strong>: Temporal clocks and async background threads.</li>
-<li><strong><a href="architecture/connectors/">Ingress and Egress Connectors</a></strong>: Input/output flows and tuning.</li>
-<li><strong><a href="architecture/resources/">Resources and Containers</a></strong>: Dynamic SimPy wrappers.</li>
-<li><strong>API Reference</strong>:</li>
-<li><strong><a href="api/">API Reference</a></strong>: Technical reference for all public classes.</li>
-</ul>
+<h2 id="code">Code</h2>
+<p>This script initializes a production line, schedules a capacity update to happen 10 seconds into the future, and streams telemetry directly to your terminal.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dynamic_des</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationContext</span><span class="p">,</span> <span class="n">ConsoleEgress</span><span class="p">,</span> <span class="n">LocalIngress</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> [</span><span class="si">%(asctime)s</span><span class="s2">] </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">():</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="c1"># 1. Initialize SimulationContext (Builder Pattern)</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="c1"># Schedule capacity to jump to 3 at t=10s, then drop to 2 at t=20s</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">app</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        <span class="n">SimulationContext</span><span class="p">(</span><span class="n">sim_id</span><span class="o">=</span><span class="s2">&quot;Line_A&quot;</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        <span class="o">.</span><span class="n">add_resource</span><span class="p">(</span><span class="s2">&quot;lathe&quot;</span><span class="p">,</span> <span class="n">current_cap</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_cap</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>        <span class="o">.</span><span class="n">add_arrival</span><span class="p">(</span><span class="s2">&quot;standard&quot;</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="s2">&quot;exponential&quot;</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="o">.</span><span class="n">add_service</span><span class="p">(</span><span class="s2">&quot;milling&quot;</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="o">.</span><span class="n">add_ingress</span><span class="p">(</span><span class="n">LocalIngress</span><span class="p">(</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>            <span class="n">schedule</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>                <span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="s2">&quot;Line_A.resources.lathe.current_cap&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>                <span class="p">(</span><span class="mf">20.0</span><span class="p">,</span> <span class="s2">&quot;Line_A.resources.lathe.current_cap&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>            <span class="p">]</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="p">))</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="o">.</span><span class="n">add_egress</span><span class="p">(</span><span class="n">ConsoleEgress</span><span class="p">())</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="p">)</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="c1"># 2. Define Simulation Processes using Decorators</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="nd">@app</span><span class="o">.</span><span class="n">arrival_loop</span><span class="p">(</span><span class="s2">&quot;standard&quot;</span><span class="p">)</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">arrival_process</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">SimulationContext</span><span class="p">):</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        <span class="n">task_id</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>            <span class="k">yield</span> <span class="n">context</span><span class="o">.</span><span class="n">wait_for_arrival</span><span class="p">(</span><span class="s2">&quot;standard&quot;</span><span class="p">)</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>            <span class="n">context</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">work_task</span><span class="p">(</span><span class="n">task_id</span><span class="p">))</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>            <span class="n">task_id</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="nd">@app</span><span class="o">.</span><span class="n">task</span><span class="p">(</span><span class="n">service_id</span><span class="o">=</span><span class="s2">&quot;milling&quot;</span><span class="p">,</span> <span class="n">resource_id</span><span class="o">=</span><span class="s2">&quot;lathe&quot;</span><span class="p">)</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">work_task</span><span class="p">(</span><span class="n">task_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;part_id&quot;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">}</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>    <span class="nd">@app</span><span class="o">.</span><span class="n">telemetry_loop</span><span class="p">(</span><span class="n">interval</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">telemetry_monitor</span><span class="p">(</span><span class="n">context</span><span class="p">:</span> <span class="n">SimulationContext</span><span class="p">):</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>        <span class="n">res</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get_resource</span><span class="p">(</span><span class="s2">&quot;lathe&quot;</span><span class="p">)</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>        <span class="n">context</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">publish_telemetry</span><span class="p">(</span><span class="s2">&quot;Line_A.lathe.capacity&quot;</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">capacity</span><span class="p">)</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>        <span class="n">context</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">publish_telemetry</span><span class="p">(</span><span class="s2">&quot;Line_A.lathe.in_use&quot;</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">in_use</span><span class="p">)</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>        <span class="n">context</span><span class="o">.</span><span class="n">env</span><span class="o">.</span><span class="n">publish_telemetry</span><span class="p">(</span><span class="s2">&quot;Line_A.lathe.queue_length&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">items</span><span class="p">))</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>    <span class="c1"># 3. Run the Simulation</span>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Simulation started. Watch capacity change at t=10s and t=20s...&quot;</span><span class="p">)</span>
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mf">25.0</span><span class="p">)</span>
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>    <span class="n">run</span><span class="p">()</span>
+</span></code></pre></div>
 
 
 
@@ -1496,10 +1499,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": [], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": [], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
