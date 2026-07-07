@@ -10,20 +10,12 @@ If your simulation requires a task to lock multiple resources concurrently or or
 
 In many production facilities, physical objects cannot transition between stations without a transfer mechanism (like a crane or robotic arm):
 
-```mermaid
-sequenceDiagram
-    participant Part
-    participant Crane
-    participant Machine
-    
-    Part->>Crane: Request Crane
-    Crane-->>Part: Acquired Crane
-    Part->>Machine: Request Machine
-    Note over Part, Machine: Blocks until Machine is free; Crane remains locked!
-    Machine-->>Part: Acquired Machine
-    Part->>Crane: Release Crane (Handoff Complete)
-    Part->>Machine: Process on Machine
-    Part->>Machine: Release Machine
+```text
+1. Part requests Crane ──────> Crane is acquired and locked.
+2. Part requests Machine ────> Blocks until Machine is free (Crane remains locked).
+3. Machine is acquired ─────> Part releases Crane (Handoff complete).
+4. Part processes on Machine.
+5. Part releases Machine.
 ```
 
 ---
