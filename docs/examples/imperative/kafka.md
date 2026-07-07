@@ -1,50 +1,10 @@
-# Kafka Digital Twin
+# Kafka Digital Twin (Low-Level Imperative API)
 
-This example demonstrates how to integrate `dynamic-des` into a full event-driven architecture.
+This example demonstrates how to integrate `dynamic-des` into a full event-driven architecture using the low-level **Imperative API**.
 
 By replacing the Local connectors with `KafkaIngress` and `KafkaEgress`, the simulation becomes a fully detached microservice. It listens for external JSON commands to mutate its state, and streams telemetry and strictly-typed Pydantic events to outbound topics.
 
-<div align="center">
-  <img src="../../assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
-</div>
-
-## Execution
-
-To run this example, you need the Kafka and Dashboard extras installed. You will also need **Docker** running to host the local Kafka infrastructure.
-
-**1. Install Dependencies**
-
-```bash
-pip install "dynamic-des[kafka,dashboard]"
-```
-
-**2. Start Infrastructure**
-
-```bash
-# Spin up Dockerized Kafka and Zookeeper
-ddes-kafka-infra-up
-```
-
-**3. Run the Simulation**
-
-```bash
-# In a new terminal, start the simulation engine
-ddes-kafka-example
-```
-
-**4. Launch the Dashboard**
-
-```bash
-# In another terminal, start the UI (opens at http://localhost:8080)
-ddes-kafka-dashboard
-```
-
-**5. Cleanup**
-
-```bash
-# When finished, shut down the containers
-ddes-kafka-infra-down
-```
+---
 
 ## Code
 

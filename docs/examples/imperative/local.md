@@ -1,24 +1,14 @@
-# Local Simulation
+# Local Simulation (Low-Level Imperative API)
 
-This example demonstrates how to build a dynamic simulation using **Local Connectors**.
+This example demonstrates how to build a dynamic simulation using the low-level **Imperative API** and **Local Connectors**.
 
 Local connectors do not require Docker, Kafka, or any external data stores. They are perfect for testing, benchmarking, or scenarios where parameter changes need to occur at specific wall-clock intervals deterministically.
 
-## Execution
-
-Local connectors are dependency-free and do not require Docker or Kafka. You can run the built-in demo directly from your terminal:
-
-```bash
-# Core library is enough for local examples
-pip install dynamic-des
-
-# Run the example
-ddes-local-example
-```
+---
 
 ## Code
 
-This script initializes a production line, schedules a capacity update to happen 10 seconds into the future, and streams telemetry directly to your terminal.
+This script initializes a production line, schedules a capacity update to happen 10 seconds into the future, and streams telemetry directly to your terminal using raw SimPy generators.
 
 ```python
 import logging
@@ -30,9 +20,9 @@ from dynamic_des import (
     DistributionConfig,
     DynamicRealtimeEnvironment,
     DynamicResource,
-    LocalIngress,
     Sampler,
     SimParameter,
+    LocalIngress,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(asctime)s] %(message)s")
@@ -66,7 +56,7 @@ def run():
     res = DynamicResource(env, "Line_A", "lathe")
     sampler = Sampler(rng=np.random.default_rng(42))
 
-    # 4. Define Simulation Logic
+    # 4. Define Simulation Logic (Imperative SimPy style)
     def arrival_process(env, res):
         arrival_cfg = env.registry.get_config("Line_A.arrival.standard")
         task_id = 0
@@ -98,9 +88,9 @@ def run():
     env.process(arrival_process(env, res))
     env.process(telemetry_monitor(env, res))
 
-    print("Simulation started. Watch capacity change at t=10.0s and 20.0s...")
+    print("Simulation started. Watch capacity change at t=10s and t=20s...")
     try:
-        env.run(until=30)
+        env.run(until=25.0)
     finally:
         env.teardown()
 
