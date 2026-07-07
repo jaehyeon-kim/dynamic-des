@@ -58,6 +58,19 @@ def test_runtime_errors_before_build():
         app.publish("utilization", 95.0)
 
 
+def test_env_property_exposes_environment():
+    """Ensures the public env property guards the Builder Phase and exposes the environment after .run()."""
+    app = SimulationContext("TestSim", factor=0.0)
+
+    with pytest.raises(RuntimeError, match="not attached until context is run"):
+        _ = app.env
+
+    # Because factor=0.0, this executes instantly in wall-clock time.
+    app.run(until=0.1)
+
+    assert app.env is app._env
+
+
 def test_decorator_registration():
     """Validates that loops are properly staged for execution."""
     app = SimulationContext("TestSim")
@@ -104,6 +117,18 @@ def test_simulation_execution_wiring(MockEnv):
     # Validate that connectors were passed to the engine
     mock_env_instance.setup_ingress.assert_called_once_with([mock_ingress])
     mock_env_instance.setup_egress.assert_called_once()
+
+
+@patch("dynamic_des.core.context.DynamicRealtimeEnvironment")
+def test_logical_start_time_forwarding(MockEnv):
+    """Validates that a logical start time is forwarded to the environment."""
+    from datetime import datetime
+
+    start = datetime(2024, 1, 1, 12, 0, 0)
+    app = SimulationContext("TestSim", factor=0.0, logical_start_time=start)
+    app.run(until=1)
+
+    MockEnv.assert_called_once_with(factor=0.0, logical_start_time=start)
 
 
 def test_lightweight_integration():
