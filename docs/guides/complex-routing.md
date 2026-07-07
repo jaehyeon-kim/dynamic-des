@@ -40,19 +40,19 @@ def custom_kafka_router(data: Dict[str, Any]) -> str | None:
     Routes messages based on event importance and metadata.
     """
     stream_type = data.get("stream_type")
-    
+
     # 1. Route continuous telemetry to metrics topic
     if stream_type == "telemetry":
         return "factory-telemetry"
-        
+
     # 2. Filter out normal task events vs critical errors
     if stream_type == "event":
         value = data.get("value", {})
-        
+
         # Route machine failures to high-priority alarms topic
         if value.get("status") == "machine_failed" or value.get("level") == "ERROR":
             return "system-alarms"
-            
+
         # Route standard lifecycle logs to general events topic
         return "factory-events"
 

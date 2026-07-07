@@ -42,7 +42,7 @@ app = (
 
 ## 3. Define Simulation Logic
 
-Now, we use decorators to specify how tasks behave. 
+Now, we use decorators to specify how tasks behave.
 
 First, define the **arrival loop** that listens to the `parts` stream and spawns a new task process for each arrival:
 
@@ -53,7 +53,7 @@ def parts_generator(context: SimulationContext):
     while True:
         # Wait for the next scheduled arrival time
         yield context.wait_for_arrival("parts")
-        
+
         # Spawn an independent worker task process
         context.spawn(process_part(part_id))
         part_id += 1
