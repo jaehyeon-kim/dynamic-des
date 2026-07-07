@@ -8,12 +8,13 @@ The `SimulationContext` acts as the entry point and configuration builder for st
 
 Creating a simulation with `SimulationContext` follows a strict two-phase lifecycle to guarantee **thread safety** and **determinism**:
 
-```mermaid
-graph TD
-    A[1. Builder Phase] -->|"add_resource / add_ingress / add_egress"| B(Config staged in memory)
-    B -->|app.run| C[2. Compilation Phase]
-    C -->|DynamicRealtimeEnvironment instantiated| D(SimPy clock starts running)
-    C -->|"Registry built & connectors spawned"| D
+```text
+1. Builder Phase (Configure)
+   └── Register resources, distributions, and ingress/egress
+2. Compilation Phase (app.run)
+   ├── Instantiate DynamicRealtimeEnvironment
+   ├── Start background network/egress threads
+   └── Boot the SimPy clock and event loop
 ```
 
 1. **Builder Phase (Pre-Compilation)**: You register resources, services, and connectors. Everything is held as passive configuration data structures (`SimParameter`, `DistributionConfig`, etc.) in memory.
