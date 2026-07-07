@@ -13,7 +13,7 @@ In many production facilities, physical objects cannot transition between statio
 ```text
 1. Part requests Crane ──────> Crane is acquired and locked.
 2. Part requests Machine ────> Blocks until Machine is free (Crane remains locked).
-3. Machine is acquired ─────> Part releases Crane (Handoff complete).
+3. Machine is acquired ─────-> Part releases Crane (Handoff complete).
 4. Part processes on Machine.
 5. Part releases Machine.
 ```
