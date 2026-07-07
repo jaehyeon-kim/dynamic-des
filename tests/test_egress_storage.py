@@ -35,9 +35,9 @@ def test_generate_chunk_filename():
         r"^data/simulation_run/events_([a-f0-9]{8})\.parquet$", chunked_path
     )
 
-    assert match is not None, (
-        f"Filename {chunked_path} did not match expected chunk pattern."
-    )
+    assert (
+        match is not None
+    ), f"Filename {chunked_path} did not match expected chunk pattern."
     assert len(match.group(1)) == 8  # Verify it's an 8-character hex
 
 
@@ -69,9 +69,9 @@ def test_jsonl_storage_routing_and_writing(tmp_path: Path):
 
     # 5. Verify the files were created with UUID chunks
     written_files = list(tmp_path.glob("*.jsonl"))
-    assert len(written_files) == 2, (
-        "Expected exactly two chunked files (events and telemetry)"
-    )
+    assert (
+        len(written_files) == 2
+    ), "Expected exactly two chunked files (events and telemetry)"
 
     events_files = list(tmp_path.glob("events_*.jsonl"))
     telemetry_files = list(tmp_path.glob("telemetry_*.jsonl"))
@@ -130,9 +130,9 @@ def test_parquet_storage_schema_drift(tmp_path: Path):
     # 2. Ensure strict schema typing was enforced!
     # The 'value' column should be purely DOUBLE/FLOAT64, successfully casting the integers from Batch 2.
     value_field = table.schema.field("value")
-    assert pa.types.is_float64(value_field.type), (
-        f"Expected float64, got {value_field.type}"
-    )
+    assert pa.types.is_float64(
+        value_field.type
+    ), f"Expected float64, got {value_field.type}"
 
     # 3. Verify the actual casted data
     val_list = table.column("value").to_pylist()

@@ -16,9 +16,9 @@ This example shows how to dynamically register a brand new resource and update f
 import logging
 import numpy as np
 from dynamic_des import (
-    DynamicRealtimeEnvironment, 
-    DynamicResource, 
-    Sampler, 
+    DynamicRealtimeEnvironment,
+    DynamicResource,
+    Sampler,
     ConsoleEgress,
     CapacityConfig,
     SimParameter
@@ -57,26 +57,26 @@ def supervisor(env):
     task_id = 0
     while True:
         yield env.timeout(4.0)
-        
-        # At t=12.0s, dynamically provision a second resource 'molder' 
+
+        # At t=12.0s, dynamically provision a second resource 'molder'
         # that didn't exist when the simulation started!
         if env.now >= 12.0 and "molder" not in resources:
             print("--- Supervisor: Registering new resource 'molder' ---")
-            
+
             # 1. Update the schema config in the registry
             env.registry.update_value("Line_A.resources.molder.max_cap", 5)
             env.registry.update_value("Line_A.resources.molder.current_cap", 2)
-            
+
             # 2. Instantiate and register the new SimPy DynamicResource object
             resources["molder"] = DynamicResource(env, "Line_A", "molder")
-            
+
         # Spawn tasks on the lathe
         env.process(worker(env, "lathe", task_id))
-        
+
         # If the molder is available, also route tasks to it
         if "molder" in resources:
             env.process(worker(env, "molder", task_id))
-            
+
         task_id += 1
 
 if __name__ == "__main__":

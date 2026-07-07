@@ -31,27 +31,27 @@ def worker_task(context: SimulationContext, task_id: int):
     lathe = context.get_resource("lathe")
     task_key = f"task-{task_id}"
     context.env.publish_event(task_key, {"status": "queued"})
-    
+
     # Track this running SimPy process
     active_processes.append(context.env.active_process)
-    
+
     try:
         with lathe.request() as req:
             yield req
             context.env.publish_event(task_key, {"status": "started"})
-            
+
             # Simulated processing time
             yield context.env.timeout(5.0)
-            
+
             context.env.publish_event(task_key, {"status": "finished"})
     except simpy.Interrupt as interrupt:
         # Catch machine failure!
         cause = interrupt.cause
         context.env.publish_event(
-            task_key, 
+            task_key,
             {"status": "interrupted", "error": f"Machine breakdown: {cause}"}
         )
-        
+
         # Simulates waiting for maintenance/repair
         yield context.env.timeout(10.0)
         context.env.publish_event(task_key, {"status": "machine_repaired"})
@@ -64,7 +64,7 @@ def chaos_monkey(context: SimulationContext):
     while True:
         # Trigger a breakdown every 12 seconds
         yield context.env.timeout(12.0)
-        
+
         if active_processes:
             # Interrupt the currently active task
             target = active_processes[0]
@@ -76,7 +76,7 @@ def arrival_loop(context: SimulationContext):
     task_id = 0
     # Start the chaos monkey loop
     context.spawn(chaos_monkey(context))
-    
+
     while True:
         yield context.wait_for_arrival("standard")
         context.spawn(worker_task(context, task_id))

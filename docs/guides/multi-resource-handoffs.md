@@ -1,6 +1,6 @@
 # Multi-Resource Handoffs (Hybrid Pattern)
 
-While the `@app.task` decorator abstracts resource locking, it enforces a strict **single-resource lifecycle** (`request -> wait -> release`). 
+While the `@app.task` decorator abstracts resource locking, it enforces a strict **single-resource lifecycle** (`request -> wait -> release`).
 
 If your simulation requires a task to lock multiple resources concurrently or orchestrate a handover (e.g., requesting a crane, moving a part, locking a machine, and then releasing the crane while keeping the machine locked), you must use the **Hybrid Pattern** by spawning a custom generator.
 
@@ -42,24 +42,24 @@ app = (
 def handoff_worker(context: SimulationContext, part_id: int):
     crane = context.get_resource("crane")
     mill = context.get_resource("mill")
-    
+
     task_key = f"task-{part_id}"
     context.env.publish_event(task_key, {"status": "queued"})
-    
+
     # Lock the Crane for transport
     with crane.request() as crane_req:
         yield crane_req
         context.env.publish_event(task_key, {"status": "crane_loaded"})
         yield context.env.timeout(1.0)  # Transport delay
-        
+
         # Request the Mill while still holding the Crane!
         with mill.request() as mill_req:
             yield mill_req
             context.env.publish_event(task_key, {"status": "mill_entered"})
-            
+
             # The Crane is automatically released here as we exit the outer block,
             # but the Mill remains locked!
-            
+
         # Perform milling operation
         yield context.env.timeout(4.0)
         context.env.publish_event(task_key, {"status": "finished"})

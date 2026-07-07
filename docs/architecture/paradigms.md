@@ -16,7 +16,7 @@ Dynamic DES provides two ways to build your event-driven simulations, allowing y
 ---
 
 ## 1. Standard API (Declarative)
-The Standard API uses the `SimulationContext` builder to configure the twin's resources, distributions, ingress/ingress parameters, and I/O connectors. 
+The Standard API uses the `SimulationContext` builder to configure the twin's resources, distributions, ingress/ingress parameters, and I/O connectors.
 
 All execution logic is declared using clean Python decorators:
 
@@ -73,17 +73,17 @@ def manual_generator(env, res):
     while True:
         # Manual arrival sampling
         yield env.timeout(1.0)
-        
+
         # Manual event emission
         task_key = f"task-{task_id}"
         env.publish_event(task_key, {"status": "queued"})
-        
+
         # Manual resource requesting
         with res.request() as req:
             yield req
             env.publish_event(task_key, {"status": "started"})
             yield env.timeout(3.0)  # Manual service duration
             env.publish_event(task_key, {"status": "finished"})
-            
+
         task_id += 1
 ```
