@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
 
 import numpy as np
@@ -45,7 +46,11 @@ class SimulationContext:
     """
 
     def __init__(
-        self, sim_id: str, factor: float = 1.0, random_seed: Optional[int] = None
+        self,
+        sim_id: str,
+        factor: float = 1.0,
+        random_seed: Optional[int] = None,
+        logical_start_time: Optional[datetime] = None,
     ):
         """
         Initializes the context builder with a designated namespace and temporal factor.
@@ -55,10 +60,14 @@ class SimulationContext:
                 telemetry and event paths will be prefixed with this ID.
             factor: The real-time synchronization factor. Defaults to 1.0.
             random_seed: Optional seed for deterministic execution.
+            logical_start_time: Optional override for the environment's base clock,
+                forwarded to `DynamicRealtimeEnvironment`. Crucial for historical
+                backfilling (e.g., generating data from last week).
         """
         self.sim_id = sim_id
         self.factor = factor
         self.random_seed = random_seed
+        self.logical_start_time = logical_start_time
 
         # Builder State (Pre-Compilation)
         self._ingress_providers: List[Any] = []
@@ -352,6 +361,22 @@ class SimulationContext:
     # RUNTIME HELPERS (For Raw Generators)
     # ==========================================
 
+    @property
+    def env(self) -> DynamicRealtimeEnvironment:
+        """
+        Read-only handle to the active `DynamicRealtimeEnvironment`.
+
+        Grants raw generators access to environment primitives such as
+        `publish_event`, `timeout`, `now`, and `start_datetime` without
+        reaching into private builder state.
+
+        Raises:
+            RuntimeError: If accessed during the Builder Phase (before `.run()`).
+        """
+        if self._env is None:
+            raise RuntimeError("Environment is not attached until context is run.")
+        return self._env
+
     def wait_for_arrival(self, arrival_id: str) -> Any:
         """
         Yields a dynamic SimPy timeout based on the live arrival distribution.
@@ -419,7 +444,10 @@ class SimulationContext:
         """
         logger.info(f"Building SimulationContext for '{self.sim_id}'...")
 
-        self._env = DynamicRealtimeEnvironment(factor=self.factor)
+        env_kwargs: Dict[str, Any] = {"factor": self.factor}
+        if self.logical_start_time is not None:
+            env_kwargs["logical_start_time"] = self.logical_start_time
+        self._env = DynamicRealtimeEnvironment(**env_kwargs)
 
         # Initializes RNG with the deterministic seed
         self.sampler = Sampler(rng=np.random.default_rng(self.random_seed))
