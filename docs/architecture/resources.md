@@ -8,7 +8,7 @@ Standard SimPy objects are static. Dynamic DES introduces dynamic wrapper classe
 
 `DynamicResource` wraps a SimPy `Resource` and represents discrete assets that process individual tasks (e.g. machines, bays, or operators).
 
-### The Shrinking Safety Guarantee
+### Shrinking Safety Guarantee
 When capacity increases, tokens are immediately added to the pool. When capacity shrinks (e.g., from 5 to 2 due to an unexpected machine breakdown):
 * If 4 machines are currently processing tasks, **Dynamic DES will not terminate active processes**.
 * The resource enters a temporary "over-capacity" state where it waits for tasks to finish.

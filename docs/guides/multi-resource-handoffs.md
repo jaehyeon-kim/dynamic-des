@@ -6,7 +6,7 @@ If your simulation requires a task to lock multiple resources concurrently or or
 
 ---
 
-## The Overlapping Lock Limit
+## Overlapping Lock Limit
 
 In many production facilities, physical objects cannot transition between stations without a transfer mechanism (like a crane or robotic arm):
 
