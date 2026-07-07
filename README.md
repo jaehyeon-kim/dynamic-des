@@ -83,63 +83,65 @@ ddes-kafka-infra-down
 
 ## Building Your Own Simulation (Local Example)
 
-The following snippet demonstrates a simple example. It initializes a production line, schedules an external capacity update, and streams telemetry to the console.
+The following snippet demonstrates a simple example using the declarative **Standard API (`SimulationContext`)**. It initializes a production line, schedules dynamic capacity updates, and streams telemetry to the console.
 
 ```python
 import logging
-from dynamic_des import (
-    CapacityConfig, ConsoleEgress, DistributionConfig,
-    DynamicRealtimeEnvironment, DynamicResource, LocalIngress, SimParameter
-)
+from dynamic_des import SimulationContext, ConsoleEgress, LocalIngress
 
 logging.basicConfig(
     level=logging.INFO, format="%(levelname)s [%(asctime)s] %(message)s"
 )
-logger = logging.getLogger("local_example")
 
-# 1. Define initial system state
-params = SimParameter(
-    sim_id="Line_A",
-    arrival={"standard": DistributionConfig(dist="exponential", rate=1)},
-    resources={"lathe": CapacityConfig(current_cap=1, max_cap=5)},
+# 1. Initialize SimulationContext (Builder Pattern)
+# Schedule capacity to jump to 3 at t=10s, then drop to 2 at t=20s
+app = (
+    SimulationContext(sim_id="Line_A", factor=1.0, random_seed=42)
+    .add_resource("lathe", current_cap=1, max_cap=5)
+    .add_arrival("standard", dist="exponential", rate=1.0)
+    .add_service("milling", dist="normal", mean=3.0, std=0.5)
+    .add_ingress(LocalIngress(
+        schedule=[
+            (10.0, "Line_A.resources.lathe.current_cap", 3),
+            (20.0, "Line_A.resources.lathe.current_cap", 2),
+        ]
+    ))
+    .add_egress(ConsoleEgress())
 )
 
-# 2. Setup Environment with Local Connectors
-# Schedule capacity to jump from 1 to 3 at t=5s
-ingress = LocalIngress([(5.0, "Line_A.resources.lathe.current_cap", 3)])
-egress = ConsoleEgress()
-
-env = DynamicRealtimeEnvironment(factor=1.0)
-env.registry.register_sim_parameter(params)
-env.setup_ingress([ingress])
-env.setup_egress([egress])
-
-# 3. Create Resource
-res = DynamicResource(env, "Line_A", "lathe")
-
-def telemetry_monitor(env: DynamicRealtimeEnvironment, res: DynamicResource):
-    """Streams system health metrics every 2 seconds."""
+# 2. Define Simulation Processes using Decorators
+@app.arrival_loop("standard")
+def arrival_process(context: SimulationContext):
+    task_id = 0
     while True:
-        env.publish_telemetry("Line_A.resources.lathe.capacity", res.capacity)
-        yield env.timeout(2.0)
+        yield context.wait_for_arrival("standard")
+        context.spawn(work_task(task_id))
+        task_id += 1
 
+@app.task(service_id="milling", resource_id="lathe")
+def work_task(task_id: int):
+    # Returns custom metadata payload to be included in the finished event
+    return {"part_id": task_id}
 
-env.process(telemetry_monitor(env, res))
+@app.telemetry_loop(interval=2.0)
+def telemetry_monitor(context: SimulationContext):
+    # Retrieve active resource handles to query state
+    res = context.get_resource("lathe")
+    context.env.publish_telemetry("Line_A.lathe.capacity", res.capacity)
+    context.env.publish_telemetry("Line_A.lathe.in_use", res.in_use)
+    context.env.publish_telemetry("Line_A.lathe.queue_length", len(res.queue.items))
 
-# 4. Run
-print("Simulation started. Watch capacity change at t=5s...")
-try:
-    env.run(until=10.1)
-finally:
-    env.teardown()
+# 3. Run the Simulation
+print("Simulation started. Watch capacity change at t=10s and t=20s...")
+app.run(until=25.0)
 ```
 
 ### What this does
 
-1.  **Registry Initialization**: The `SimParameter` defines the initial state. The Registry flattens this into addressable paths (e.g., `Line_A.resources.lathe.current_cap`).
-2.  **Live Ingress**: The `LocalIngress` simulates an external event (like a Kafka message) arriving 5 seconds into the run.
-3.  **Zero-Polling Update**: The `DynamicResource` listens to the Registry. The moment the ingress updates the value, the resource automatically expands its internal token pool without any manual checking.
-4.  **Telemetry Egress**: The `ConsoleEgress` prints system vitals to your terminal, mimicking a live dashboard feed.
+1.  **Declarative Builder**: `SimulationContext` chains the setup, defining parameters, connectors, and configuration in one clean block.
+2.  **Live Ingress**: The `LocalIngress` schedules registry mutations independently from the simulation logic.
+3.  **Automatic Task Lifecycle**: The `@app.task` decorator automatically handles queued/started/finished telemetry emissions, resource locking, and random duration sampling.
+4.  **Telemetry Egress**: The `@app.telemetry_loop` captures continuous stats and streams them to the designated egress (`ConsoleEgress`).
 
 ### Data Egress JSON Schemas
 

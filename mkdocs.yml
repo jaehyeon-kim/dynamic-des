@@ -41,17 +41,33 @@ extra:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
-  - Core Concepts: concepts.md
+  - Basics (Tutorials):
+      - 1. Your First Factory (Local): tutorials/01-first-factory.md
+      - 2. Adding Randomness and Rules: tutorials/02-distributions-resources.md
+      - 3. Going Distributed (Kafka): tutorials/03-connecting-kafka.md
+  - Core Architecture:
+      - Standard vs. Low-Level Paradigms: architecture/paradigms.md
+      - Simulation Context: architecture/context.md
+      - Realtime Environment: architecture/environment.md
+      - Ingress and Egress Connectors: architecture/connectors.md
+      - Resources and Containers: architecture/resources.md
   - Examples:
-      - Local Simulation: examples/local.md
-      - Kafka Digital Twin: examples/kafka.md
-      - Historical Data & Forecasting: examples/history.md
-      #- Crypto Trading Bot: examples/crypto-trading.md
-      #- RPG Adventure Game: examples/rpg-adventure.md
+      - Standard API (Declarative):
+          - Local Simulation: examples/declarative/local.md
+          - Kafka Digital Twin and UI: examples/declarative/kafka.md
+          - Fast-Forward to Data Lake: examples/declarative/history.md
+      - Low-Level API (Imperative):
+          - Local Simulation: examples/imperative/local.md
+          - Kafka Digital Twin and UI: examples/imperative/kafka.md
+          - Fast-Forward to Data Lake: examples/imperative/history.md
   - Advanced Guides:
+      - Complex Routing (Kafka): guides/complex-routing.md
+      - Advanced Serialization (Avro and Pydantic): guides/avro-and-pydantic.md
       - Connecting to Secure Kafka: guides/kafka-security.md
-      - Advanced Serialization: guides/avro-and-pydantic.md
-      - Data Lake Ingestion & Storage: guides/data-lake-ingestion.md
+  - Advanced Control Flows:
+      - Multi-Resource Handoffs (Hybrid Pattern): guides/multi-resource-handoffs.md
+      - Preemptive Machine Breakdowns (Hybrid Pattern): guides/preemptive-breakdowns.md
+      - Absolute Edge Cases (Dynamic Topology): guides/dynamic-topology.md
   - API Reference: api.md
 
 markdown_extensions:

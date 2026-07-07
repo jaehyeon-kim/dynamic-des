@@ -64,7 +64,6 @@ ddes-kafka-infra-down
 
 Ready to build your own system? We have prepared a gallery of real-world use cases to demonstrate how to architect your simulation.
 
-- [Local Simulation](examples/local.md): A dependency-free approach to testing.
-- [Kafka Digital Twin](examples/kafka.md): A full manufacturing architecture with dynamic queues.
-<!-- - [Crypto Trading Bot](): Simulating order books, slippage, and API rate limits.
-- [RPG Adventure Game](): Managing live game states, monster spawns, and server capacity. -->
+- [Local Simulation](examples/declarative/local.md): A dependency-free approach to testing.
+- [Kafka Digital Twin](examples/declarative/kafka.md): A full manufacturing architecture with dynamic queues.
+- [Fast-Forward to Data Lake](examples/declarative/history.md): Batch processing simulation data into Parquet.

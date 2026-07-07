@@ -1,3 +1,35 @@
+"""
+Dynamic DES: Real-time SimPy control plane for event-driven digital twins.
+
+Bridges operations research (SimPy discrete-event simulation) with modern data engineering
+(Kafka, Redis, Parquet, S3). Features the `SimulationContext` builder pattern to support
+declarative digital twin configuration, dynamic registry updates, and asynchronous I/O egress.
+
+Standard Usage Example:
+    from dynamic_des import SimulationContext, ConsoleEgress
+
+    app = (
+        SimulationContext(sim_id="Factory_A", factor=1.0)
+        .add_resource("machine", current_cap=1)
+        .add_arrival("parts", dist="exponential", rate=2.0)
+        .add_egress(ConsoleEgress())
+    )
+
+    @app.arrival_loop("parts")
+    def parts_generator(context):
+        while True:
+            yield context.wait_for_arrival("parts")
+            context.spawn(process_part(context))
+
+    @app.task
+    def process_part(context):
+        with context.request("machine") as req:
+            yield req
+            yield context.env.timeout(1.0)
+
+    app.run(until=10.0)
+"""
+
 import logging
 from importlib.metadata import PackageNotFoundError, version
 
