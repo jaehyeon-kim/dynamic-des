@@ -99,6 +99,17 @@ def declarative_history_demo(auto_down: bool = False):
             manage_infrastructure("storage", down=True)
 
 
+def declarative_postgres_demo(auto_down: bool = False):
+    setup_example_logging()
+    from .declarative.postgres_example import run
+
+    try:
+        run()
+    finally:
+        if auto_down:
+            manage_infrastructure("postgres", down=True)
+
+
 def declarative_kafka_demo(auto_down: bool = False):
     setup_example_logging()
     from .declarative.kafka_example import run
@@ -139,6 +150,22 @@ def imperative_kafka_demo(auto_down: bool = False):
         if auto_down:
             logger.info("Auto-teardown enabled. Cleaning up Kafka infrastructure...")
             manage_infrastructure(profile="kafka", down=True)
+
+
+def imperative_postgres_demo(auto_down: bool = False):
+    """CLI entry point: Runs the Postgres-integrated simulation demo."""
+    setup_example_logging()
+    logger.info("Starting Postgres-integrated simulation...")
+    from .imperative.postgres_example import run
+
+    try:
+        run()
+    except KeyboardInterrupt:
+        logger.info("User gracefully interrupted the simulation.")
+    finally:
+        if auto_down:
+            logger.info("Auto-teardown enabled. Cleaning up Postgres infrastructure...")
+            manage_infrastructure(profile="postgres", down=True)
 
 
 def imperative_history_demo(auto_down: bool = False):
@@ -188,3 +215,13 @@ def storage_infra_up():
 def storage_infra_down():
     """Stops and removes the SeaweedFS/S3 Docker containers."""
     manage_infrastructure(profile="storage", down=True)
+
+
+def postgres_infra_up():
+    """Starts the Postgres Docker containers in the background."""
+    manage_infrastructure(profile="postgres", down=False)
+
+
+def postgres_infra_down():
+    """Stops and removes the Postgres Docker containers."""
+    manage_infrastructure(profile="postgres", down=True)

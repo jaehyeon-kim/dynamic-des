@@ -98,13 +98,19 @@ ddes-kafka-infra-down = "dynamic_des.examples:kafka_infra_down"
 ddes-storage-infra-up = "dynamic_des.examples:storage_infra_up"
 ddes-storage-infra-down = "dynamic_des.examples:storage_infra_down"
 
+# Infrastructure - Postgres
+ddes-postgres-infra-up = "dynamic_des.examples:postgres_infra_up"
+ddes-postgres-infra-down = "dynamic_des.examples:postgres_infra_down"
+
 # Examples & Dashboard
 ddes-local = "dynamic_des.examples:declarative_local_demo"
 ddes-kafka = "dynamic_des.examples:declarative_kafka_demo"
 ddes-history = "dynamic_des.examples:declarative_history_demo"
+ddes-postgres = "dynamic_des.examples:declarative_postgres_demo"
 
 ddes-imperative-local = "dynamic_des.examples:imperative_local_demo"
 ddes-imperative-kafka = "dynamic_des.examples:imperative_kafka_demo"
 ddes-imperative-history = "dynamic_des.examples:imperative_history_demo"
+ddes-imperative-postgres = "dynamic_des.examples:imperative_postgres_demo"
 
 ddes-kafka-dashboard = "dynamic_des.examples:kafka_dashboard_demo"

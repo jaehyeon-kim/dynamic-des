@@ -135,6 +135,8 @@
 ::: dynamic_des.connectors.ingress.postgres.PostgresIngress
     options:
       heading_level: 3
+      members:
+        - run
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.ingress.redis.RedisIngress
@@ -179,6 +181,8 @@
 ::: dynamic_des.connectors.egress.postgres.PostgresEgress
     options:
       heading_level: 3
+      members:
+        - run
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.egress.redis.RedisEgress
