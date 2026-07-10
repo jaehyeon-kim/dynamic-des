@@ -114,3 +114,8 @@ ddes-imperative-history = "dynamic_des.examples:imperative_history_demo"
 ddes-imperative-postgres = "dynamic_des.examples:imperative_postgres_demo"
 
 ddes-kafka-dashboard = "dynamic_des.examples:kafka_dashboard_demo"
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests that require Docker infrastructure (deselect with '-m \"not integration\"')",
+]
