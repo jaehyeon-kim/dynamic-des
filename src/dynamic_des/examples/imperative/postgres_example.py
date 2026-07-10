@@ -19,10 +19,11 @@ logger = logging.getLogger("postgres_example")
 
 DSN = "postgresql://user:password@localhost:5432/ddes"
 
+
 async def init_db():
     """Initializes the database schema before starting the simulation."""
     conn = await asyncpg.connect(DSN)
-    await conn.execute('''
+    await conn.execute("""
         CREATE TABLE IF NOT EXISTS orders (
             order_id INT PRIMARY KEY,
             customer_id INT,
@@ -44,8 +45,8 @@ async def init_db():
             is_applied BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-    ''')
-    
+    """)
+
     # Pre-seed the initial simulation parameters into the table as the baseline history only if empty
     count = await conn.fetchval("SELECT COUNT(*) FROM simulation_params")
     if count == 0:
@@ -56,6 +57,7 @@ async def init_db():
     await conn.close()
     logger.info("Database schema initialized and pre-seeded.")
 
+
 def run():
     params = SimParameter(
         sim_id="Store",
@@ -65,7 +67,7 @@ def run():
     # Attach two egress instances, multiplexing across the shared output queue
     egress_orders = PostgresEgress(DSN, table_name="orders")
     egress_items = PostgresEgress(DSN, table_name="order_items")
-    
+
     # Attach ingress for dynamic parameter updates
     ingress = PostgresIngress(DSN, table_name="simulation_params")
 
@@ -83,7 +85,7 @@ def run():
 
         while True:
             yield env.timeout(sampler.sample(arrival_cfg))
-            
+
             # 1. Generate Order Parent Record
             order = {
                 "__table__": "orders",
@@ -91,9 +93,9 @@ def run():
                 "customer_id": random.randint(1, 100),
                 "order_date": datetime.utcnow().isoformat(),
                 "total_amount": 0.0,
-                "status": "pending"
+                "status": "pending",
             }
-            
+
             # 2. Generate Order Item Children Records
             num_items = random.randint(1, 5)
             total = 0.0
@@ -101,35 +103,38 @@ def run():
                 price = round(random.uniform(10.0, 50.0), 2)
                 qty = random.randint(1, 3)
                 total += price * qty
-                
+
                 item = {
                     "__table__": "order_items",
                     "order_item_id": item_id,
                     "order_id": order_id,
                     "product_id": random.randint(1, 50),
                     "quantity": qty,
-                    "unit_price": price
+                    "unit_price": price,
                 }
                 env.publish_event(f"item-{item_id}", item)
                 item_id += 1
-                
+
             order["total_amount"] = round(total, 2)
             env.publish_event(f"order-{order_id}", order)
-            
+
             order_id += 1
 
     env.process(order_process(env))
 
     logger.info("Starting Imperative Postgres Demo. Press Ctrl+C to stop...")
-    logger.info("Test Ingress by running: INSERT INTO simulation_params (param_path, param_value) VALUES ('Store.arrival.customer_order.rate', '5.0');")
+    logger.info(
+        "Test Ingress by running: INSERT INTO simulation_params (param_path, param_value) VALUES ('Store.arrival.customer_order.rate', '5.0');"
+    )
     asyncio.run(init_db())
-    
+
     try:
         env.run()
     except KeyboardInterrupt:
         logger.info("Simulation interrupted by user.")
     finally:
         env.teardown()
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

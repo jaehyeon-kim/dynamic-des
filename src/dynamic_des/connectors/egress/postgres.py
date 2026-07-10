@@ -14,8 +14,8 @@ class PostgresEgress(BaseEgress):
     """
     Asynchronous egress provider for persisting simulation data to PostgreSQL.
 
-    This connector handles long-term storage of simulation results or 
-    continuous generation of relational CDC data, performing bulk inserts 
+    This connector handles long-term storage of simulation results or
+    continuous generation of relational CDC data, performing bulk inserts
     of batched data into a specified PostgreSQL table using asyncpg.
     """
 
@@ -33,23 +33,27 @@ class PostgresEgress(BaseEgress):
         self.dsn = connection_dsn
         self.table_name = table_name
         self.kwargs = kwargs
-        self.pool = None
-        self.valid_columns = set()
+        self.pool: asyncpg.Pool | None = None
+        self.valid_columns: set[str] = set()
 
     async def _init_pool(self) -> None:
-        if not self.pool:
+        if self.pool is None:
             self.pool = await asyncpg.create_pool(dsn=self.dsn, **self.kwargs)
             logger.info(f"PostgresEgress connected to {self.table_name}")
-            
+
             # Cache valid columns to safely ignore extra injected fields (like sim_ts)
+            self.valid_columns = set()
+            assert self.pool is not None
             async with self.pool.acquire() as conn:
                 rows = await conn.fetch(
                     "SELECT column_name FROM information_schema.columns WHERE table_name = $1",
-                    self.table_name
+                    self.table_name,
                 )
-                self.valid_columns = {row['column_name'] for row in rows}
+                self.valid_columns = {row["column_name"] for row in rows}
                 if not self.valid_columns:
-                    logger.warning(f"Table '{self.table_name}' does not exist or has no columns!")
+                    logger.warning(
+                        f"Table '{self.table_name}' does not exist or has no columns!"
+                    )
 
     async def run(self, egress_queue: queue.Queue) -> None:
         """
@@ -73,16 +77,16 @@ class PostgresEgress(BaseEgress):
                     # `item` is an EventPayload or TelemetryPayload dict.
                     # The actual user data is in `item["value"]`.
                     payload = item.get("value")
-                    
+
                     if not isinstance(payload, dict):
                         # PostgresEgress requires dictionaries (or Pydantic models dumped to dicts)
                         continue
-                        
+
                     # Merge the simulation metadata into the payload so it CAN be inserted if the user configured their schema to accept it
                     payload_copy = payload.copy()
                     payload_copy["sim_ts"] = item.get("sim_ts")
                     payload_copy["timestamp"] = item.get("timestamp")
-                    
+
                     if "key" in item:
                         payload_copy["event_id"] = item["key"]
                     if "path_id" in item:
@@ -99,24 +103,28 @@ class PostgresEgress(BaseEgress):
 
                 # Filter keys to only those that exist in the database table
                 keys = [k for k in clean_batch[0].keys() if k in self.valid_columns]
-                
+
                 if not keys:
-                    logger.warning(f"No matching columns for table {self.table_name}. Skipping.")
+                    logger.warning(
+                        f"No matching columns for table {self.table_name}. Skipping."
+                    )
                     continue
 
                 columns = ", ".join(keys)
                 placeholders = ", ".join(f"${i+1}" for i in range(len(keys)))
-                
+
                 # Using ON CONFLICT DO NOTHING to ensure idempotency during simulation restarts
                 query = f"INSERT INTO {self.table_name} ({columns}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
 
                 # Extract the tuples of values matching the ordered keys
                 values = [tuple(data.get(k) for k in keys) for data in clean_batch]
 
-                # Execute batch insert
-                async with self.pool.acquire() as conn:
-                    await conn.executemany(query, values)
-                
+                # Execute the massive batch insert dynamically
+                if self.valid_columns and values:
+                    assert self.pool is not None
+                    async with self.pool.acquire() as conn:
+                        await conn.executemany(query, values)
+
                 logger.debug(f"Inserted {len(values)} records into {self.table_name}")
 
             except queue.Empty:
