@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from dynamic_des.connectors.egress.postgres import PostgresEgress
 
+
 @pytest.fixture
 def mock_pool():
     pool = MagicMock()
@@ -13,14 +14,18 @@ def mock_pool():
     pool.acquire.return_value = acquire_ctx
     return pool, conn
 
+
 @pytest.mark.asyncio
 async def test_postgres_egress_initialization():
     egress = PostgresEgress("postgresql://user:password@localhost/db", "test_table")
     assert egress.dsn == "postgresql://user:password@localhost/db"
     assert egress.table_name == "test_table"
 
+
 @pytest.mark.asyncio
-@patch("dynamic_des.connectors.egress.postgres.asyncpg.create_pool", new_callable=AsyncMock)
+@patch(
+    "dynamic_des.connectors.egress.postgres.asyncpg.create_pool", new_callable=AsyncMock
+)
 async def test_postgres_egress_run(mock_create_pool, mock_pool):
     pool, conn = mock_pool
     mock_create_pool.return_value = pool
