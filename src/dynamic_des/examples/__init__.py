@@ -121,6 +121,17 @@ def declarative_kafka_demo(auto_down: bool = False):
             manage_infrastructure("kafka", down=True)
 
 
+def declarative_redis_demo(auto_down: bool = False):
+    setup_example_logging()
+    from .declarative.redis_example import run
+
+    try:
+        run()
+    finally:
+        if auto_down:
+            manage_infrastructure("redis", down=True)
+
+
 # ==========================================
 # CLI Entry Points: Imperative (Env API)
 # ==========================================
@@ -166,6 +177,22 @@ def imperative_postgres_demo(auto_down: bool = False):
         if auto_down:
             logger.info("Auto-teardown enabled. Cleaning up Postgres infrastructure...")
             manage_infrastructure(profile="postgres", down=True)
+
+
+def imperative_redis_demo(auto_down: bool = False):
+    """CLI entry point: Runs the Redis-integrated simulation demo."""
+    setup_example_logging()
+    logger.info("Starting Redis-integrated simulation...")
+    from .imperative.redis_example import run
+
+    try:
+        run()
+    except KeyboardInterrupt:
+        logger.info("User gracefully interrupted the simulation.")
+    finally:
+        if auto_down:
+            logger.info("Auto-teardown enabled. Cleaning up Redis infrastructure...")
+            manage_infrastructure(profile="redis", down=True)
 
 
 def imperative_history_demo(auto_down: bool = False):
@@ -225,3 +252,13 @@ def postgres_infra_up():
 def postgres_infra_down():
     """Stops and removes the Postgres Docker containers."""
     manage_infrastructure(profile="postgres", down=True)
+
+
+def redis_infra_up():
+    """Starts the Redis Docker containers in the background."""
+    manage_infrastructure(profile="redis", down=False)
+
+
+def redis_infra_down():
+    """Stops and removes the Redis Docker containers."""
+    manage_infrastructure(profile="redis", down=True)
