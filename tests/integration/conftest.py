@@ -44,3 +44,24 @@ def postgres_container(check_docker):
 
     # Tear down
     client.compose.down(volumes=True)
+
+
+@pytest.fixture(scope="module")
+def kafka_container(check_docker):
+    """
+    Spins up the kafka broker container via python-on-whales for integration testing.
+    """
+    compose_file = Path(__file__).parent.parent.parent / "src" / "dynamic_des" / "examples" / "docker-compose.yml"
+    client = DockerClient(compose_files=[str(compose_file)], compose_profiles=["kafka"])
+    client.compose.up(detach=True)
+    
+    bootstrap_servers = "localhost:9092"
+    import time
+    
+    # Simple wait to ensure broker is up (can use aiokafka to be more strict if desired)
+    time.sleep(10)
+
+    yield bootstrap_servers
+
+    # Tear down
+    client.compose.down(volumes=True)
