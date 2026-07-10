@@ -8,7 +8,7 @@ This is useful if you are migrating existing SimPy generators and prefer to hand
 
 ## 1. Quick Start
 
-You can easily run this demo using the pre-configured CLI entry points. 
+You can easily run this demo using the pre-configured CLI entry points.
 
 ```bash
 # 1. Spin up the Redis/Valkey database via Docker Compose

@@ -27,7 +27,7 @@ context.publish("factory_event", part_event)
 
 ## 2. Dynamic Parameter Updates (Ingress)
 
-This example attaches a `RedisIngress` listening to a Pub/Sub channel called `simulation_params`. While the simulation is running, you can dynamically update parameters (like speeding up the arrival rate) by simply publishing a JSON string to the channel! 
+This example attaches a `RedisIngress` listening to a Pub/Sub channel called `simulation_params`. While the simulation is running, you can dynamically update parameters (like speeding up the arrival rate) by simply publishing a JSON string to the channel!
 
 ```python
 app.add_ingress(RedisIngress(REDIS_URL, channel_name="simulation_params"))
