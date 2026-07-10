@@ -113,3 +113,20 @@ services:
       echo '--- SeaweedFS Native Setup Complete ---'
       exit 0
       "
+
+  # ==========================================
+  # PROFILE: POSTGRES (Relational Database)
+  # ==========================================
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - des
+    profiles:
+      - postgres
+    environment:
+      POSTGRES_DB: ddes
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password

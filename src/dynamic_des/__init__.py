@@ -95,3 +95,14 @@ try:
     __all__.extend(["JsonlStorageEgress", "ParquetStorageEgress"])
 except ImportError:
     pass
+
+# ---------------------------------------------------------
+# Optional: Postgres Connectors (Requires `pip install dynamic-des[postgres]`)
+# ---------------------------------------------------------
+try:
+    from dynamic_des.connectors.egress.postgres import PostgresEgress  # noqa: F401
+    from dynamic_des.connectors.ingress.postgres import PostgresIngress  # noqa: F401
+
+    __all__.extend(["PostgresEgress", "PostgresIngress"])
+except ImportError:
+    pass

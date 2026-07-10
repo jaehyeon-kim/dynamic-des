@@ -56,10 +56,12 @@ nav:
           - Local Simulation: examples/declarative/local.md
           - Kafka Digital Twin and UI: examples/declarative/kafka.md
           - Fast-Forward to Data Lake: examples/declarative/history.md
+          - Relational DB (Postgres): examples/declarative/postgres.md
       - Low-Level API (Imperative):
           - Local Simulation: examples/imperative/local.md
           - Kafka Digital Twin and UI: examples/imperative/kafka.md
           - Fast-Forward to Data Lake: examples/imperative/history.md
+          - Relational DB (Postgres): examples/imperative/postgres.md
   - Advanced Guides:
       - Complex Routing (Kafka): guides/complex-routing.md
       - Advanced Serialization (Avro and Pydantic): guides/avro-and-pydantic.md
