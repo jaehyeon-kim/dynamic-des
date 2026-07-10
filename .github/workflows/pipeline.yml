@@ -34,6 +34,7 @@ jobs:
         run: uv run --with pytest-cov --all-extras pytest tests/unit/ --cov=src/dynamic_des --cov-report=xml
 
   integration-test:
+    needs: unit-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
