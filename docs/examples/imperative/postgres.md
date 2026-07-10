@@ -8,7 +8,7 @@ By replacing the local console egress with `PostgresEgress`, the simulation beco
 
 ## 1. Multiplexing Multiple Tables
 
-When generating complex relational data, a single simulation process often produces records that belong in completely different SQL tables. 
+When generating complex relational data, a single simulation process often produces records that belong in completely different SQL tables.
 
 Instead of creating separate queues or complex routing logic, `PostgresEgress` supports **Table Multiplexing**. By attaching multiple instances of `PostgresEgress` to the `DynamicRealtimeEnvironment` and tagging your output dictionaries with a special `__table__` key, the framework automatically filters and routes the records to their correct destinations.
 
