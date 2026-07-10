@@ -11,7 +11,7 @@ permissions:
   pages: write
 
 jobs:
-  test:
+  unit-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -30,9 +30,25 @@ jobs:
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1
 
-      - name: Run Tests
-        # Inject pytest-cov on the fly and output the XML report
-        run: uv run --with pytest-cov --all-extras pytest --cov=src/dynamic_des --cov-report=xml
+      - name: Run Unit Tests
+        run: uv run --with pytest-cov --all-extras pytest tests/unit/ --cov=src/dynamic_des --cov-report=xml
+
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.10
+        run: uv python install 3.10
+
+      - name: Run Integration Tests
+        # Run tests/integration on a single baseline version
+        run: uv run --all-extras pytest tests/integration/
 
       # - name: Upload coverage reports to Codecov
       #   uses: codecov/codecov-action@v4
@@ -41,7 +57,7 @@ jobs:
       #     file: ./coverage.xml
 
   docs:
-    needs: test
+    needs: [unit-test, integration-test]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
