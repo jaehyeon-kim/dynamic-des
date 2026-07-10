@@ -106,3 +106,14 @@ try:
     __all__.extend(["PostgresEgress", "PostgresIngress"])
 except ImportError:
     pass
+
+# ---------------------------------------------------------
+# Optional: Redis Connectors (Requires `pip install dynamic-des[redis]`)
+# ---------------------------------------------------------
+try:
+    from dynamic_des.connectors.egress.redis import RedisEgress  # noqa: F401
+    from dynamic_des.connectors.ingress.redis import RedisIngress  # noqa: F401
+
+    __all__.extend(["RedisEgress", "RedisIngress"])
+except ImportError:
+    pass

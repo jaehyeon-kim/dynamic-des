@@ -84,3 +84,29 @@ def kafka_container(check_docker):
 
     # Tear down
     client.compose.down(volumes=True)
+
+
+@pytest.fixture(scope="module")
+def redis_container(check_docker):
+    """
+    Spins up the redis container via python-on-whales for integration testing.
+    """
+    compose_file = (
+        Path(__file__).parent.parent.parent
+        / "src"
+        / "dynamic_des"
+        / "examples"
+        / "docker-compose.yml"
+    )
+    client = DockerClient(compose_files=[str(compose_file)], compose_profiles=["redis"])
+    client.compose.up(detach=True)
+
+    redis_url = "redis://localhost:6379/0"
+    import time
+
+    time.sleep(5)  # Wait for Redis to be ready
+
+    yield redis_url
+
+    # Tear down
+    client.compose.down(volumes=True)

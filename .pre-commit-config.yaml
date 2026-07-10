@@ -18,5 +18,5 @@ repos:
     rev: v1.10.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-orjson]
+        additional_dependencies: [types-orjson, types-redis]
         args: [--ignore-missing-imports]
