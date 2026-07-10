@@ -59,7 +59,7 @@ def run():
 
     logger.info("Starting Imperative Redis Demo. Press Ctrl+C to stop...")
     logger.info(
-        "Test Ingress by running via redis-cli: PUBLISH simulation_params '{\"param_path\": \"Factory.arrival.part_arrival.rate\", \"param_value\": 10.0}'"
+        'Test Ingress by running via redis-cli: PUBLISH simulation_params \'{"param_path": "Factory.arrival.part_arrival.rate", "param_value": 10.0}\''
     )
 
     try:

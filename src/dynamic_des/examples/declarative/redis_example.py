@@ -1,6 +1,5 @@
 import logging
 import random
-import time
 from datetime import datetime
 
 from dynamic_des import RedisEgress, RedisIngress, SimulationContext
@@ -30,7 +29,7 @@ def part_generator(context):
             "timestamp": datetime.utcnow().isoformat(),
             "status": "arrived",
         }
-        
+
         context.publish("factory_event", part_event)
         part_id += 1
 
@@ -38,7 +37,7 @@ def part_generator(context):
 def run():
     logger.info("Starting Declarative Redis Demo. Press Ctrl+C to stop...")
     logger.info(
-        "Test Ingress by running via redis-cli: PUBLISH simulation_params '{\"param_path\": \"Factory.arrival.part_arrival.rate\", \"param_value\": 10.0}'"
+        'Test Ingress by running via redis-cli: PUBLISH simulation_params \'{"param_path": "Factory.arrival.part_arrival.rate", "param_value": 10.0}\''
     )
     try:
         app.run()
