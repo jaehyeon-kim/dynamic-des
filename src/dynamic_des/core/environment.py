@@ -270,6 +270,16 @@ class EgressMixIn:
                 # Give the final pyarrow operation a half-second to safely close the file
                 time.sleep(0.5)
 
+        # Properly wait for any executing I/O threads to finish their awaited tasks
+        # by checking if any provider has active tasks in progress
+        drain_timeout = 10.0
+        start_time = time.time()
+        while any(getattr(provider, "active_tasks", 0) > 0 for provider in getattr(self, "egress_providers", [])):
+            if time.time() - start_time > drain_timeout:
+                logger.warning("Egress providers did not finish active tasks within the timeout.")
+                break
+            time.sleep(0.1)
+
         loop = getattr(self, "_egress_loop", None)
         if loop and loop.is_running():
             loop.call_soon_threadsafe(loop.stop)

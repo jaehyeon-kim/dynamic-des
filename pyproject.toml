@@ -1,6 +1,6 @@
 [project]
 name = "dynamic-des"
-version = "0.11.0"
+version = "0.11.1"
 description = "A dynamic, real-time control plane for SimPy-based discrete-event digital twins."
 readme = "README.md"
 authors = [
