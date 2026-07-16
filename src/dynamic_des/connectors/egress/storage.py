@@ -119,7 +119,11 @@ class JsonlStorageEgress(BaseEgress):
             while True:
                 try:
                     batch = egress_queue.get_nowait()
-                    await asyncio.to_thread(self._write_batch, batch)
+                    self.active_tasks = getattr(self, "active_tasks", 0) + 1
+                    try:
+                        await asyncio.to_thread(self._write_batch, batch)
+                    finally:
+                        self.active_tasks -= 1
                     # Log a progress heartbeat every 10 batches
                     batches_processed += 1
                     if batches_processed % 10 == 0:
@@ -265,7 +269,11 @@ class ParquetStorageEgress(BaseEgress):
             while True:
                 try:
                     batch = egress_queue.get_nowait()
-                    await asyncio.to_thread(self._write_batch, batch, pa, pq)
+                    self.active_tasks = getattr(self, "active_tasks", 0) + 1
+                    try:
+                        await asyncio.to_thread(self._write_batch, batch, pa, pq)
+                    finally:
+                        self.active_tasks -= 1
                     # Log a progress heartbeat every 10 batches
                     batches_processed += 1
                     if batches_processed % 10 == 0:
