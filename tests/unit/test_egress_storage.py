@@ -130,9 +130,9 @@ def test_parquet_storage_schema_drift(tmp_path: Path):
     # 2. Ensure strict schema typing was enforced!
     # The 'value' column should be purely DOUBLE/FLOAT64, successfully casting the integers from Batch 2.
     value_field = table.schema.field("value")
-    assert pa.types.is_float64(value_field.type), (
-        f"Expected float64, got {value_field.type}"
-    )
+    assert pa.types.is_float64(
+        value_field.type
+    ), f"Expected float64, got {value_field.type}"
 
     # 3. Verify the actual casted data
     val_list = table.column("value").to_pylist()
