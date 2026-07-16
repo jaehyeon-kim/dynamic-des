@@ -111,7 +111,7 @@ class PostgresEgress(BaseEgress):
                     continue
 
                 columns = ", ".join(keys)
-                placeholders = ", ".join(f"${i+1}" for i in range(len(keys)))
+                placeholders = ", ".join(f"${i + 1}" for i in range(len(keys)))
 
                 # Using ON CONFLICT DO NOTHING to ensure idempotency during simulation restarts
                 query = f"INSERT INTO {self.table_name} ({columns}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
