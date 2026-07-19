@@ -1,0 +1,103 @@
+<mxfile host="65bd71144e">
+    <diagram id="dynamic-des-switchboard" name="Page-1">
+        <mxGraphModel dx="1208" dy="418" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="&lt;b style=&quot;font-size: 24px;&quot;&gt;Dynamic DES: Real-Time Switchboard Runtime&lt;/b&gt;&lt;br&gt;&lt;i&gt;Declarative and imperative APIs over one live simulation core&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="10" width="600" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_group" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Authoring API (declarative and imperative, mix as needed)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#d79b00;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=10;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="334" y="73" width="540" height="126" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_decl" value="&lt;b&gt;Standard API (Declarative)&lt;/b&gt;&lt;br&gt;SimulationContext&lt;br&gt;&lt;i&gt;builder + decorators&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="354" y="119" width="245" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_imp" value="&lt;b&gt;Low-Level API (Imperative)&lt;/b&gt;&lt;br&gt;Environment · Resources&lt;br&gt;&lt;i&gt;direct wiring&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="609" y="120" width="245" height="64" as="geometry"/>
+                </mxCell>
+                <mxCell id="runtime_group" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Real-Time Runtime (Switchboard core)&lt;/b&gt;&lt;br&gt;&lt;i&gt;DynamicRealtimeEnvironment · SimulationRegistry · built by either API&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#647687;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=10;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="334" y="234" width="540" height="534" as="geometry"/>
+                </mxCell>
+                <mxCell id="src_group" value="&lt;b style=&quot;font-size: 14px;&quot;&gt;Ingress Sources&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#666666;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=8;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="64" y="274" width="180" height="330" as="geometry"/>
+                </mxCell>
+                <mxCell id="sink_group" value="&lt;b style=&quot;font-size: 14px;&quot;&gt;Egress Sinks&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#666666;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=8;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="964" y="274" width="180" height="375" as="geometry"/>
+                </mxCell>
+                <mxCell id="src_kafka" value="Kafka" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="84" y="314" width="140" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="src_redis" value="Redis" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="84" y="384" width="140" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="src_pg" value="PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="84" y="454" width="140" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="src_local" value="Local schedule" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="84" y="524" width="140" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="ingress" value="&lt;b&gt;Ingress Connectors&lt;/b&gt;&lt;br&gt;&lt;i&gt;background I/O threads&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="364" y="294" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="egress" value="&lt;b&gt;Egress Connectors&lt;/b&gt;&lt;br&gt;&lt;i&gt;Pydantic payloads, orjson, batched&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#e1d5e7;strokeColor=#9673a6;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="624" y="294" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="registry" value="&lt;b&gt;&lt;font style=&quot;font-size: 18px;&quot;&gt;Registry (Switchboard)&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;i&gt;central state, dot-notation paths&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=3;shadow=1;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="364" y="464" width="480" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="resources" value="&lt;b&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;SimPy Resources&lt;/font&gt;&lt;/b&gt;&lt;br&gt;DynamicResource&lt;br&gt;&lt;i&gt;passive observers, event-driven capacity&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="364" y="644" width="480" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="sink_kafka" value="Kafka" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="984" y="314" width="140" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="sink_redis" value="Redis" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="984" y="384" width="140" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="sink_pg" value="PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="984" y="454" width="140" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="sink_lake" value="&lt;b&gt;Data Lake&lt;/b&gt;&lt;br&gt;Parquet / JSONL&lt;br&gt;&lt;i&gt;S3, GCS, Azure, SeaweedFS&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="984" y="534" width="140" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_api_reg" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;html=1;strokeWidth=3;endArrow=block;strokeColor=#d79b00;dashed=1;fontFamily=Comic Sans MS;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="api_group" target="registry" edge="1">
+                    <mxGeometry x="0.0038" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="2" value="&lt;font face=&quot;Comic Sans MS&quot;&gt;builds &amp;amp; configures&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_api_reg">
+                    <mxGeometry x="-0.2151" relative="1" as="geometry">
+                        <mxPoint x="-2" y="10" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_src_ing" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;html=1;strokeWidth=2;endArrow=block;strokeColor=#666666;fontFamily=Comic Sans MS;" parent="1" source="src_group" target="ingress" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_ing_reg" value="updates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;html=1;strokeWidth=3;endArrow=block;strokeColor=#9673a6;fontFamily=Comic Sans MS;" parent="1" source="ingress" target="registry" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_reg_res" value="signals wake-up" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;html=1;strokeWidth=3;endArrow=block;strokeColor=#82b366;fontFamily=Comic Sans MS;" parent="1" source="registry" target="resources" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_res_eg" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;html=1;strokeWidth=3;endArrow=block;strokeColor=#6c8ebf;fontFamily=Comic Sans MS;exitX=1;exitY=0.05;exitDx=0;exitDy=0;" parent="1" source="resources" target="egress" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="844" y="688"/>
+                            <mxPoint x="904" y="688"/>
+                            <mxPoint x="904" y="329"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="3" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: &amp;quot;Comic Sans MS&amp;quot;;&quot;&gt;telemetry &amp;amp; events&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_res_eg">
+                    <mxGeometry x="0.1969" y="1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e_eg_sink" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;html=1;strokeWidth=2;endArrow=block;strokeColor=#666666;fontFamily=Comic Sans MS;" parent="1" source="egress" target="sink_group" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
