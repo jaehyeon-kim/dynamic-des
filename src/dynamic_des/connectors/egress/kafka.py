@@ -197,6 +197,13 @@ class KafkaEgress(BaseEgress):
     is delegated to that function instead, allowing for advanced multiplexing
     (e.g., splitting ML vs. UI events).
 
+    Note:
+        `stream_type` is routing metadata, so it is removed from the record before
+        serialization and does not appear in the published message. The topic
+        already identifies the stream, so consumers filter by topic rather than by
+        field. This differs from `ParquetStorageEgress`, which keeps `stream_type`
+        as a column in the written files.
+
     Attributes:
         bootstrap_servers (str): Comma-separated list of Kafka brokers.
         telemetry_topic (str): The default topic name for telemetry data.

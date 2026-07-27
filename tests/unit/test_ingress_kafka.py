@@ -16,12 +16,28 @@ from dynamic_des.connectors.ingress.kafka import (
 def test_missing_avro_deserializer_dependencies():
     """Verify that using Avro deserializers without the extras raises an explicit ImportError."""
     # Hide confluent_kafka
-    with patch.dict(sys.modules, {"confluent_kafka": None}):
+    with patch.dict(
+        sys.modules,
+        {
+            "confluent_kafka": None,
+            "confluent_kafka.schema_registry": None,
+            "confluent_kafka.schema_registry.avro": None,
+            "confluent_kafka.serialization": None,
+        },
+    ):
         with pytest.raises(ImportError, match=r"pip install dynamic-des\[confluent\]"):
             ConfluentAvroDeserializer(registry_url="http://mock")
 
     # Hide boto3
-    with patch.dict(sys.modules, {"boto3": None}):
+    with patch.dict(
+        sys.modules,
+        {
+            "boto3": None,
+            "aws_schema_registry": None,
+            "aws_schema_registry.adapter.kafka": None,
+            "aws_schema_registry.avro": None,
+        },
+    ):
         with pytest.raises(ImportError, match=r"pip install dynamic-des\[glue\]"):
             GlueAvroDeserializer(registry_name="mock")
 

@@ -40,14 +40,56 @@ def test_extract_dict_helper():
 def test_missing_avro_dependencies():
     """Verify that using Avro serializers without the extras raises an explicit ImportError."""
     # Hide confluent_kafka
-    with patch.dict(sys.modules, {"confluent_kafka": None}):
+    with patch.dict(
+        sys.modules,
+        {
+            "confluent_kafka": None,
+            "confluent_kafka.schema_registry": None,
+            "confluent_kafka.schema_registry.avro": None,
+            "confluent_kafka.serialization": None,
+        },
+    ):
         with pytest.raises(ImportError, match=r"pip install dynamic-des\[confluent\]"):
             ConfluentAvroSerializer(registry_url="http://mock", schema_str="{}")
 
     # Hide boto3
-    with patch.dict(sys.modules, {"boto3": None}):
+    with patch.dict(
+        sys.modules,
+        {
+            "boto3": None,
+            "aws_schema_registry": None,
+            "aws_schema_registry.adapter.kafka": None,
+            "aws_schema_registry.avro": None,
+        },
+    ):
         with pytest.raises(ImportError, match=r"pip install dynamic-des\[glue\]"):
             GlueAvroSerializer(registry_name="mock", schema_str="{}")
+
+
+AVRO_SCHEMA = """
+{
+  "type": "record",
+  "name": "Probe",
+  "fields": [{"name": "path_id", "type": "string"}, {"name": "value", "type": "int"}]
+}
+"""
+
+
+def test_avro_serializers_construct_with_extras_installed():
+    """Verify the extras are sufficient to build both serializers.
+
+    The friendly ImportError above only proves the failure path. It stays green even
+    when an extra is missing a transitive dependency, which is how a `confluent`
+    extra that could not import its own registry client went unnoticed. Neither
+    constructor performs network I/O, so this needs no registry to be reachable.
+    """
+    confluent = ConfluentAvroSerializer(
+        registry_url="http://localhost:65535", schema_str=AVRO_SCHEMA
+    )
+    assert hasattr(confluent, "serialize")
+
+    glue = GlueAvroSerializer(registry_name="probe", schema_str=AVRO_SCHEMA)
+    assert hasattr(glue, "serialize")
 
 
 @pytest.mark.asyncio

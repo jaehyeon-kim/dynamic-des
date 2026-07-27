@@ -1,6 +1,6 @@
 [project]
 name = "dynamic-des"
-version = "0.11.1"
+version = "0.11.2"
 description = "A dynamic, real-time control plane for SimPy-based discrete-event digital twins."
 readme = "README.md"
 authors = [
@@ -62,13 +62,22 @@ redis = ["redis>=5.0.0"]
 postgres =["asyncpg>=0.29.0"]
 dashboard = ["nicegui>=1.4.0"]
 confluent = [
-    "confluent-kafka>=2.0.0",
+    # ConfluentAvroSerializer lives in the Kafka connector module, so the kafka
+    # extra is required for `pip install dynamic-des[confluent]` to be usable.
+    "dynamic-des[kafka]",
+    # The schemaregistry and avro extras carry httpx and fastavro, which
+    # confluent-kafka stopped bundling in 2.6. Without them the registry client
+    # cannot be imported at all.
+    "confluent-kafka[schemaregistry,avro]>=2.6",
     "dataclasses-avroschema[pydantic]"
 ]
 glue = [
+    "dynamic-des[kafka]",
     "aws-glue-schema-registry",
     "boto3",
-    "dataclasses-avroschema[pydantic]"
+    "dataclasses-avroschema[pydantic]",
+    # aws_schema_registry.adapter.kafka imports the kafka package
+    "kafka-python>=2.0.2"
 ]
 parquet = [
     "pyarrow>=14.0.0"
