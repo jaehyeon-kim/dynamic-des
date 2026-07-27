@@ -36,7 +36,7 @@ from dynamic_des.connectors.egress.kafka import ConfluentAvroSerializer
 
 # 1. Initialize your Avro Serializers for specific ML schemas
 prediction_serializer = ConfluentAvroSerializer(
-    registry_url="http://localhost:8081",
+    registry_url="http://127.0.0.1:8081",
     schema_str="""{"type": "record", "name": "Prediction", "fields": [...]}"""
 )
 
@@ -103,7 +103,7 @@ from dynamic_des import KafkaEgress
 
 # 1. Initialize with the auto-generated schema
 confluent_serializer = ConfluentAvroSerializer(
-    registry_url="http://localhost:8081",
+    registry_url="http://127.0.0.1:8081",
     schema_str=MLPrediction.avro_schema() # Always up to date!
 )
 

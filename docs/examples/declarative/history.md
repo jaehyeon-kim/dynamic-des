@@ -6,6 +6,32 @@ This example demonstrates how to run a simulation in **fast-forward mode** using
 
 ---
 
+## Quick Start
+
+The run writes Parquet chunks to a local `data/` folder by default, so no
+infrastructure is needed:
+
+```bash
+uv run ddes-history
+```
+
+To write to S3 instead, start the object store and set `USE_S3`. The chunks land
+under the `des-dev/history/` prefix, browsable at <http://localhost:8889>:
+
+```bash
+# 1. Spin up SeaweedFS via Docker Compose
+uv run ddes-storage-infra-up
+
+# 2. Run the simulation against S3
+USE_S3=true uv run ddes-history
+
+# 3. Clean up the infrastructure when finished
+uv run ddes-storage-infra-down
+```
+
+`DEST_PATH`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY` override the
+destination and credentials.
+
 ## Code
 
 This script simulates a manufacturing line over a 7-day period. It demonstrates how to route lifecycle events to one Parquet dataset, drop real-time metrics, and write them out instantly.
@@ -59,7 +85,7 @@ def run():
     if use_s3:
         from pyarrow import fs
         filesystem = fs.S3FileSystem(
-            endpoint_override=os.getenv("S3_ENDPOINT", "localhost:8333"),
+            endpoint_override=os.getenv("S3_ENDPOINT", "127.0.0.1:8333"),
             access_key=os.getenv("S3_ACCESS_KEY", "user"),
             secret_key=os.getenv("S3_SECRET_KEY", "password"),
             scheme="http",

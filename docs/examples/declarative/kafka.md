@@ -6,6 +6,23 @@ By replacing the local connectors with `KafkaIngress` and `KafkaEgress`, the sim
 
 ---
 
+## Quick Start
+
+```bash
+# 1. Spin up the Kafka broker and schema registry via Docker Compose
+uv run ddes-kafka-infra-up
+
+# 2. Run the declarative simulation (Ctrl + C to stop)
+uv run ddes-kafka
+
+# 3. In a second terminal, watch and steer the run from the dashboard
+#    (opens at http://localhost:8080, Ctrl + C to stop)
+uv run ddes-kafka-dashboard
+
+# 4. Clean up the infrastructure when finished
+uv run ddes-kafka-infra-down
+```
+
 ## Code
 
 This script connects the simulation to Kafka topics and utilizes Pydantic models for structured event logging.

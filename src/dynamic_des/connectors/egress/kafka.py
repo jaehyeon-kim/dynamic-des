@@ -79,7 +79,8 @@ class ConfluentAvroSerializer:
         Args:
             registry_url (str): The base URL of the Confluent Schema Registry.
             schema_str (str): The Avro schema defined as a JSON string (typically
-                generated directly from a Pydantic model via `.avro_schema()`).
+                generated from a dataclasses-avroschema `AvroBaseModel` via
+                `.avro_schema()`; a plain Pydantic model does not provide it).
             **registry_kwargs: Additional configuration arguments passed directly
                 to the `SchemaRegistryClient` (e.g., `{'basic.auth.user.info': 'user:pass'}`).
 
@@ -135,7 +136,8 @@ class GlueAvroSerializer:
         Args:
             registry_name (str): The name of the AWS Glue Schema Registry.
             schema_str (str): The Avro schema defined as a JSON string (typically
-                generated directly from a Pydantic model via `.avro_schema()`).
+                generated from a dataclasses-avroschema `AvroBaseModel` via
+                `.avro_schema()`; a plain Pydantic model does not provide it).
             **boto3_kwargs: Additional arguments passed directly to the `boto3.client`
                 initialization (e.g., `region_name`, `aws_access_key_id`).
 

@@ -59,7 +59,7 @@ if use_s3:
     filesystem = fs.S3FileSystem(
         access_key=os.getenv("S3_ACCESS_KEY", "user"),
         secret_key=os.getenv("S3_SECRET_KEY", "password"),
-        endpoint_override=os.getenv("S3_ENDPOINT", "localhost:8333"),
+        endpoint_override=os.getenv("S3_ENDPOINT", "127.0.0.1:8333"),
         scheme="http",
     )
     filesystem.create_dir(base_path)

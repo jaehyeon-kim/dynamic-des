@@ -38,7 +38,7 @@ Dynamic DES comes with built-in examples and infrastructure orchestration so you
 **1. Run the local, dependency-free simulation:**
 
 ```bash
-ddes-local-example
+ddes-local
 ```
 
 **2. Run the full Real-Time Digital Twin stack with Kafka and a live UI:**
@@ -49,7 +49,7 @@ ddes-kafka-infra-up
 
 # Open a new terminal and run the simulation
 # Ctrl + C to stop
-ddes-kafka-example
+ddes-kafka
 
 # Open a new terminal and start the monitoring dashboard (opens in browser)
 # Visit http://localhost:8080
