@@ -69,8 +69,12 @@ def run():
 
     # By default, this uses JsonSerializer. To use Avro for enterprise environments:
     # from dynamic_des.connectors.egress.kafka import ConfluentAvroSerializer
-    # avro_serializer = ConfluentAvroSerializer("http://localhost:8081", TaskEvent.avro_schema())
+    # avro_serializer = ConfluentAvroSerializer(
+    #     registry_url="http://127.0.0.1:8081", schema_str=AVRO_SCHEMA
+    # )
     # Then pass: topic_serializers={"sim-events": avro_serializer}
+    # Generate AVRO_SCHEMA from AvroBaseModel rather than a plain Pydantic model;
+    # see the Avro and Pydantic guide. TaskEvent above has no .avro_schema().
     egress = KafkaEgress(
         telemetry_topic="sim-telemetry",
         event_topic="sim-events",
