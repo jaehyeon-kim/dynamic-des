@@ -5,7 +5,7 @@
 It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. It also transforms your models into **synchronized forecasting engines** by fast-forwarding through simulation time to predict future states or backfill Data Lakes with schema-enforced **Parquet** or **JSONL** files directly to **AWS S3, Google Cloud Storage (GCS), Azure Blob, and SeaweedFS** using PyArrow VFS.
 
 <div align="center">
-  <img src="assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
+  <img src="assets/architecture.png" alt="Dynamic DES architecture" width="900" />
 </div>
 
 ---

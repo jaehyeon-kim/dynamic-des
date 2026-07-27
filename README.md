@@ -9,7 +9,7 @@
 **Real-time SimPy control plane for event-driven digital twins.**
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/docs/assets/dashboard-preview.gif" alt="Dashboard Screenshot" width="800" />
+  <img src="https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/docs/assets/architecture.png" alt="Dynamic DES architecture" width="900" />
 </div>
 
 Dynamic DES bridges the gap between static discrete-event simulations and the live world. It allows you to update simulation parameters (arrivals, service times, capacities) and stream telemetry via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. Beyond live streaming, it transforms static models into **synchronized forecasting engines**, enabling rapid historical data generation and future state prediction. Export compressed, chunked datasets (Parquet, JSONL) directly to local storage, **AWS S3, Google Cloud Storage, Azure Blob, or SeaweedFS** using PyArrow VFS, complete with strict schema drift prevention.
@@ -80,6 +80,12 @@ ddes-kafka-dashboard
 # Clean up the infrastructure when finished
 ddes-kafka-infra-down
 ```
+
+The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
+
+<div align="center">
+  <img src="https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/docs/assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
+</div>
 
 ## Building Your Own Simulation (Local Example)
 
