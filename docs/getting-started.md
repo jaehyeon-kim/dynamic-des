@@ -60,6 +60,12 @@ ddes-kafka-dashboard
 ddes-kafka-infra-down
 ```
 
+The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
+
+<div align="center">
+  <img src="assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
+</div>
+
 ## Build Your Own
 
 Ready to build your own system? We have prepared a gallery of real-world use cases to demonstrate how to architect your simulation.
