@@ -180,3 +180,49 @@ def test_lightweight_integration():
     assert execution_state["tasks_completed"] > 0
     assert execution_state["telemetry_run"] is True
     assert execution_state["sampler_accessed"] is True
+
+
+def test_with_batching_defaults_the_egress_bounds():
+    """A caller that ignores the new settings still gets the safe defaults."""
+    app = SimulationContext("TestSim", factor=0.0).with_batching(
+        batch_size=100, flush_interval=0.5
+    )
+
+    assert app._max_queued_batches == 2000
+    assert app._drain_stall_seconds == 30.0
+
+
+def test_with_batching_accepts_the_egress_bounds():
+    """The queue bound and the drain wait are configurable from the builder."""
+    app = SimulationContext("TestSim", factor=0.0).with_batching(
+        batch_size=100,
+        flush_interval=0.5,
+        max_queued_batches=25,
+        drain_stall_seconds=2.5,
+    )
+
+    assert app._max_queued_batches == 25
+    assert app._drain_stall_seconds == 2.5
+
+
+@patch("dynamic_des.core.context.DynamicRealtimeEnvironment")
+def test_egress_bounds_reach_the_environment(MockEnv):
+    """What the builder collects has to arrive at setup_egress, or it does nothing."""
+    instance = MockEnv.return_value
+    provider = MagicMock()
+
+    app = (
+        SimulationContext("TestSim", factor=0.0)
+        .add_egress(provider)
+        .with_batching(
+            batch_size=10,
+            flush_interval=1.0,
+            max_queued_batches=64,
+            drain_stall_seconds=3.0,
+        )
+    )
+    app.run(until=1)
+
+    _, kwargs = instance.setup_egress.call_args
+    assert kwargs["max_queued_batches"] == 64
+    assert kwargs["drain_stall_seconds"] == 3.0

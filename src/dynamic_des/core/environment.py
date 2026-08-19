@@ -110,6 +110,8 @@ class EgressMixIn:
         batch_size: int = 500,
         flush_interval: float = 1.0,
         lag_monitor_interval: Optional[float] = 1.0,
+        max_queued_batches: int = 2000,
+        drain_stall_seconds: float = 30.0,
     ):
         """
         Initializes the egress buffers and starts the background publisher threads.
@@ -118,8 +120,17 @@ class EgressMixIn:
             providers (List[BaseEgress]): A list of initialized egress connector instances.
             batch_size (int, optional): The maximum number of events to buffer before flushing. Defaults to 500.
             flush_interval (float, optional): Maximum simulation seconds to wait before forcing a flush. Defaults to 1.0.
+            max_queued_batches (int, optional): Upper bound on batches waiting for the
+                egress threads. A full queue blocks the producer, so a sink that cannot
+                keep up slows the simulation rather than accumulating a backlog that
+                teardown would have to discard. Defaults to 2000.
+            drain_stall_seconds (float, optional): At teardown the queue is drained
+                until it is empty. The wait is abandoned only if the queue stops
+                shrinking for this long, so a slow sink finishes rather than losing its
+                tail. Defaults to 30.0.
         """
-        self.egress_queue: queue.Queue[Any] = queue.Queue()
+        self.egress_queue: queue.Queue[Any] = queue.Queue(maxsize=max_queued_batches)
+        self.egress_drain_stall_seconds = drain_stall_seconds
         self.egress_providers = providers
         self.egress_batch_size = batch_size
         self.egress_flush_interval = flush_interval
@@ -185,10 +196,27 @@ class EgressMixIn:
             self._flush_buffer()
 
     def _flush_buffer(self):
-        """Internal: Pushes buffered data to the thread-safe queue."""
+        """Internal: Pushes buffered data to the thread-safe queue.
+
+        The queue is bounded, so a sink that cannot keep up slows the simulation
+        rather than accumulating a backlog. A sink that has stopped consuming
+        altogether would otherwise block here forever, so the wait is capped and
+        the failure is raised instead of hidden.
+        """
         if self._event_buffer:
             logger.debug(f"Flushing {len(self._event_buffer)} events to egress.")
-            self.egress_queue.put(self._event_buffer)
+            stall_limit = getattr(self, "egress_drain_stall_seconds", 30.0)
+            try:
+                self.egress_queue.put(self._event_buffer, timeout=stall_limit)
+            except queue.Full:
+                logger.error(
+                    "Egress queue has been full for %.0fs, so the sink has stopped "
+                    "consuming. Stopping rather than discarding events.",
+                    stall_limit,
+                )
+                raise RuntimeError(
+                    "Egress queue full: the sink stopped consuming events"
+                ) from None
             self._event_buffer = []
 
     def publish_telemetry(self, path_id: str, value: Any):
@@ -249,22 +277,42 @@ class EgressMixIn:
         """Flushes final buffer contents and safely stops the egress event loop."""
         logger.info("Tearing down egress connectors, flushing final events...")
         if hasattr(self, "_event_buffer"):
-            self._flush_buffer()
+            try:
+                self._flush_buffer()
+            except RuntimeError:
+                # A sink that has stopped consuming makes the final flush impossible.
+                # Shutdown still has to complete, so report the loss and carry on.
+                logger.warning(
+                    "Could not flush the final %d events: the sink is not consuming.",
+                    len(self._event_buffer),
+                )
 
-        # Wait until the background I/O threads have fully drained the queue to disk
+        # Drain the queue to empty. A fixed deadline here silently discarded the
+        # backlog of any sink slower than the simulation, so the wait ends only when
+        # the queue stops shrinking.
         if hasattr(self, "egress_queue"):
-            drain_timeout = 5.0
-            start_time = time.time()
+            stall_limit = getattr(self, "egress_drain_stall_seconds", 30.0)
+            remaining = self.egress_queue.qsize()
+            last_progress = time.time()
+            last_report = time.time()
 
-            while (
-                not self.egress_queue.empty()
-                and (time.time() - start_time) < drain_timeout
-            ):
+            while not self.egress_queue.empty():
                 time.sleep(0.1)
+                current = self.egress_queue.qsize()
+                if current < remaining:
+                    remaining = current
+                    last_progress = time.time()
+                elif time.time() - last_progress > stall_limit:
+                    break
+                if time.time() - last_report > 5.0:
+                    last_report = time.time()
+                    logger.info("Draining egress queue, %d batches left.", current)
 
             if not self.egress_queue.empty():
                 logger.warning(
-                    "Egress queue did not drain fully within the timeout. Some final records may be lost."
+                    "Egress queue stopped draining with %d batches left, so some final "
+                    "records are lost. The sink is not keeping up.",
+                    self.egress_queue.qsize(),
                 )
             else:
                 # Give the final pyarrow operation a half-second to safely close the file
@@ -272,15 +320,22 @@ class EgressMixIn:
 
         # Properly wait for any executing I/O threads to finish their awaited tasks
         # by checking if any provider has active tasks in progress
-        drain_timeout = 10.0
-        start_time = time.time()
-        while any(
-            getattr(provider, "active_tasks", 0) > 0
-            for provider in getattr(self, "egress_providers", [])
-        ):
-            if time.time() - start_time > drain_timeout:
+        stall_limit = getattr(self, "egress_drain_stall_seconds", 30.0)
+        outstanding = None
+        last_progress = time.time()
+        while True:
+            active = sum(
+                getattr(provider, "active_tasks", 0)
+                for provider in getattr(self, "egress_providers", [])
+            )
+            if active == 0:
+                break
+            if outstanding is None or active < outstanding:
+                outstanding = active
+                last_progress = time.time()
+            elif time.time() - last_progress > stall_limit:
                 logger.warning(
-                    "Egress providers did not finish active tasks within the timeout."
+                    "Egress providers stopped finishing tasks, %d still active.", active
                 )
                 break
             time.sleep(0.1)
