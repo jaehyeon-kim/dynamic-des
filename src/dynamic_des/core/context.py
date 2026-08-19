@@ -74,6 +74,8 @@ class SimulationContext:
         self._egress_providers: List[Any] = []
         self._batch_size = 500
         self._flush_interval = 1.0
+        self._max_queued_batches = 2000
+        self._drain_stall_seconds = 30.0
 
         self._resources_config: Dict[str, CapacityConfig] = {}
         self._containers_config: Dict[str, CapacityConfig] = {}
@@ -120,7 +122,11 @@ class SimulationContext:
         return self
 
     def with_batching(
-        self, batch_size: int, flush_interval: float
+        self,
+        batch_size: int,
+        flush_interval: float,
+        max_queued_batches: int = 2000,
+        drain_stall_seconds: float = 30.0,
     ) -> "SimulationContext":
         """
         Configures the internal egress buffering strategy to mitigate I/O lock contention.
@@ -130,12 +136,21 @@ class SimulationContext:
                 before forcing an asynchronous flush to the egress thread.
             flush_interval: The maximum simulation time (in seconds) to wait
                 before forcefully flushing the buffer, regardless of capacity.
+            max_queued_batches: Upper bound on batches waiting for the egress
+                threads. A full queue blocks the producer, so a sink that cannot keep
+                up slows the simulation instead of building a backlog that teardown
+                would then have to discard.
+            drain_stall_seconds: How long teardown keeps waiting once the queue has
+                stopped shrinking. While it keeps draining the wait is unbounded, so a
+                slow sink finishes rather than losing its tail.
 
         Returns:
             SimulationContext: The current instance for method chaining.
         """
         self._batch_size = batch_size
         self._flush_interval = flush_interval
+        self._max_queued_batches = max_queued_batches
+        self._drain_stall_seconds = drain_stall_seconds
         return self
 
     def add_resource(
@@ -472,6 +487,8 @@ class SimulationContext:
                 self._egress_providers,
                 batch_size=self._batch_size,
                 flush_interval=self._flush_interval,
+                max_queued_batches=self._max_queued_batches,
+                drain_stall_seconds=self._drain_stall_seconds,
             )
 
         # Hydrate Physical SimPy Resources

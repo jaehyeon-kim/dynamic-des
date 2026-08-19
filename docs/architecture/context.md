@@ -42,3 +42,4 @@ The fluent builder API allows chaining configurations:
 * `.add_ingress(provider)`: Attaches an ingress connector (e.g. `LocalIngress` or `KafkaIngress`) to stream live configuration updates into the switchboard.
 * `.add_egress(provider)`: Attaches an egress connector (e.g. `ConsoleEgress` or `KafkaEgress`) to publish event and telemetry streams.
 * `.with_batching(batch_size, flush_interval)`: Tunes the internal queue batching size and flush timeouts for highly efficient I/O.
+* `.with_batching(..., max_queued_batches, drain_stall_seconds)`: Bounds the egress queue and sets how long teardown keeps waiting for it. The queue is bounded so a sink that cannot keep up slows the simulation instead of building a backlog, and teardown drains until the queue stops shrinking rather than abandoning it on a fixed deadline. A sink that stops consuming altogether raises `RuntimeError` rather than losing events silently.
