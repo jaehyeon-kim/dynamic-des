@@ -49,30 +49,36 @@ This example also attaches a `PostgresIngress` listening to a `simulation_params
 
 ## 4. Quick Start
 
-The examples are in the repository, not in the installed package, so clone it first.
+Download the script, then run it. The run keeps generating orders until you stop it with Ctrl + C. **To test the dynamic ingress updates**, open a second terminal while the simulation is running and execute the SQL command below.
 
 ```bash
-git clone https://github.com/jaehyeon-kim/dynamic-des.git
-cd dynamic-des
-uv sync --extra postgres
-uv tool install "odctl>=0.5.1"   # containers for the examples
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/imperative/postgres_example.py
 ```
 
-Or with pip:
+### With uv
 
 ```bash
-pip install "dynamic-des[postgres]"
-pip install "odctl>=0.5.1"
-```
+# 1. Install odctl, which runs the containers
+uv tool install "odctl>=0.5.1"
 
-Run the script directly with `uv run`. It keeps generating orders until you stop it with Ctrl + C. **To test the dynamic ingress updates**, open a second terminal while the simulation is running and execute the SQL command below.
-
-```bash
-# 1. Spin up the Postgres database with odctl
+# 2. Spin up the Postgres database
 odctl up postgres
 
-# 2. Run the imperative simulation
-uv run examples/imperative/postgres_example.py
+# 3. Run the imperative simulation
+uv run --no-project --with "dynamic-des[postgres]" postgres_example.py
+```
+
+### With pip
+
+```bash
+# 1. Install the package with the postgres extra, and odctl for the containers
+pip install "dynamic-des[postgres]" "odctl>=0.5.1"
+
+# 2. Spin up the Postgres database
+odctl up postgres
+
+# 3. Run the imperative simulation
+python postgres_example.py
 ```
 
 **In a second terminal, execute the dynamic parameter update:**
@@ -83,7 +89,7 @@ docker exec -it postgres psql -U user -d odctl -c "INSERT INTO simulation_params
 *You will immediately see the simulation terminal log that the update was ingested and start generating orders much faster!*
 
 ```bash
-# 3. Clean up the infrastructure when finished
+# Clean up the infrastructure when finished
 odctl down postgres --volumes
 ```
 
@@ -92,6 +98,8 @@ odctl down postgres --volumes
 ## Full Source Code
 
 This script connects the simulation to PostgreSQL, automatically initializes the database schema, and generates continuous streams of interrelated commerce data.
+
+Scripts live in the [`examples/` folder](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) of the repository, and the label on the block below is this one's path there.
 
 ```python title="examples/imperative/postgres_example.py"
 """Relational output with table multiplexing, imperative API.

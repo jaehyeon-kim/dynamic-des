@@ -8,49 +8,52 @@ This example demonstrates how to run a simulation in **fast-forward mode** using
 
 ## Quick Start
 
-The examples are in the repository, not in the installed package, so clone it first.
+Download the script, then run it. The run writes Parquet chunks to a local `data/` folder by default, so no infrastructure is needed.
 
 ```bash
-git clone https://github.com/jaehyeon-kim/dynamic-des.git
-cd dynamic-des
-uv sync --extra parquet
-uv tool install "odctl>=0.5.1"   # containers for the examples
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/history_example.py
 ```
 
-Or with pip:
+### With uv
 
 ```bash
+# 1. Run the simulation
+uv run --no-project --with "dynamic-des[parquet]" history_example.py
+```
+
+### With pip
+
+```bash
+# 1. Install the package with the parquet extra
 pip install "dynamic-des[parquet]"
-pip install "odctl>=0.5.1"
+
+# 2. Run the simulation
+python history_example.py
 ```
 
-The run writes Parquet chunks to a local `data/` folder by default, so no
-infrastructure is needed:
-
-```bash
-uv run examples/declarative/history_example.py
-```
-
-To write to S3 instead, start the object store and set `USE_S3`. The chunks land
-under the `odctl-dev/history/` prefix, browsable at <http://localhost:8889>:
+To write to S3 instead, start the object store and set `USE_S3`. The chunks land under the `odctl-dev/history/` prefix, browsable at <http://localhost:8889>. `odctl` comes from `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
 
 ```bash
 # 1. Spin up SeaweedFS with odctl
 odctl up storage
 
-# 2. Run the simulation against S3
-USE_S3=true uv run examples/declarative/history_example.py
+# 2. Run the simulation against S3, with uv
+USE_S3=true uv run --no-project --with "dynamic-des[parquet]" history_example.py
+
+#    ...or with pip
+USE_S3=true python history_example.py
 
 # 3. Clean up the infrastructure when finished
 odctl down storage --volumes
 ```
 
-`DEST_PATH`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY` override the
-destination and credentials.
+`DEST_PATH`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY` override the destination and credentials.
 
 ## Full Source Code
 
 This script simulates a manufacturing line over a 7-day period. It demonstrates how to route lifecycle events to one Parquet dataset, drop real-time metrics, and write them out instantly.
+
+Scripts live in the [`examples/` folder](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) of the repository, and the label on the block below is this one's path there.
 
 ```python title="examples/declarative/history_example.py"
 """

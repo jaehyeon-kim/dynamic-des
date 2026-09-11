@@ -8,33 +8,49 @@ By replacing the local connectors with `KafkaIngress` and `KafkaEgress`, the sim
 
 ## Quick Start
 
-The examples are in the repository, not in the installed package, so clone it first.
+Download the script, then run it.
 
 ```bash
-git clone https://github.com/jaehyeon-kim/dynamic-des.git
-cd dynamic-des
-uv sync --extra kafka
-uv tool install "odctl>=0.5.1"   # containers for the examples
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/kafka_example.py
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/kafka_dashboard.py
 ```
 
-Or with pip:
+### With uv
 
 ```bash
-pip install "dynamic-des[kafka]"
-pip install "odctl>=0.5.1"
-```
+# 1. Install odctl, which runs the containers
+uv tool install "odctl>=0.5.1"
 
-```bash
-# 2. Start the Kafka broker and schema registry with odctl
+# 2. Start the Kafka broker and schema registry
 odctl up kafka-lite
 
 # 3. Run the declarative simulation (Ctrl + C to stop)
-uv run examples/declarative/kafka_example.py
+uv run --no-project --with "dynamic-des[kafka]" kafka_example.py
 
 # 4. In a second terminal, watch and steer the run from the dashboard. It serves
-#    http://localhost:8080 rather than opening a browser, and needs nicegui,
-#    which --with supplies for this run only. Ctrl + C to stop.
-uv run --with nicegui examples/kafka_dashboard.py
+#    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
+uv run --no-project --with "dynamic-des[kafka]" --with nicegui kafka_dashboard.py
+
+# 5. Clean up the infrastructure when finished
+odctl down kafka-lite --volumes
+```
+
+### With pip
+
+```bash
+# 1. Install the package with the kafka extra, odctl for the containers and
+#    nicegui for the dashboard
+pip install "dynamic-des[kafka]" "odctl>=0.5.1" nicegui
+
+# 2. Start the Kafka broker and schema registry
+odctl up kafka-lite
+
+# 3. Run the declarative simulation (Ctrl + C to stop)
+python kafka_example.py
+
+# 4. In a second terminal, watch and steer the run from the dashboard. It serves
+#    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
+python kafka_dashboard.py
 
 # 5. Clean up the infrastructure when finished
 odctl down kafka-lite --volumes
@@ -45,6 +61,8 @@ The run keeps going until you stop it. It logs one line per task as the task cla
 ## Full Source Code
 
 This script connects the simulation to Kafka topics and utilizes Pydantic models for structured event logging.
+
+Scripts live in the [`examples/` folder](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) of the repository, and the label on the block below is this one's path there.
 
 ```python title="examples/declarative/kafka_example.py"
 """Kafka Digital Twin, declarative API.

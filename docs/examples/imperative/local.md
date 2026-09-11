@@ -8,30 +8,34 @@ Local connectors do not require Docker, Kafka, or any external data stores. They
 
 ## Quick Start
 
-The examples are in the repository, not in the installed package, so clone it first.
+Download the script, then run it. This example needs no container.
 
 ```bash
-git clone https://github.com/jaehyeon-kim/dynamic-des.git
-cd dynamic-des
-uv sync
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/imperative/local_example.py
 ```
 
-Or with pip:
+### With uv
 
 ```bash
+# 1. Run the imperative simulation
+uv run --no-project --with dynamic-des local_example.py
+```
+
+### With pip
+
+```bash
+# 1. Install the package
 pip install dynamic-des
-```
 
-This example needs no container.
-
-```bash
-# Run the imperative simulation (no infrastructure required)
-uv run examples/imperative/local_example.py
+# 2. Run the imperative simulation
+python local_example.py
 ```
 
 ## Full Source Code
 
 This script initializes a production line and runs it for 30 simulation seconds. `LocalIngress` schedules two capacity changes: the lathe goes from 1 to 3 at t=10s, then down to 2 at t=20s. Events and telemetry stream directly to your terminal, driven by raw SimPy generators.
+
+Scripts live in the [`examples/` folder](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) of the repository, and the label on the block below is this one's path there.
 
 ```python title="examples/imperative/local_example.py"
 """Local simulation with scheduled parameter changes, imperative API.

@@ -10,17 +10,22 @@ uv run examples/declarative/local_example.py
 
 ## What to install
 
-The library plus the extra each example needs:
+From a clone, with uv, `--extra` installs what a script needs for that run:
 
 ```bash
-# From a clone of this repository
-uv sync --all-extras
-
-# Or against the published package
-pip install "dynamic-des[all]"
+uv run --extra kafka examples/declarative/kafka_example.py
 ```
 
-`kafka_dashboard.py` additionally needs `nicegui`, which is not a dependency of the library because nothing in it imports the package. Run it as `uv run --with nicegui examples/kafka_dashboard.py`, which installs nothing permanently, or `pip install nicegui` first.
+With pip, install first and run with `python`:
+
+```bash
+pip install "dynamic-des[kafka]"
+python examples/declarative/kafka_example.py
+```
+
+Extras by example: `kafka` for `*/kafka_example.py` and `kafka_dashboard.py`, `postgres` for `*/postgres_example.py`, `redis` for `*/redis_example.py`, `parquet` for `*/history_example.py`, both `kafka` and `parquet` for `declarative/backfill_live_example.py`, and none for `*/local_example.py`.
+
+`kafka_dashboard.py` additionally needs `nicegui`, which is not a dependency of the library because nothing in it imports the package. Run it as `uv run --extra kafka --with nicegui examples/kafka_dashboard.py`, which installs nothing permanently, or `pip install nicegui` first.
 
 ## What to start
 

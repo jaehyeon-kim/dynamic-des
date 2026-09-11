@@ -8,30 +8,41 @@ By replacing the Local connectors with `KafkaIngress` and `KafkaEgress`, the sim
 
 ## Quick Start
 
-The examples are in the repository, not in the installed package, so clone it first.
+Download the script, then run it.
 
 ```bash
-git clone https://github.com/jaehyeon-kim/dynamic-des.git
-cd dynamic-des
-uv sync --extra kafka
-uv tool install "odctl>=0.5.1"   # containers for the examples
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/imperative/kafka_example.py
 ```
 
-Or with pip:
+### With uv
 
 ```bash
-pip install "dynamic-des[kafka]"
-pip install "odctl>=0.5.1"
-```
+# 1. Install odctl, which runs the containers
+uv tool install "odctl>=0.5.1"
 
-```bash
-# 1. Start the Kafka broker and schema registry with odctl
+# 2. Start the Kafka broker and schema registry
 odctl up kafka-lite
 
-# 2. Run the imperative simulation (Ctrl + C to stop)
-uv run examples/imperative/kafka_example.py
+# 3. Run the imperative simulation (Ctrl + C to stop)
+uv run --no-project --with "dynamic-des[kafka]" kafka_example.py
 
-# 3. Clean up the infrastructure when finished
+# 4. Clean up the infrastructure when finished
+odctl down kafka-lite --volumes
+```
+
+### With pip
+
+```bash
+# 1. Install the package with the kafka extra, and odctl for the containers
+pip install "dynamic-des[kafka]" "odctl>=0.5.1"
+
+# 2. Start the Kafka broker and schema registry
+odctl up kafka-lite
+
+# 3. Run the imperative simulation (Ctrl + C to stop)
+python kafka_example.py
+
+# 4. Clean up the infrastructure when finished
 odctl down kafka-lite --volumes
 ```
 
@@ -40,6 +51,8 @@ The run keeps going until you stop it. It logs one line per task as the task cla
 ## Full Source Code
 
 This script connects the simulation to Kafka topics and utilizes Pydantic models for structured event logging.
+
+Scripts live in the [`examples/` folder](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) of the repository, and the label on the block below is this one's path there.
 
 ```python title="examples/imperative/kafka_example.py"
 """Kafka Digital Twin, imperative API.

@@ -31,15 +31,15 @@ Three separate settings make up the feature, and each answers a different questi
 They are independent. `go_live_at` changes pacing only; it never routes a record. `when` routes records only; it never changes pacing. Using them together is what produces a tiered dataset, and the two instants have to agree: pass the same instant to `go_live_at` and to the predicates, or the seam in the data will not match the seam in the pacing.
 
 ```text
-  logical_start_time                 go_live_at                      end of run
-        │                                 │                               │
-        │   factor=0.0, no real time      │   1 sim second = 1 real second│
-        ├─────────────────────────────────┼───────────────────────────────┤
-        │        when=is_history          │          when=is_live         │
-        v                                 v                               v
-   ┌──────────────────────────────────────┐  ┌────────────────────────────┐
-   │        Parquet (cold history)        │  │       Kafka (hot tail)     │
-   └──────────────────────────────────────┘  └────────────────────────────┘
+  logical_start_time                 go_live_at                         end of run
+        │                                 │                                  │
+        │   factor=0.0, no real time      │   1 sim second = 1 real second.  │
+        ├─────────────────────────────────┼──────────────────────────────────┤
+        │        when=is_history          │           when=is_live           │
+        v                                 v                                  v
+   ┌──────────────────────────────────────┐  ┌────────────────────────────-──┐
+   │        Parquet (cold history)        │  │       Kafka (hot tail)        │
+   └──────────────────────────────────────┘  └───────────────────────────────┘
 ```
 
 ---
@@ -47,6 +47,8 @@ They are independent. `go_live_at` changes pacing only; it never routes a record
 ## Worked example
 
 This run backdates the clock by ten minutes, writes those ten minutes to Parquet in well under a second, then publishes to Kafka in real time for sixty seconds. So the whole run takes about a minute, and nearly all of that is the live half. Set `HISTORY_MINUTES` and `LIVE_SECONDS` to change the two halves, for example `HISTORY_MINUTES=1440` for a day of history, which still generates in seconds: a day of it was measured at nine seconds end to end.
+
+Scripts live in the [`examples/` folder](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) of the repository, and the label on the block below is this one's path there.
 
 ```python title="examples/declarative/backfill_live_example.py"
 """
@@ -231,30 +233,41 @@ Two details in that script are easy to get wrong.
 
 ## Running it
 
-The examples are in the repository, not in the installed package, so clone it first.
+Download the script, then run it.
 
 ```bash
-git clone https://github.com/jaehyeon-kim/dynamic-des.git
-cd dynamic-des
-uv sync --extra kafka --extra parquet
-uv tool install "odctl>=0.5.1"   # containers for the examples
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/backfill_live_example.py
 ```
 
-Or with pip:
+### With uv
 
 ```bash
-pip install "dynamic-des[kafka,parquet]"
-pip install "odctl>=0.5.1"
-```
+# 1. Install odctl, which runs the containers
+uv tool install "odctl>=0.5.1"
 
-```bash
-# 1. Start Kafka
+# 2. Start Kafka
 odctl up kafka-lite
 
-# 2. Ten minutes of history to Parquet, then sixty seconds of live tail to Kafka
-uv run examples/declarative/backfill_live_example.py
+# 3. Ten minutes of history to Parquet, then sixty seconds of live tail to Kafka
+uv run --no-project --with "dynamic-des[kafka,parquet]" backfill_live_example.py
 
-# 3. Clean up
+# 4. Clean up
+odctl down kafka-lite --volumes
+```
+
+### With pip
+
+```bash
+# 1. Install the package with both extras, and odctl for the containers
+pip install "dynamic-des[kafka,parquet]" "odctl>=0.5.1"
+
+# 2. Start Kafka
+odctl up kafka-lite
+
+# 3. Ten minutes of history to Parquet, then sixty seconds of live tail to Kafka
+python backfill_live_example.py
+
+# 4. Clean up
 odctl down kafka-lite --volumes
 ```
 
