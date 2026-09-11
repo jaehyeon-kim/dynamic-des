@@ -19,3 +19,6 @@ site/
 # Output written by the examples: the history scripts write Parquet here when USE_S3
 # is not set, and backfill_live_example.py writes to data/backfill.
 data/
+
+# Worktrees created by Claude Code agents
+.claude/worktrees/

@@ -2,6 +2,7 @@ import asyncio
 import shutil
 import subprocess
 import time
+import urllib.request
 
 import pytest
 
@@ -91,6 +92,33 @@ def kafka_container(odctl_profile):
     # odctl waits for the broker health check before returning, so the listener
     # is already accepting connections here.
     yield bootstrap_servers
+
+
+@pytest.fixture(scope="session")
+def schema_registry(kafka_container):
+    """Yields the Karapace URL from the odctl `kafka-lite` profile.
+
+    `kafka-lite` carries Karapace on 8081 next to the broker, so no second profile
+    is needed. odctl returns once the broker health check passes, which says nothing
+    about Karapace, so poll the registry itself before handing the URL over.
+
+    Address it as 127.0.0.1 rather than localhost. Karapace binds IPv4 only, while
+    localhost resolves to ::1 first on macOS, so every request is reset before it
+    reaches the container.
+    """
+    url = "http://127.0.0.1:8081"
+
+    for _ in range(60):
+        try:
+            with urllib.request.urlopen(f"{url}/subjects", timeout=2) as response:
+                if response.status == 200:
+                    break
+        except Exception:
+            time.sleep(1)
+    else:
+        pytest.fail("Karapace did not start in time.")
+
+    yield url
 
 
 @pytest.fixture(scope="session")
