@@ -490,7 +490,9 @@ def cmd_profile(top: int = 25) -> None:
     )
     profiler = cProfile.Profile()
     profiler.enable()
-    elapsed, backlog, records, _batches = run_config("profile", **PROFILE_CONFIG)
+    # PROFILE_CONFIG is a heterogeneous mapping, so mypy cannot match it against
+    # run_config's typed keyword parameters. The call is correct at runtime.
+    elapsed, backlog, records, _batches = run_config("profile", **PROFILE_CONFIG)  # type: ignore[arg-type]
     profiler.disable()
 
     print(
@@ -508,7 +510,8 @@ def cmd_profile(top: int = 25) -> None:
     print("===== core against egress, from cumulative time =====")
     stats = pstats.Stats(profiler, stream=io.StringIO())
     by_name: Dict[str, Tuple[int, float, float]] = {}
-    for (filename, _lineno, func), (_cc, nc, tt, ct, _cal) in stats.stats.items():
+    # pstats.Stats exposes `stats` at runtime but does not declare it.
+    for (filename, _lineno, func), (_cc, nc, tt, ct, _cal) in stats.stats.items():  # type: ignore[attr-defined]
         by_name[f"{filename.rsplit('/', 1)[-1]}:{func}"] = (nc, tt, ct)
 
     total = by_name.get("core.py:run", (0, 0.0, 0.0))[2]
