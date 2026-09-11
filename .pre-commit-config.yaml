@@ -8,14 +8,17 @@ repos:
       - id: check-added-large-files
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4 # Or whichever ruff version you prefer
+    # Must match the ruff floor in pyproject.toml dev dependencies. When the two
+    # disagree, whichever formatter ran last wins and the diff flaps.
+    rev: v0.15.5
     hooks:
       - id: ruff
         args: [--fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    # Must match the mypy floor in pyproject.toml dev dependencies, for the same reason.
+    rev: v1.19.1
     hooks:
       - id: mypy
         additional_dependencies: [types-orjson, types-redis]
