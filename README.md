@@ -71,7 +71,7 @@ Start the profile an example needs before you run it:
 
 | Profile | Start | Needed by |
 |---|---|---|
-| kafka-lite | `odctl up kafka-lite` | `uv run examples/declarative/kafka_example.py`, `uv run examples/declarative/backfill_live_example.py`, `uv run examples/kafka_dashboard.py` |
+| kafka-lite | `odctl up kafka-lite` | `uv run examples/declarative/kafka_example.py`, `uv run examples/declarative/backfill_live_example.py`, `uv run --with nicegui examples/kafka_dashboard.py` |
 | postgres | `odctl up postgres` | `uv run examples/declarative/postgres_example.py`, `uv run examples/imperative/postgres_example.py` |
 | valkey | `odctl up valkey` | `uv run examples/declarative/redis_example.py`, `uv run examples/imperative/redis_example.py` |
 | storage | `odctl up storage` | `uv run examples/declarative/history_example.py` with `USE_S3=true` |
@@ -95,9 +95,9 @@ odctl up kafka-lite
 uv run examples/declarative/kafka_example.py
 
 # Open a new terminal and start the control dashboard. It needs nicegui, which is
-# not a dependency of the library, so install it with `uv pip install nicegui`.
+# not a dependency of the library, so --with supplies it for this run only.
 # It serves http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
-uv run examples/kafka_dashboard.py
+uv run --with nicegui examples/kafka_dashboard.py
 
 # Clean up the infrastructure when finished
 odctl down kafka-lite --volumes

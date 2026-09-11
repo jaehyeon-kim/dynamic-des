@@ -33,8 +33,8 @@ uv run examples/declarative/kafka_example.py
 
 # 4. In a second terminal, watch and steer the run from the dashboard. It serves
 #    http://localhost:8080 rather than opening a browser, and needs nicegui,
-#    which is installed separately with `uv pip install nicegui`. Ctrl + C to stop.
-uv run examples/kafka_dashboard.py
+#    which --with supplies for this run only. Ctrl + C to stop.
+uv run --with nicegui examples/kafka_dashboard.py
 
 # 5. Clean up the infrastructure when finished
 odctl down kafka-lite --volumes

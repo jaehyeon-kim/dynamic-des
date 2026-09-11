@@ -5,7 +5,8 @@ parameter updates to `sim-config`, so a simulation can be watched and steered wi
 restarting it. Run it beside either kafka example.
 
 Needs a broker (`odctl up kafka-lite`) and nicegui, which is not a dependency of the
-library because nothing in the package imports it: `uv pip install nicegui`.
+library because nothing in the package imports it. Run it as
+`uv run --with nicegui examples/kafka_dashboard.py`, which needs no install.
 """
 
 import asyncio
@@ -19,7 +20,8 @@ except ModuleNotFoundError as exc:
     raise SystemExit(
         "This dashboard needs nicegui, which is not a dependency of dynamic-des "
         "because the library itself never imports it. Install it with "
-        "'uv pip install nicegui' or 'pip install nicegui', then run this script again."
+        "Either rerun as 'uv run --with nicegui examples/kafka_dashboard.py', which "
+        "needs no install, or install it with 'pip install nicegui' first."
     ) from exc
 
 from dynamic_des import KafkaAdminConnector

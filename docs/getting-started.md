@@ -96,9 +96,9 @@ odctl up kafka-lite
 uv run examples/declarative/kafka_example.py
 
 # Open a new terminal and start the monitoring dashboard. It needs nicegui, which
-# is not a dependency of the library, so install it with `uv pip install nicegui`.
+# is not a dependency of the library, so --with supplies it for this run only.
 # It serves http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
-uv run examples/kafka_dashboard.py
+uv run --with nicegui examples/kafka_dashboard.py
 
 # Clean up the infrastructure when finished
 odctl down kafka-lite --volumes

@@ -25,7 +25,7 @@ part_event = {
 context.publish("factory_event", part_event)
 ```
 
-Each entry holds one field, `payload`, containing the JSON of the published telemetry record. The part dictionary sits inside that record under `value`, so the `__stream__` key is stored as ordinary data. `RedisEgress` reads `__stream__` from the top level of the record it receives, not from `value`, so it does not redirect this example: every entry lands in `events` and no `part_events` stream is created.
+Each entry holds one field, `payload`, containing the JSON of the published record. `RedisEgress` reads `__stream__` from inside `value`, which is where `publish_event` puts the dictionary you pass it, so part records go to `part_events` and everything else to the `events` stream named in the constructor. The key itself is removed before writing, so it does not appear in the stored payload.
 
 ## 2. Dynamic Parameter Updates (Ingress)
 
