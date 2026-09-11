@@ -4,7 +4,7 @@ import queue
 import threading
 import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from simpy import RealtimeEnvironment
 
@@ -112,6 +112,7 @@ class EgressMixIn:
         lag_monitor_interval: Optional[float] = 1.0,
         max_queued_batches: int = 2000,
         drain_stall_seconds: float = 30.0,
+        predicates: Optional[List[Optional[Callable[[Dict[str, Any]], bool]]]] = None,
     ):
         """
         Initializes the egress buffers and starts the background publisher threads.
@@ -124,14 +125,32 @@ class EgressMixIn:
                 egress threads. A full queue blocks the producer, so a sink that cannot
                 keep up slows the simulation rather than accumulating a backlog that
                 teardown would have to discard. Defaults to 2000.
-            drain_stall_seconds (float, optional): At teardown the queue is drained
-                until it is empty. The wait is abandoned only if the queue stops
-                shrinking for this long, so a slow sink finishes rather than losing its
-                tail. Defaults to 30.0.
+            drain_stall_seconds (float, optional): At teardown every queue is drained
+                until empty. The wait is abandoned only if a queue stops shrinking for
+                this long, so a slow sink finishes rather than losing its tail.
+                Defaults to 30.0.
+            predicates (List, optional): One entry per provider, aligned by position.
+                A callable takes a record and returns True to send it to that provider.
+                None means that provider receives every record. Defaults to None, which
+                is every provider receiving everything.
+
+        Each provider gets its own queue. They previously shared one, so several
+        providers competed for batches instead of each receiving them, and a run with
+        two sinks wrote part of the data to each with no error and exit code 0.
         """
-        self.egress_queue: queue.Queue[Any] = queue.Queue(maxsize=max_queued_batches)
         self.egress_drain_stall_seconds = drain_stall_seconds
         self.egress_providers = providers
+        self.egress_queues: List[queue.Queue[Any]] = [
+            queue.Queue(maxsize=max_queued_batches) for _ in providers
+        ]
+        self.egress_predicates: List[Optional[Callable[[Dict[str, Any]], bool]]] = (
+            list(predicates) if predicates else [None] * len(providers)
+        )
+        if len(self.egress_predicates) != len(providers):
+            raise ValueError(
+                f"predicates has {len(self.egress_predicates)} entries for "
+                f"{len(providers)} providers; they are matched by position"
+            )
         self.egress_batch_size = batch_size
         self.egress_flush_interval = flush_interval
         self.egress_lag_monitor_interval = lag_monitor_interval
@@ -151,6 +170,16 @@ class EgressMixIn:
         # Only start the lag monitor if an interval > 0 is provided
         if self.egress_lag_monitor_interval and self.egress_lag_monitor_interval > 0:
             self.process(self._lag_monitor())  # type: ignore[attr-defined]
+
+    @property
+    def egress_queue(self) -> "queue.Queue[Any]":
+        """The first provider's queue, kept so single-sink callers and tests still read.
+
+        Each provider now has its own queue in `egress_queues`. With one provider the
+        two are the same thing. With several, this returns only the first, so use
+        `egress_queues` when the number of providers matters.
+        """
+        return self.egress_queues[0]
 
     def _lag_monitor(self):
         """Internal: Monitors how far the simulation time has drifted from the real-world clock."""
@@ -172,9 +201,13 @@ class EgressMixIn:
         self._egress_loop = loop
 
         # Keep a list of the running tasks
+        # One queue per provider, so every provider sees every batch routed to it.
+        # Sharing one queue made them competing consumers of the same batches.
         tasks = [
-            loop.create_task(provider.run(self.egress_queue))
-            for provider in self.egress_providers
+            loop.create_task(provider.run(provider_queue))
+            for provider, provider_queue in zip(
+                self.egress_providers, self.egress_queues
+            )
         ]
 
         try:
@@ -203,21 +236,38 @@ class EgressMixIn:
         altogether would otherwise block here forever, so the wait is capped and
         the failure is raised instead of hidden.
         """
-        if self._event_buffer:
-            logger.debug(f"Flushing {len(self._event_buffer)} events to egress.")
-            stall_limit = getattr(self, "egress_drain_stall_seconds", 30.0)
+        if not self._event_buffer:
+            return
+
+        logger.debug(f"Flushing {len(self._event_buffer)} events to egress.")
+        stall_limit = getattr(self, "egress_drain_stall_seconds", 30.0)
+        batch = self._event_buffer
+
+        for provider_queue, predicate in zip(
+            self.egress_queues, self.egress_predicates
+        ):
+            # Each provider gets its own copy of the batch, filtered by its predicate.
+            # No predicate means everything, which is the fan-out case.
+            if predicate is None:
+                routed = batch
+            else:
+                routed = [record for record in batch if predicate(record)]
+                if not routed:
+                    continue  # nothing for this sink in this batch
+
             try:
-                self.egress_queue.put(self._event_buffer, timeout=stall_limit)
+                provider_queue.put(routed, timeout=stall_limit)
             except queue.Full:
                 logger.error(
-                    "Egress queue has been full for %.0fs, so the sink has stopped "
+                    "An egress queue has been full for %.0fs, so that sink has stopped "
                     "consuming. Stopping rather than discarding events.",
                     stall_limit,
                 )
                 raise RuntimeError(
                     "Egress queue full: the sink stopped consuming events"
                 ) from None
-            self._event_buffer = []
+
+        self._event_buffer = []
 
     def publish_telemetry(self, path_id: str, value: Any):
         """
@@ -226,7 +276,7 @@ class EgressMixIn:
         Telemetry shares the main event buffer to ensure efficient batching for
         high-throughput file storage (like Parquet or S3).
         """
-        if not hasattr(self, "egress_queue"):
+        if not hasattr(self, "egress_queues"):
             return  # Fail silently if no egress is configured
 
         payload = TelemetryPayload(
@@ -290,15 +340,21 @@ class EgressMixIn:
         # Drain the queue to empty. A fixed deadline here silently discarded the
         # backlog of any sink slower than the simulation, so the wait ends only when
         # the queue stops shrinking.
-        if hasattr(self, "egress_queue"):
+        if hasattr(self, "egress_queues"):
             stall_limit = getattr(self, "egress_drain_stall_seconds", 30.0)
-            remaining = self.egress_queue.qsize()
+
+            def total_queued() -> int:
+                return sum(q.qsize() for q in self.egress_queues)
+
+            remaining = total_queued()
             last_progress = time.time()
             last_report = time.time()
 
-            while not self.egress_queue.empty():
+            # Every queue has to drain, so progress is measured on the total. One slow
+            # sink no longer ends the wait for the others.
+            while total_queued() > 0:
                 time.sleep(0.1)
-                current = self.egress_queue.qsize()
+                current = total_queued()
                 if current < remaining:
                     remaining = current
                     last_progress = time.time()
@@ -306,13 +362,18 @@ class EgressMixIn:
                     break
                 if time.time() - last_report > 5.0:
                     last_report = time.time()
-                    logger.info("Draining egress queue, %d batches left.", current)
+                    logger.info("Draining egress queues, %d batches left.", current)
 
-            if not self.egress_queue.empty():
+            if total_queued() > 0:
                 logger.warning(
-                    "Egress queue stopped draining with %d batches left, so some final "
-                    "records are lost. The sink is not keeping up.",
-                    self.egress_queue.qsize(),
+                    "Egress queues stopped draining with %d batches left, so some final "
+                    "records are lost. A sink is not keeping up: %s",
+                    total_queued(),
+                    ", ".join(
+                        f"{type(p).__name__}={q.qsize()}"
+                        for p, q in zip(self.egress_providers, self.egress_queues)
+                        if q.qsize()
+                    ),
                 )
             else:
                 # Give the final pyarrow operation a half-second to safely close the file
