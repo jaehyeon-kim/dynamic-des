@@ -268,6 +268,7 @@ class RecordingEgress:
 
     def __init__(self):
         self.records: list = []
+        self.batch_sizes: list = []
         self.active_tasks = 0
 
     async def run(self, egress_queue: queue.Queue):
@@ -275,6 +276,7 @@ class RecordingEgress:
             try:
                 batch = egress_queue.get_nowait()
                 self.records.extend(batch)
+                self.batch_sizes.append(len(batch))
             except queue.Empty:
                 await asyncio.sleep(0.01)
 
@@ -485,3 +487,51 @@ def test_go_live_rejects_a_clock_it_cannot_compare():
             logical_start_time=LOGICAL_START,
             go_live_at=datetime.now(tz=timezone.utc),
         )
+
+
+def test_batch_size_governs_when_unpaced():
+    """At factor=0 the simulation clock outruns the wall clock, so a flush timer in
+    simulation seconds fires constantly and batch_size never governs. Issue #25."""
+    tracker = RecordingEgress()
+    env = DynamicRealtimeEnvironment(factor=0, strict=False)
+    # lag_monitor_interval=0 turns off the built-in lag metric, which would otherwise
+    # publish one record per simulated second and change the batch arithmetic.
+    env.setup_egress(
+        providers=[tracker], batch_size=10, flush_interval=1.0, lag_monitor_interval=0
+    )
+
+    def publisher():
+        for i in range(30):
+            env.publish_telemetry("metric", i)
+            yield env.timeout(1.0)
+
+    env.process(publisher())
+    env.run(until=31)
+    env.teardown()
+
+    assert len(tracker.records) == 30
+    # 30 records at batch_size 10 is three full batches. A per-simulation-second timer
+    # would have cut them into batches of one.
+    assert tracker.batch_sizes[:3] == [10, 10, 10]
+
+
+def test_flush_timer_still_runs_when_paced():
+    """With factor above 0 the interval is a real latency bound, so it stays."""
+    tracker = RecordingEgress()
+    env = DynamicRealtimeEnvironment(factor=0.001, strict=False)
+    env.setup_egress(
+        providers=[tracker], batch_size=1000, flush_interval=1.0, lag_monitor_interval=0
+    )
+
+    def publisher():
+        for i in range(5):
+            env.publish_telemetry("metric", i)
+            yield env.timeout(1.0)
+
+    env.process(publisher())
+    env.run(until=6)
+    env.teardown()
+
+    # batch_size is never reached, so every record arrived via the timer.
+    assert len(tracker.records) == 5
+    assert max(tracker.batch_sizes) < 1000

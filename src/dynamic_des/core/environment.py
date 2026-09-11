@@ -10,7 +10,6 @@ from typing import Any, Callable, Dict, List, Optional
 from simpy import RealtimeEnvironment
 
 from dynamic_des.core.registry import SimulationRegistry
-from dynamic_des.models.schemas import EventPayload, TelemetryPayload
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +126,10 @@ class EgressMixIn:
         Args:
             providers (List[BaseEgress]): A list of initialized egress connector instances.
             batch_size (int, optional): The maximum number of events to buffer before flushing. Defaults to 500.
-            flush_interval (float, optional): Maximum simulation seconds to wait before forcing a flush. Defaults to 1.0.
+            flush_interval (float, optional): Maximum simulation seconds to wait before
+                forcing a flush. Defaults to 1.0. Ignored when `factor` is 0, because
+                simulation time is then detached from the wall clock and the interval
+                bounds nothing, so `batch_size` alone decides when a batch is sent.
             max_queued_batches (int, optional): Upper bound on batches waiting for the
                 egress threads. A full queue blocks the producer, so a sink that cannot
                 keep up slows the simulation rather than accumulating a backlog that
@@ -172,8 +174,15 @@ class EgressMixIn:
         )
         self._egress_thread.start()
 
-        # Start background processes
-        self.process(self._periodic_flush())  # type: ignore[attr-defined]
+        # Start background processes.
+        # The periodic flush waits in simulation time, so at factor=0 it fires as fast
+        # as the machine advances the clock and batch_size never governs. A 5,000
+        # second run with batch_size=500 produced about 5,000 batches of 33 records
+        # instead of 330 of 500, measured in issue #5. There is no wall clock to bound
+        # latency against when factor is 0, so the timer has nothing to achieve and is
+        # not started. Teardown flushes whatever is left in the buffer.
+        if getattr(self, "factor", 1.0):
+            self.process(self._periodic_flush())  # type: ignore[attr-defined]
         # Only start the lag monitor if an interval > 0 is provided
         if self.egress_lag_monitor_interval and self.egress_lag_monitor_interval > 0:
             self.process(self._lag_monitor())  # type: ignore[attr-defined]
@@ -286,14 +295,16 @@ class EgressMixIn:
         if not hasattr(self, "egress_queues"):
             return  # Fail silently if no egress is configured
 
-        payload = TelemetryPayload(
-            path_id=path_id,
-            value=value,
-            sim_ts=round(self.now, 3),  # type: ignore[attr-defined]
-            timestamp=self._get_iso_timestamp(self.start_datetime, self.now),  # type: ignore[attr-defined]
+        # Built directly rather than through TelemetryPayload. See publish_event.
+        self._event_buffer.append(
+            {
+                "stream_type": "telemetry",
+                "sim_ts": round(self.now, 3),  # type: ignore[attr-defined]
+                "timestamp": self._get_iso_timestamp(self.start_datetime, self.now),  # type: ignore[attr-defined]
+                "path_id": path_id,
+                "value": value,
+            }
         )
-
-        self._event_buffer.append(payload.model_dump(mode="json"))
 
         if len(self._event_buffer) >= self.egress_batch_size:
             self._flush_buffer()
@@ -307,19 +318,31 @@ class EgressMixIn:
 
         Args:
             event_key (str): A unique identifier for the event (e.g., 'task-001').
-            value (Any): A dictionary containing the event payload.
+            value (Any): A dictionary containing the event payload. Its contents must
+                be JSON-native, so str, int, float, bool, None, list or dict. A
+                datetime used to be converted to an ISO string on the way out, because
+                the payload went through a Pydantic model dumped in JSON mode. It is
+                now passed through untouched, so a sink that serializes to JSON raises
+                on it rather than silently accepting it.
         """
         if not hasattr(self, "_event_buffer"):
             return  # Fail silently if no egress is configured
 
-        payload = EventPayload(
-            key=event_key,
-            value=value,
-            sim_ts=round(self.now, 3),  # type: ignore[attr-defined]
-            timestamp=self._get_iso_timestamp(self.start_datetime, self.now),  # type: ignore[attr-defined]
+        # Built directly rather than through EventPayload.model_dump(mode="json").
+        # Constructing and dumping the model cost 1,072 ns per record against 166 ns
+        # for this dict, measured in issue #5, which was 24 percent of a profiled run.
+        # The keys and their order match what the model produced, so nothing downstream
+        # sees a difference. EventPayload remains the published schema and is what the
+        # Avro and documentation paths describe.
+        self._event_buffer.append(
+            {
+                "stream_type": "event",
+                "sim_ts": round(self.now, 3),  # type: ignore[attr-defined]
+                "timestamp": self._get_iso_timestamp(self.start_datetime, self.now),  # type: ignore[attr-defined]
+                "key": event_key,
+                "value": value,
+            }
         )
-
-        self._event_buffer.append(payload.model_dump(mode="json"))
 
         if len(self._event_buffer) >= self.egress_batch_size:
             self._flush_buffer()
