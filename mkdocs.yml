@@ -65,6 +65,7 @@ nav:
           - Relational DB (Postgres): examples/imperative/postgres.md
           - In-Memory Store (Redis): examples/imperative/redis.md
   - Advanced Guides:
+      - Backfill Then Go Live in One Run: guides/backfill-then-live.md
       - Complex Routing (Kafka): guides/complex-routing.md
       - Advanced Serialization (Avro and Pydantic): guides/avro-and-pydantic.md
       - Connecting to Secure Kafka: guides/kafka-security.md

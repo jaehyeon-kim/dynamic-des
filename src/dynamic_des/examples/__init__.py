@@ -121,6 +121,19 @@ def declarative_kafka_demo(auto_down: bool = False):
             manage_infrastructure("kafka", down=True)
 
 
+def declarative_backfill_live_demo(auto_down: bool = False):
+    setup_example_logging()
+    from .declarative.backfill_live_example import run
+
+    try:
+        run()
+    except KeyboardInterrupt:
+        logger.info("User gracefully interrupted the simulation.")
+    finally:
+        if auto_down:
+            manage_infrastructure("kafka", down=True)
+
+
 def declarative_redis_demo(auto_down: bool = False):
     setup_example_logging()
     from .declarative.redis_example import run

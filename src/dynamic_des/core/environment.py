@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import math
 import queue
 import threading
 import time
@@ -12,6 +13,12 @@ from dynamic_des.core.registry import SimulationRegistry
 from dynamic_des.models.schemas import EventPayload, TelemetryPayload
 
 logger = logging.getLogger(__name__)
+
+# Pacing a run takes after `go_live_at`. It is fixed rather than configurable because
+# `go_live_at` names a moment, not a speed: going live means one simulated second per
+# real second. A second speed setting would be a general scheduled change of `factor`,
+# which is a different feature.
+LIVE_FACTOR = 1.0
 
 
 class RegistryMixIn:
@@ -426,6 +433,7 @@ class DynamicRealtimeEnvironment(
         factor=1.0,
         strict=False,
         logical_start_time: Optional[datetime] = None,
+        go_live_at: Optional[datetime] = None,
     ):
         """
         Initializes the real-time simulation environment.
@@ -436,12 +444,86 @@ class DynamicRealtimeEnvironment(
             strict (bool, optional): If True, raises RuntimeError if simulation falls too far behind real time. Defaults to False.
             logical_start_time (datetime, optional): Overrides the environment's base clock.
                 Crucial for historical backfilling (e.g., generating data from last week).
+            go_live_at (datetime, optional): Logical instant at which pacing switches to
+                real time. Until then the run uses `factor`, which is usually 0.0 so a
+                backdated history is produced as fast as the machine allows. From that
+                instant one simulated second takes one real second, so a backfill and a
+                live tail run in one process instead of two.
+
+        `go_live_at` is read against the same clock as `logical_start_time`, so both must
+        be naive or both timezone-aware. An instant at or before the start of the run
+        makes the whole run real time, which is the degenerate case of the same rule.
         """
         # Inject the custom time, or default to the exact moment the script executes
         self.start_datetime = logical_start_time or datetime.now()
 
         super().__init__(initial_time=initial_time, factor=factor, strict=strict)
+
+        self._go_live_sim_time: Optional[float] = None
+        if go_live_at is not None:
+            self._go_live_sim_time = self._resolve_go_live_time(
+                go_live_at, float(initial_time)
+            )
+
         self.setup_registry()
+
+    def _resolve_go_live_time(self, go_live_at: datetime, initial_time: float) -> float:
+        """Converts the go-live instant into a simulation time, on the logical clock.
+
+        Simulation seconds are counted from `start_datetime`, the same mapping that
+        stamps every published record, so the switch lands on the timestamps the sink
+        receives rather than on however long the run has been executing.
+        """
+        if (go_live_at.tzinfo is None) != (self.start_datetime.tzinfo is None):
+            raise ValueError(
+                "go_live_at and the simulation start time must both be naive or both "
+                "be timezone-aware, otherwise the interval between them is undefined."
+            )
+
+        offset = (go_live_at - self.start_datetime).total_seconds()
+        if offset < initial_time:
+            logger.warning(
+                "go_live_at (%s) is before the start of the run (%s), so the whole run "
+                "is paced in real time.",
+                go_live_at,
+                self.start_datetime,
+            )
+            return initial_time
+        return offset
+
+    def _start_live_pacing(self, go_live_sim_time: float) -> None:
+        """Switches pacing to real time, anchored at the go-live instant.
+
+        `env_start` and `real_start` map simulation seconds onto the wall clock, and
+        simpy sets them once when the environment is built. Leaving them there would
+        make the first paced event wait out the whole backfill in real seconds, so the
+        anchor moves to the go-live instant and to now.
+        """
+        self.env_start = go_live_sim_time
+        self.real_start = time.monotonic()
+        # `factor` is a read-only property in simpy, so its backing attribute is the
+        # only way to change pacing during a run. `step` reads it on every call, so the
+        # new value applies from the next event onwards.
+        self._factor = LIVE_FACTOR
+        self._go_live_sim_time = None
+        logger.info(
+            "Logical clock reached go-live at %s; pacing switched to real time.",
+            self._get_iso_timestamp(self.start_datetime, go_live_sim_time),
+        )
+
+    def step(self) -> None:
+        """Applies the pending go-live switch before simpy paces the next event.
+
+        The check sits here rather than in a scheduled process so that `go_live_at`
+        adds no event of its own. A run that empties its schedule before the go-live
+        instant still ends there instead of being held open by the switch.
+        """
+        go_live_sim_time = self._go_live_sim_time
+        if go_live_sim_time is not None:
+            next_event_time = self.peek()
+            if not math.isinf(next_event_time) and next_event_time >= go_live_sim_time:
+                self._start_live_pacing(go_live_sim_time)
+        super().step()
 
     def teardown(self):
         """

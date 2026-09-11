@@ -40,6 +40,8 @@ class SimulationContext:
         factor (float): The real-time synchronization multiplier. A factor of 1.0
             syncs strictly with wall-clock time, while 0.0 executes instantly in a
             fast-forward loop (ideal for historical data processing).
+        go_live_at (Optional[datetime]): Logical instant at which `factor` is replaced
+            by real-time pacing, so one run can backfill history and then tail live.
         random_seed (Optional[int]): The deterministic seed for the NumPy RNG.
         sampler (Optional[Sampler]): The centralized Random Number Generator engine.
             Accessible to user-defined raw generators only after `.run()` is called.
@@ -51,6 +53,7 @@ class SimulationContext:
         factor: float = 1.0,
         random_seed: Optional[int] = None,
         logical_start_time: Optional[datetime] = None,
+        go_live_at: Optional[datetime] = None,
     ):
         """
         Initializes the context builder with a designated namespace and temporal factor.
@@ -63,11 +66,17 @@ class SimulationContext:
             logical_start_time: Optional override for the environment's base clock,
                 forwarded to `DynamicRealtimeEnvironment`. Crucial for historical
                 backfilling (e.g., generating data from last week).
+            go_live_at: Optional logical instant at which the run stops using `factor`
+                and switches to real time, forwarded to `DynamicRealtimeEnvironment`.
+                With `factor=0.0` and a backdated `logical_start_time`, the history up
+                to this instant is generated as fast as the machine allows and the rest
+                arrives in real time, so a backfill and a live tail take one run.
         """
         self.sim_id = sim_id
         self.factor = factor
         self.random_seed = random_seed
         self.logical_start_time = logical_start_time
+        self.go_live_at = go_live_at
 
         # Builder State (Pre-Compilation)
         self._ingress_providers: List[Any] = []
@@ -487,6 +496,8 @@ class SimulationContext:
         env_kwargs: Dict[str, Any] = {"factor": self.factor}
         if self.logical_start_time is not None:
             env_kwargs["logical_start_time"] = self.logical_start_time
+        if self.go_live_at is not None:
+            env_kwargs["go_live_at"] = self.go_live_at
         self._env = DynamicRealtimeEnvironment(**env_kwargs)
 
         # Initializes RNG with the deterministic seed
