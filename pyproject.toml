@@ -114,6 +114,7 @@ dev = [
 ddes-local = "dynamic_des.examples:declarative_local_demo"
 ddes-kafka = "dynamic_des.examples:declarative_kafka_demo"
 ddes-history = "dynamic_des.examples:declarative_history_demo"
+ddes-backfill-live = "dynamic_des.examples:declarative_backfill_live_demo"
 ddes-postgres = "dynamic_des.examples:declarative_postgres_demo"
 ddes-redis = "dynamic_des.examples:declarative_redis_demo"
 

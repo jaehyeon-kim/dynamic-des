@@ -18,6 +18,23 @@ When `factor=1.0` (or another positive float), the environment clock synchronize
 When `factor=0.0` (the default), the environment operates at maximum CPU speed without matching the real-world clock. Simulated timeouts take 0.0 seconds of real-world time to execute.
 * **Use Case**: Fast-forwarding historical backfills, batch forecasting, and executing integration tests instantly.
 
+### 3. Both, in one run (`go_live_at`)
+`factor` applies until the logical clock reaches `go_live_at`, and from that instant the run is paced at one simulated second per real second. With a backdated `logical_start_time` and `factor=0.0`, a single run generates the history as fast as the machine allows and then keeps going in real time.
+
+```python
+go_live_at = datetime.now()
+
+env = DynamicRealtimeEnvironment(
+    factor=0.0,
+    logical_start_time=go_live_at - timedelta(days=7),
+    go_live_at=go_live_at,
+)
+```
+
+* **Use Case**: Seeding a lake with history and then feeding a live stream, without a second process.
+* An instant at or before `logical_start_time` paces the whole run, and a run that ends first is left unpaced. Both datetimes must be naive, or both timezone-aware.
+* See [Backfill Then Go Live in One Run](../guides/backfill-then-live.md) for the full pattern, including how to route the two halves to different sinks.
+
 ---
 
 ## Threading and Asynchronous I/O

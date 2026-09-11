@@ -1,6 +1,8 @@
 import asyncio
+import logging
 import queue
 import time
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -322,4 +324,164 @@ def test_predicate_count_must_match_provider_count():
     with pytest.raises(ValueError, match="matched by position"):
         env.setup_egress(
             providers=[RecordingEgress(), RecordingEgress()], predicates=[None]
+        )
+
+
+LOGICAL_START = datetime(2024, 1, 1, 12, 0, 0)
+
+
+def watch_factor(env, until, interval=0.25):
+    """Runs `env` and returns the pacing factor seen at each simulated instant."""
+    seen: list = []
+
+    def watcher():
+        while True:
+            seen.append((round(env.now, 3), env.factor))
+            yield env.timeout(interval)
+
+    env.process(watcher())
+    env.run(until=until)
+    return seen
+
+
+def test_factor_switches_when_the_logical_clock_reaches_go_live():
+    """One run, two speeds: unpaced history, then real time from the go-live instant."""
+    env = DynamicRealtimeEnvironment(
+        factor=0.0,
+        strict=False,
+        logical_start_time=LOGICAL_START,
+        go_live_at=LOGICAL_START + timedelta(seconds=0.5),
+    )
+
+    started = time.monotonic()
+    seen = watch_factor(env, until=1.0)
+    elapsed = time.monotonic() - started
+
+    before = [factor for sim_time, factor in seen if sim_time < 0.5]
+    after = [factor for sim_time, factor in seen if sim_time >= 0.5]
+
+    assert before and set(before) == {0.0}
+    assert len(after) >= 2 and set(after) == {1.0}
+
+    # The half second after the switch is paced, so it costs half a second of real
+    # time. Without the switch the whole run would finish immediately.
+    assert elapsed >= 0.4
+    assert elapsed < 5.0
+
+
+def test_live_pacing_is_measured_from_the_go_live_instant():
+    """Backfilled simulation time must not become real waiting at the switch.
+
+    simpy maps simulation time onto the wall clock from a pair of anchors taken when
+    the environment is built. Switching the factor without moving those anchors makes
+    the first paced event sleep off the entire backfill, which here would be ten
+    seconds instead of a quarter of a second, and a week in the case this exists for.
+    """
+    env = DynamicRealtimeEnvironment(
+        factor=0.0,
+        strict=False,
+        logical_start_time=LOGICAL_START,
+        go_live_at=LOGICAL_START + timedelta(seconds=10),
+    )
+
+    seen: list = []
+
+    def backfill_then_live():
+        yield env.timeout(9.5)  # the whole backfill in one step
+        seen.append((env.now, env.factor))
+        yield env.timeout(0.5)  # lands exactly on the go-live instant
+        seen.append((env.now, env.factor))
+        yield env.timeout(0.25)  # the first paced interval
+        seen.append((env.now, env.factor))
+
+    env.process(backfill_then_live())
+
+    started = time.monotonic()
+    env.run()
+    elapsed = time.monotonic() - started
+
+    assert [factor for _, factor in seen] == [0.0, 1.0, 1.0]
+    assert elapsed >= 0.2
+    assert elapsed < 5.0
+
+
+def test_a_run_without_go_live_keeps_its_factor():
+    """No go-live instant means the previous behaviour, unpaced from start to end."""
+    env = DynamicRealtimeEnvironment(
+        factor=0.0, strict=False, logical_start_time=LOGICAL_START
+    )
+
+    started = time.monotonic()
+    seen = watch_factor(env, until=3600, interval=60)
+    elapsed = time.monotonic() - started
+
+    assert {factor for _, factor in seen} == {0.0}
+    assert env.factor == 0.0
+    # An hour of simulated time still costs no real time, and the clock anchor that
+    # the switch would have moved is untouched.
+    assert elapsed < 2.0
+    assert env.env_start == 0
+
+
+def test_go_live_before_the_start_paces_the_whole_run(caplog):
+    """A go-live instant already in the past is the degenerate case: live throughout."""
+    with caplog.at_level(logging.WARNING, logger="dynamic_des.core.environment"):
+        env = DynamicRealtimeEnvironment(
+            factor=0.0,
+            strict=False,
+            logical_start_time=LOGICAL_START,
+            go_live_at=LOGICAL_START - timedelta(hours=1),
+        )
+
+    seen = watch_factor(env, until=0.5)
+
+    assert set(factor for _, factor in seen) == {1.0}
+    assert "before the start of the run" in caplog.text
+
+
+def test_go_live_at_the_start_is_a_live_run():
+    """Going live at the first instant is allowed and needs no warning."""
+    env = DynamicRealtimeEnvironment(
+        factor=0.0,
+        strict=False,
+        logical_start_time=LOGICAL_START,
+        go_live_at=LOGICAL_START,
+    )
+
+    seen = watch_factor(env, until=0.5)
+
+    assert set(factor for _, factor in seen) == {1.0}
+
+
+def test_go_live_does_not_hold_the_schedule_open():
+    """A pending switch must not keep an otherwise finished run alive."""
+    env = DynamicRealtimeEnvironment(
+        factor=0.0,
+        strict=False,
+        logical_start_time=LOGICAL_START,
+        go_live_at=LOGICAL_START + timedelta(days=7),
+    )
+
+    def short_process():
+        yield env.timeout(1.0)
+
+    env.process(short_process())
+
+    started = time.monotonic()
+    env.run()
+    elapsed = time.monotonic() - started
+
+    assert env.now == 1.0
+    assert env.factor == 0.0
+    assert elapsed < 2.0
+
+
+def test_go_live_rejects_a_clock_it_cannot_compare():
+    """A naive start and an aware go-live have no measurable interval between them."""
+    with pytest.raises(ValueError, match="both be naive"):
+        DynamicRealtimeEnvironment(
+            factor=0.0,
+            strict=False,
+            logical_start_time=LOGICAL_START,
+            go_live_at=datetime.now(tz=timezone.utc),
         )

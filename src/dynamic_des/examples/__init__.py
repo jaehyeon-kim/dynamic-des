@@ -67,6 +67,17 @@ def declarative_kafka_demo():
     run()
 
 
+def declarative_backfill_live_demo():
+    setup_example_logging()
+    from .declarative.backfill_live_example import run
+
+    # This demo runs live after the backfill, so Ctrl-C is the normal way to end it.
+    try:
+        run()
+    except KeyboardInterrupt:
+        logger.info("User gracefully interrupted the simulation.")
+
+
 def declarative_redis_demo():
     setup_example_logging()
     from .declarative.redis_example import run
