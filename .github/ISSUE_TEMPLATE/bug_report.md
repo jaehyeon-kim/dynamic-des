@@ -36,10 +36,10 @@ If applicable, paste the full Python traceback or terminal output here:
 - OS: [e.g. Ubuntu 22.04, macOS Sonoma, Windows 11]
 - Python Version: [e.g. 3.12]
 - `dynamic-des` Version: [e.g. 0.1.0]
-- Extra dependencies installed: [e.g. `[kafka,dashboard]`, `[all]`, or none]
+- Extra dependencies installed: [e.g. `[kafka,redis]`, `[all]`, or none]
 
 ## **Additional context**
 
-- Are you running the Docker infrastructure (`ddes-kafka-infra-up`)?
+- Are you running the Docker infrastructure (`odctl up kafka-lite`)?
 - Are you connecting to an external Redis/Postgres database?
 - Add any other context about the problem here.

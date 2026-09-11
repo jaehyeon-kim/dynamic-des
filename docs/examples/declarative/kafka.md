@@ -8,93 +8,196 @@ By replacing the local connectors with `KafkaIngress` and `KafkaEgress`, the sim
 
 ## Quick Start
 
+Download the script, then run it.
+
 ```bash
-# 1. Spin up the Kafka broker and schema registry via Docker Compose
-uv run ddes-kafka-infra-up
-
-# 2. Run the declarative simulation (Ctrl + C to stop)
-uv run ddes-kafka
-
-# 3. In a second terminal, watch and steer the run from the dashboard
-#    (opens at http://localhost:8080, Ctrl + C to stop)
-uv run ddes-kafka-dashboard
-
-# 4. Clean up the infrastructure when finished
-uv run ddes-kafka-infra-down
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/kafka_example.py
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/kafka_dashboard.py
 ```
 
-## Code
+### With uv
+
+```bash
+# 1. Install odctl, which runs the containers
+uv tool install "odctl>=0.5.1"
+
+# 2. Start the Kafka broker and schema registry
+odctl up kafka-lite
+
+# 3. Run the declarative simulation (Ctrl + C to stop)
+uv run --no-project --with "dynamic-des[kafka]" kafka_example.py
+
+# 4. In a second terminal, watch and steer the run from the dashboard. It serves
+#    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
+uv run --no-project --with "dynamic-des[kafka]" --with nicegui kafka_dashboard.py
+
+# 5. Clean up the infrastructure when finished
+odctl down kafka-lite --volumes
+```
+
+### With pip
+
+```bash
+# 1. Install the package with the kafka extra, odctl for the containers and
+#    nicegui for the dashboard
+pip install "dynamic-des[kafka]" "odctl>=0.5.1" nicegui
+
+# 2. Start the Kafka broker and schema registry
+odctl up kafka-lite
+
+# 3. Run the declarative simulation (Ctrl + C to stop)
+python kafka_example.py
+
+# 4. In a second terminal, watch and steer the run from the dashboard. It serves
+#    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
+python kafka_dashboard.py
+
+# 5. Clean up the infrastructure when finished
+odctl down kafka-lite --volumes
+```
+
+The run keeps going until you stop it. It logs one line per task as the task claims the lathe, publishes task lifecycle events to `sim-events` and resource metrics to `sim-telemetry`.
+
+## Full Source Code
 
 This script connects the simulation to Kafka topics and utilizes Pydantic models for structured event logging.
 
-```python
+Scripts live in the [`examples/` folder](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) of the repository, and the label on the block below is this one's path there.
+
+```python title="examples/declarative/kafka_example.py"
+"""Kafka Digital Twin, declarative API.
+
+Builds `Line_A` with `SimulationContext` and connects it to Kafka in both directions.
+`KafkaIngress` reads parameter updates from `sim-config`, so the running simulation can
+be steered without restarting it. `KafkaEgress` publishes lifecycle events to
+`sim-events` and metrics to `sim-telemetry`, with Pydantic models giving the events a
+declared shape.
+
+Needs a broker: `odctl up kafka-lite`. Runs until interrupted with Ctrl + C.
+"""
+
 import logging
+import os
 import time
+
 from pydantic import BaseModel
-from dynamic_des import SimulationContext, KafkaAdminConnector, KafkaEgress, KafkaIngress
 
-logging.basicConfig(level=logging.INFO)
+from dynamic_des import (
+    KafkaAdminConnector,
+    KafkaEgress,
+    KafkaIngress,
+    SimulationContext,
+)
 
+logging.basicConfig(
+    level=logging.INFO, format="%(levelname)s [%(asctime)s] %(name)s: %(message)s"
+)
+logger = logging.getLogger("kafka_example")
+
+
+# ==========================================
 # 1. Define Strongly-Typed Event Payloads
+# ==========================================
 class TaskEvent(BaseModel):
     """
-    Thanks to duck-typing, we can pass this Pydantic model directly into
-    our event-decorated tasks. The KafkaEgress layer handles the extraction!
+    Strongly typed event payload to guarantee schema consistency
+    when shipping data over the wire to Kafka.
     """
+
     path_id: str
     status: str
 
-def run():
-    BOOTSTRAP_SERVERS = "localhost:9092"
-    sim_id = "Line_A"
 
-    # 2. Bootstrap Kafka Topics
-    admin_connector = KafkaAdminConnector(bootstrap_servers=BOOTSTRAP_SERVERS)
-    admin_connector.create_topics([
-        {"name": "sim-config"}, {"name": "sim-telemetry"}, {"name": "sim-events"}
-    ])
-    time.sleep(2)
+BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
 
-    # 3. Setup Environment with Kafka Connectors
-    app = (
-        SimulationContext(sim_id=sim_id, factor=1.0, random_seed=42)
-        .add_resource("lathe", current_cap=1, max_cap=10)
-        .add_arrival("standard", dist="exponential", rate=1.0)
-        .add_service("milling", dist="normal", mean=3.0, std=0.5)
-        .add_ingress(KafkaIngress(topic="sim-config", bootstrap_servers=BOOTSTRAP_SERVERS))
-        .add_egress(KafkaEgress(
-            telemetry_topic="sim-telemetry",
+# ==========================================
+# 2. Declarative Infrastructure Builder
+# ==========================================
+app = (
+    SimulationContext(sim_id="Line_A", factor=1.0, random_seed=42)
+    .add_ingress(KafkaIngress(topic="sim-config", bootstrap_servers=BOOTSTRAP_SERVERS))
+    .add_egress(
+        KafkaEgress(
             event_topic="sim-events",
+            telemetry_topic="sim-telemetry",
             bootstrap_servers=BOOTSTRAP_SERVERS,
-        ))
+        )
+    )
+    .add_resource("lathe", current_cap=1, max_cap=10)
+    .add_service("milling", dist="normal", mean=3.0, std=0.5)
+    .add_arrival("standard", dist="exponential", rate=1.0)
+)
+
+
+# ==========================================
+# 3. Simulation Logic
+# ==========================================
+@app.task(service_id="milling", resource_id="lathe")
+def process_part(task_id: int, context):
+    """
+    The @task decorator automatically locks the resource and emits the
+    'queued' and 'started' events. We just execute our custom logic
+    and return the final payload.
+    """
+    logger.info(f"Task {task_id} started at sim time: {context._env.now:.2f}s")
+
+    # Return the strongly-typed Pydantic model for the 'finished' state
+    return TaskEvent(path_id="Line_A.service.milling", status="finished").model_dump(
+        mode="json"
     )
 
-    # 4. Define Simulation Logic using Decorators
-    @app.arrival_loop("standard")
-    def arrival_process(context: SimulationContext):
-        task_id = 0
-        while True:
-            yield context.wait_for_arrival("standard")
-            context.spawn(work_task(task_id))
-            task_id += 1
 
-    @app.task(service_id="milling", resource_id="lathe")
-    def work_task(task_id: int):
-        # We can return a Pydantic model directly!
-        return TaskEvent(path_id="Line_A.service.milling", status="finished")
+@app.arrival_loop("standard")
+def arrival_generator(context):
+    task_id = 0
+    while True:
+        yield context.wait_for_arrival("standard")
+        context.spawn(process_part(task_id, context))
+        task_id += 1
 
-    @app.telemetry_loop(interval=2.0)
-    def telemetry_monitor(context: SimulationContext):
-        res = context.get_resource("lathe")
-        context.env.publish_telemetry("Line_A.lathe.capacity", res.capacity)
-        context.env.publish_telemetry("Line_A.lathe.queue_length", len(res.queue.items))
 
-    # 5. Run the Simulation
-    print("Simulation started. Listening to Kafka...")
+@app.telemetry_loop(interval=2.0)
+def telemetry_monitor(context):
+    """Low-volume system health stream."""
+    res = context.get_resource("lathe")
+
+    # Exact parity with the imperative telemetry outputs
+    context.publish("lathe.capacity", res.capacity)
+    context.publish("lathe.in_use", res.in_use)
+    context.publish("lathe.queue_length", len(res.queue.items))
+
+    util = (res.in_use / res.capacity) * 100 if res.capacity > 0 else 0
+    context.publish("lathe.utilization", util)
+
+    avg_wait = len(res.queue.items) * 3.0
+    context.publish("lathe.avg_wait", avg_wait)
+
+
+# ==========================================
+# 4. Execution
+# ==========================================
+def run():
+    TOPICS_CONFIG = [
+        {"name": "sim-config", "partitions": 1},
+        {"name": "sim-telemetry", "partitions": 1},
+        {"name": "sim-events", "partitions": 1},
+    ]
+
+    logger.info(f"Connecting to Kafka at {BOOTSTRAP_SERVERS}...")
     try:
-        app.run()
-    except KeyboardInterrupt:
-        pass
+        admin = KafkaAdminConnector(bootstrap_servers=BOOTSTRAP_SERVERS, max_tasks=100)
+        admin.create_topics(topics_config=TOPICS_CONFIG)
+        time.sleep(2)
+    except Exception as e:
+        logger.warning(f"Could not explicitly create topics: {e}")
+
+    print("Simulation started.")
+    print("  - Listen to 'sim-telemetry' for system vitals.")
+    print("  - Listen to 'sim-events' for task lifecycles.")
+    print("  - Send to 'sim-config' to update parameters.")
+
+    app.run()  # Starts the clock and orchestrates all connectors
+
 
 if __name__ == "__main__":
     run()

@@ -1,3 +1,12 @@
+"""Relational output with table multiplexing, imperative API.
+
+The low-level twin of `declarative/postgres_example.py`. Two `PostgresEgress` instances
+are attached, one per table, and each keeps only the records whose `__table__` key
+matches its own `table_name`.
+
+Needs a database: `odctl up postgres`. Runs until interrupted with Ctrl + C.
+"""
+
 import asyncio
 import logging
 import random
@@ -17,7 +26,8 @@ from dynamic_des import (
 
 logger = logging.getLogger("postgres_example")
 
-DSN = "postgresql://user:password@localhost:5432/ddes"
+# Connection string matching the odctl `postgres` profile
+DSN = "postgresql://user:password@localhost:5432/odctl"
 
 
 async def init_db():

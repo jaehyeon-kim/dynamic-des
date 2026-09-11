@@ -11,10 +11,12 @@ First, make sure you install the `kafka` optional dependencies:
 pip install "dynamic-des[kafka]"
 ```
 
-Bring up a local Kafka cluster (or use the built-in orchestration helper):
+Bring up a local Kafka cluster with [odctl](https://github.com/jaehyeon-kim/odctl), installed separately with `uv tool install odctl` or `pip install odctl`:
 ```bash
-ddes-kafka-infra-up
+odctl up kafka-lite
 ```
+
+odctl is a separate CLI, installed once with `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
 
 ---
 

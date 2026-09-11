@@ -1,3 +1,12 @@
+"""Redis Streams output with live parameter updates, declarative API.
+
+`Factory` writes every record to the `events` Redis Stream through `RedisEgress`, while
+`RedisIngress` subscribes to the `simulation_params` channel, so publishing a message to
+that channel changes the arrival rate of a running simulation.
+
+Needs Valkey: `odctl up valkey`. Runs until interrupted with Ctrl + C.
+"""
+
 import logging
 import random
 from datetime import datetime
@@ -6,7 +15,9 @@ from dynamic_des import RedisEgress, RedisIngress, SimulationContext
 
 logger = logging.getLogger(__name__)
 
-REDIS_URL = "redis://localhost:6379/0"
+# The odctl `valkey` profile disables the unauthenticated default user, so the
+# URL carries credentials. A plain Redis without auth takes redis://localhost:6379/0.
+REDIS_URL = "redis://user:password@localhost:6379/0"
 
 app = (
     SimulationContext(sim_id="Factory", factor=1.0)
@@ -37,7 +48,9 @@ def part_generator(context):
 def run():
     logger.info("Starting Declarative Redis Demo. Press Ctrl+C to stop...")
     logger.info(
-        'Test Ingress by running via redis-cli: PUBLISH simulation_params \'{"param_path": "Factory.arrival.part_arrival.rate", "param_value": 10.0}\''
+        "Test Ingress by running: docker exec -it valkey valkey-cli --user user "
+        "--pass password PUBLISH simulation_params "
+        '\'{"param_path": "Factory.arrival.part_arrival.rate", "param_value": 10.0}\''
     )
     try:
         app.run()
