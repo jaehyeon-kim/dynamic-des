@@ -237,6 +237,146 @@ async def test_kafka_egress_default_event_routing(MockProducer):
 
 @pytest.mark.asyncio
 @patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
+async def test_kafka_egress_omits_stream_type_by_default(MockProducer):
+    """Verify the default keeps stream_type out of the message and off the record.
+
+    The published payload is the part users depend on, and it must not change. The
+    record itself matters too: every egress provider is handed the same dictionaries,
+    so a sink that removed the key would take it away from a Parquet or Redis sink
+    attached to the same simulation.
+    """
+    mock_producer_instance = AsyncMock()
+    MockProducer.return_value = mock_producer_instance
+
+    mock_egress_queue = queue.Queue()
+    data = {"stream_type": "telemetry", "path_id": "Line_A", "value": 10}
+    mock_egress_queue.put([data])
+
+    egress = KafkaEgress(bootstrap_servers="localhost:9092")
+
+    task = asyncio.create_task(egress.run(mock_egress_queue))
+    await asyncio.sleep(0.1)
+    task.cancel()
+
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    decoded_payload = orjson.loads(
+        mock_producer_instance.send.call_args.kwargs["value"]
+    )
+    assert "stream_type" not in decoded_payload
+    assert data["stream_type"] == "telemetry"
+
+
+@pytest.mark.asyncio
+@patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
+async def test_kafka_egress_include_stream_type(MockProducer):
+    """Verify include_stream_type=True keeps the field in the published message."""
+    mock_producer_instance = AsyncMock()
+    MockProducer.return_value = mock_producer_instance
+
+    mock_egress_queue = queue.Queue()
+    telemetry = {"stream_type": "telemetry", "path_id": "Line_A", "value": 10}
+    event = {"stream_type": "event", "key": "task-1", "value": {"status": "ok"}}
+    mock_egress_queue.put([telemetry, event])
+
+    egress = KafkaEgress(
+        bootstrap_servers="localhost:9092",
+        telemetry_topic="metrics",
+        event_topic="events",
+        include_stream_type=True,
+    )
+
+    task = asyncio.create_task(egress.run(mock_egress_queue))
+    await asyncio.sleep(0.1)
+    task.cancel()
+
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    assert mock_producer_instance.send.call_count == 2
+
+    call_1, call_2 = mock_producer_instance.send.call_args_list
+
+    decoded_telemetry = orjson.loads(call_1.kwargs["value"])
+    assert decoded_telemetry["stream_type"] == "telemetry"
+    assert call_1.args[0] == "metrics"
+    assert call_1.kwargs["key"] == b"Line_A"
+
+    decoded_event = orjson.loads(call_2.kwargs["value"])
+    assert decoded_event["stream_type"] == "event"
+    assert call_2.args[0] == "events"
+    assert call_2.kwargs["key"] == b"task-1"
+
+
+@pytest.mark.asyncio
+@patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
+async def test_kafka_egress_include_stream_type_with_topic_router(MockProducer):
+    """Verify the flag also applies when a topic_router chooses the destination."""
+    mock_producer_instance = AsyncMock()
+    MockProducer.return_value = mock_producer_instance
+
+    mock_egress_queue = queue.Queue()
+    mock_egress_queue.put([{"stream_type": "event", "key": "req_1", "value": {}}])
+
+    egress = KafkaEgress(
+        bootstrap_servers="localhost:9092",
+        topic_router=lambda payload: "mill-lifecycle",
+        include_stream_type=True,
+    )
+
+    task = asyncio.create_task(egress.run(mock_egress_queue))
+    await asyncio.sleep(0.1)
+    task.cancel()
+
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    call_args = mock_producer_instance.send.call_args
+    assert call_args.args[0] == "mill-lifecycle"
+    assert orjson.loads(call_args.kwargs["value"])["stream_type"] == "event"
+
+
+def test_avro_drops_stream_type_when_schema_omits_it():
+    """Verify an Avro schema without stream_type silently discards the field.
+
+    Avro encodes one field at a time from the registered schema, so switching
+    include_stream_type on does not make the field reach an Avro consumer, and the
+    send does not fail either. Users need a schema carrying the field, which is why
+    the flag docstring states the constraint.
+    """
+    registry_client = MagicMock()
+    registered = MagicMock()
+    registered.schema_id = 1
+    registered.guid = None
+    registry_client.register_schema.return_value = 1
+    registry_client.register_schema_full_response.return_value = registered
+
+    with patch(
+        "confluent_kafka.schema_registry.SchemaRegistryClient",
+        return_value=registry_client,
+    ):
+        serializer = ConfluentAvroSerializer(
+            registry_url="http://localhost:65535", schema_str=AVRO_SCHEMA
+        )
+
+    with_field = serializer.serialize(
+        "probe", {"path_id": "A", "value": 1, "stream_type": "telemetry"}
+    )
+    without_field = serializer.serialize("probe", {"path_id": "A", "value": 1})
+
+    assert with_field == without_field
+    assert b"telemetry" not in with_field
+
+
+@pytest.mark.asyncio
+@patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
 async def test_kafka_egress_custom_topic_router(MockProducer):
     """Verify that a custom router function correctly overrides default behavior."""
     mock_producer_instance = AsyncMock()
