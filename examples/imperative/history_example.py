@@ -1,3 +1,14 @@
+"""Historical data generation, imperative API.
+
+The low-level twin of `declarative/history_example.py`. It wires
+`DynamicRealtimeEnvironment`, the registry and the connectors by hand rather than
+through the builder, which shows what `SimulationContext` does for you.
+
+`factor=0.0` detaches the clock from real time, so seven days of history are generated
+as fast as the machine allows and written to Parquet. A router keeps lifecycle events
+and drops telemetry. Writes to `data/` unless `USE_S3=true`.
+"""
+
 import logging
 import os
 from datetime import datetime, timedelta

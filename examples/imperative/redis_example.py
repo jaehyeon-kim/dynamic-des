@@ -1,3 +1,12 @@
+"""Redis Streams output with live parameter updates, imperative API.
+
+The low-level twin of `declarative/redis_example.py`, wiring the environment and
+connectors by hand. `RedisEgress` writes to the `events` stream and `RedisIngress`
+subscribes to the `simulation_params` channel.
+
+Needs Valkey: `odctl up valkey`. Runs until interrupted with Ctrl + C.
+"""
+
 import logging
 import random
 from datetime import datetime

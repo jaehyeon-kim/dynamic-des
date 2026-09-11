@@ -31,7 +31,10 @@ jobs:
         uses: pre-commit/action@v3.0.1
 
       - name: Run Unit Tests
-        run: uv run --with pytest-cov --all-extras pytest tests/unit/ --cov=src/dynamic_des --cov-report=xml
+        # --python is what selects the interpreter. `uv python install` above only
+        # downloads it, so without this every leg of the matrix would run the
+        # version in .python-version and the other four would test nothing new.
+        run: uv run --python ${{ matrix.python-version }} --with pytest-cov --all-extras pytest tests/unit/ --cov=src/dynamic_des --cov-report=xml
 
   integration-test:
     runs-on: ubuntu-latest
@@ -47,17 +50,18 @@ jobs:
         run: uv python install 3.10
 
       # Example and test infrastructure comes from odctl, which the conftest
-      # drives with `odctl up` and `odctl down`. Without it on PATH every
-      # container-backed test skips instead of failing, so the job would pass
-      # while testing nothing.
-      - name: Install odctl
+      # drives with `odctl up` and `odctl down`. odctl is in the dev dependency
+      # group, so `uv run` installs it into .venv and puts it on PATH. Without
+      # it on PATH every container-backed test skips instead of failing, and the
+      # job reports green while testing nothing, so fail here if it is missing.
+      - name: Verify odctl is on PATH
         run: |
-          uv tool install odctl
-          echo "$(uv tool dir --bin)" >> "$GITHUB_PATH"
+          uv run --python 3.10 --all-extras python -c "import shutil, sys; path = shutil.which('odctl'); print(path or 'odctl not found on PATH'); sys.exit(0 if path else 1)"
 
       - name: Run Integration Tests
-        # Run tests/integration on a single baseline version
-        run: uv run --all-extras pytest tests/integration/
+        # Run tests/integration on a single baseline version. -ra lists every
+        # skipped test, so an unexpected skip is visible in the job log.
+        run: uv run --python 3.10 --all-extras pytest tests/integration/ -ra
 
       # - name: Upload coverage reports to Codecov
       #   uses: codecov/codecov-action@v4
@@ -139,11 +143,6 @@ jobs:
               # constructing them does not prove pyarrow is installed.
               import pyarrow.parquet
               from pyarrow import fs
-          - extra: dashboard
-            check: |
-              from dynamic_des.examples.kafka_dashboard import run
-
-              assert callable(run)
     steps:
       - uses: actions/checkout@v7
 

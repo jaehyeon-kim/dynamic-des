@@ -25,7 +25,7 @@ pip install "dynamic-des[kafka,glue]"
 # For Parquet support (required for data lake integration)
 pip install "dynamic-des[parquet]"
 
-# For all backends (Kafka, Redis, Postgres, Dashboard, Avro)
+# For all backends (Kafka, Redis, Postgres, Avro, Parquet)
 pip install "dynamic-des[all]"
 ```
 
@@ -37,36 +37,52 @@ Every example that needs a broker, a database or an object store gets it from [o
 
 ```bash
 # With uv
-uv tool install odctl
+uv tool install "odctl>=0.5.1"
 
 # Or with pip
-pip install odctl
+pip install "odctl>=0.5.1"
 ```
 
 `odctl list -d` shows every profile and the ports it publishes. The examples here use four of them: `kafka-lite`, `postgres`, `valkey` and `storage`.
 
-### Breaking change
+### Starting infrastructure
 
-Dynamic DES used to ship its own `docker-compose.yml` and eight console scripts that drove it: `ddes-kafka-infra-up`, `ddes-kafka-infra-down`, `ddes-storage-infra-up`, `ddes-storage-infra-down`, `ddes-postgres-infra-up`, `ddes-postgres-infra-down`, `ddes-redis-infra-up` and `ddes-redis-infra-down`. All eight have been removed. Replace `ddes-<name>-infra-up` with `odctl up <profile>` and `ddes-<name>-infra-down` with `odctl down <profile> --volumes`, using `kafka-lite` for kafka, `valkey` for redis, and the same name for `postgres` and `storage`.
+Each example needs one odctl profile, started before you run it and torn down after:
+
+| Example | Start | Stop |
+|---|---|---|
+| local | nothing needed | |
+| kafka, backfill-live, dashboard | `odctl up kafka-lite` | `odctl down kafka-lite --volumes` |
+| postgres | `odctl up postgres` | `odctl down postgres --volumes` |
+| redis | `odctl up valkey` | `odctl down valkey --volumes` |
+| history with `USE_S3=true` | `odctl up storage` | `odctl down storage --volumes` |
+
+Kafka and Redis are the two whose profile names are not what you would guess, because odctl ships a one-broker Kafka as `kafka-lite` and uses Valkey rather than Redis.
+
+### What changed
+
+Dynamic DES used to ship its own `docker-compose.yml` and a set of `ddes-*` console scripts. Both are gone. odctl provides the containers, and the examples live in `examples/` at the repository root, run directly with `uv run`.
 
 Three endpoints moved with the switch. The Postgres database is now `odctl` rather than `ddes`. The object store bucket is `odctl-dev` rather than `des-dev`. Valkey now requires the `user` / `password` credentials, so the connection URL is `redis://user:password@localhost:6379/0`.
 
-Valkey also needs one extra grant before `RedisIngress` works. odctl creates the `user` account with `~* +@all`, which covers keys and commands but not Pub/Sub channels, so a subscribe is refused with NOPERM. Run this once after `odctl up valkey`:
-
-```bash
-docker exec -it valkey valkey-cli --user user --pass password ACL SETUSER user allchannels
-```
-
 ---
 
-## Quick Start: Zero-Setup Demos
+## Quick Start: Running an Example
+
+The examples live in the [`examples/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) folder of the repository, not in the installed package, so clone it first. `examples/README.md` lists what each one needs.
+
+```bash
+git clone https://github.com/jaehyeon-kim/dynamic-des.git
+cd dynamic-des
+uv sync --all-extras
+```
 
 Dynamic DES comes with built-in examples so you can see it in action immediately. You do not need to write a single line of code to test this out.
 
 **1. Run the local, dependency-free simulation:**
 
 ```bash
-ddes-local
+uv run examples/declarative/local_example.py
 ```
 
 **2. Run the full Real-Time Digital Twin stack with Kafka and a live UI:**
@@ -77,16 +93,31 @@ odctl up kafka-lite
 
 # Open a new terminal and run the simulation
 # Ctrl + C to stop
-ddes-kafka
+uv run examples/declarative/kafka_example.py
 
-# Open a new terminal and start the monitoring dashboard (opens in browser)
-# Visit http://localhost:8080
-# Ctrl + C to stop
-ddes-kafka-dashboard
+# Open a new terminal and start the monitoring dashboard. It needs nicegui, which
+# is not a dependency of the library, so install it with `uv pip install nicegui`.
+# It serves http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
+uv run examples/kafka_dashboard.py
 
 # Clean up the infrastructure when finished
 odctl down kafka-lite --volumes
 ```
+
+**3. Backfill history, then go live, in one run:**
+
+```bash
+odctl up kafka-lite
+
+# Ten minutes of backdated history go to Parquet, generated instantly rather than
+# waited for, then the run switches to real time and the live tail goes to Kafka
+# for sixty seconds. It takes about a minute in total, nearly all of it the live half.
+uv run examples/declarative/backfill_live_example.py
+
+odctl down kafka-lite --volumes
+```
+
+Guide: [Backfill then live](guides/backfill-then-live.md).
 
 The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
 

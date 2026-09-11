@@ -6,7 +6,9 @@ import time
 import pytest
 
 # Example infrastructure comes from odctl (https://github.com/jaehyeon-kim/odctl).
-# Install it with `uv tool install odctl` or `pip install odctl`.
+# Install it with `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
+# 0.5.1 is the floor: earlier versions created the Valkey user without a channel
+# grant, so RedisIngress could not subscribe (odctl#76).
 ODCTL = "odctl"
 
 
@@ -95,31 +97,6 @@ def kafka_container(odctl_profile):
 def redis_container(odctl_profile):
     """Starts the odctl `valkey` profile and yields its connection URL."""
     odctl_profile("valkey")
-
-    # odctl creates the `user` account with `~* +@all`, which covers keys and
-    # commands but not Pub/Sub channels. Valkey defaults new users to
-    # `resetchannels`, so SUBSCRIBE and PUBLISH are refused with NOPERM until the
-    # account is granted `allchannels`. RedisEgress writes to streams and works
-    # without this; RedisIngress subscribes and does not.
-    subprocess.run(
-        [
-            "docker",
-            "exec",
-            "valkey",
-            "valkey-cli",
-            "--user",
-            "user",
-            "--pass",
-            "password",
-            "ACL",
-            "SETUSER",
-            "user",
-            "allchannels",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
 
     # odctl disables the unauthenticated default Valkey user, so the URL has to
     # carry the `user` / `password` pair.

@@ -1,3 +1,12 @@
+"""Kafka Digital Twin, imperative API.
+
+The low-level twin of `declarative/kafka_example.py`, wiring the environment, registry
+and connectors by hand. It also creates its topics first with `KafkaAdminConnector`,
+which the declarative version leaves to the broker.
+
+Needs a broker: `odctl up kafka-lite`. Runs until interrupted with Ctrl + C.
+"""
+
 import logging
 import os
 import time
@@ -152,3 +161,7 @@ def run():
         logger.info("Simulation interrupted by user.")
     finally:
         env.teardown()
+
+
+if __name__ == "__main__":
+    run()

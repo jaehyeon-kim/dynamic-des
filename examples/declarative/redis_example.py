@@ -1,3 +1,12 @@
+"""Redis Streams output with live parameter updates, declarative API.
+
+`Factory` writes every record to the `events` Redis Stream through `RedisEgress`, while
+`RedisIngress` subscribes to the `simulation_params` channel, so publishing a message to
+that channel changes the arrival rate of a running simulation.
+
+Needs Valkey: `odctl up valkey`. Runs until interrupted with Ctrl + C.
+"""
+
 import logging
 import random
 from datetime import datetime

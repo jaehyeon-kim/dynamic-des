@@ -48,18 +48,40 @@ pip install "dynamic-des[kafka,glue]"
 # For Data Lake Storage (Parquet & PyArrow VFS)
 pip install "dynamic-des[parquet]"
 
-# For all backends (Kafka, Redis, Postgres, Dashboard, Avro, Parquet)
+# For all backends (Kafka, Redis, Postgres, Avro, Parquet)
 pip install "dynamic-des[all]"
 ```
 
-## Quick Start: Zero-Setup Demos
+## Quick Start: Running an Example
 
-Dynamic DES comes with built-in examples so you can see it in action immediately. Examples that need a broker, a database or an object store get it from [odctl](https://github.com/jaehyeon-kim/odctl), installed separately with `uv tool install odctl` or `pip install odctl`.
+Dynamic DES ships runnable examples in the [`examples/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) folder of this repository. They are not part of the installed package, so clone the repository to run them:
+
+```bash
+git clone https://github.com/jaehyeon-kim/dynamic-des.git
+cd dynamic-des
+uv sync --all-extras
+```
+ Examples that need a broker, a database or an object store get it from [odctl](https://github.com/jaehyeon-kim/odctl), installed once:
+
+```bash
+uv tool install "odctl>=0.5.1"
+```
+
+Start the profile an example needs before you run it:
+
+| Profile | Start | Needed by |
+|---|---|---|
+| kafka-lite | `odctl up kafka-lite` | `uv run examples/declarative/kafka_example.py`, `uv run examples/declarative/backfill_live_example.py`, `uv run examples/kafka_dashboard.py` |
+| postgres | `odctl up postgres` | `uv run examples/declarative/postgres_example.py`, `uv run examples/imperative/postgres_example.py` |
+| valkey | `odctl up valkey` | `uv run examples/declarative/redis_example.py`, `uv run examples/imperative/redis_example.py` |
+| storage | `odctl up storage` | `uv run examples/declarative/history_example.py` with `USE_S3=true` |
+
+Stop a profile with `odctl down <profile> --volumes` when you are finished. Kafka and Redis are the two whose odctl profile names differ, because odctl ships a one-broker Kafka as `kafka-lite` and uses Valkey rather than Redis. `uv run examples/declarative/local_example.py` needs no container at all.
 
 **Run the local, dependency-free simulation:**
 
 ```bash
-ddes-local
+uv run examples/declarative/local_example.py
 ```
 
 **Run the full Real-Time Digital Twin stack with Kafka and a live UI:**
@@ -70,16 +92,32 @@ odctl up kafka-lite
 
 # Open a new terminal and run the simulation
 # Ctrl + C to stop
-ddes-kafka
+uv run examples/declarative/kafka_example.py
 
-# Open a new terminal and start the control dashboard (opens in browser)
-# Visit http://localhost:8080
-# Ctrl + C to stop
-ddes-kafka-dashboard
+# Open a new terminal and start the control dashboard. It needs nicegui, which is
+# not a dependency of the library, so install it with `uv pip install nicegui`.
+# It serves http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
+uv run examples/kafka_dashboard.py
 
 # Clean up the infrastructure when finished
 odctl down kafka-lite --volumes
 ```
+
+**Backfill history, then go live, in one run:**
+
+```bash
+odctl up kafka-lite
+
+# Ten minutes of backdated history go to Parquet, generated instantly rather than
+# waited for, then the run switches to real time and the live tail goes to Kafka
+# for sixty seconds. It takes about a minute in total, nearly all of it the live half.
+uv run examples/declarative/backfill_live_example.py
+
+odctl down kafka-lite --volumes
+```
+
+Guide: [Backfill then live](https://jaehyeon-kim.github.io/dynamic-des/guides/backfill-then-live/).
+
 
 The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
 
@@ -187,7 +225,7 @@ Used for discrete task lifecycle events (e.g., a part arriving, entering a queue
 
 ### More Examples
 
-For more examples, including implementations using **Kafka** providers, please explore the [examples](./src/dynamic_des/examples/) folder.
+For more examples, including implementations using **Kafka** providers, please explore the [examples](./examples/) folder, which has its own README naming what to install and which odctl profile each one needs.
 
 ## Core Concepts
 

@@ -21,6 +21,14 @@ from dynamic_des import (
     SimulationContext,
 )
 
+# Logging is configured here rather than in a wrapper, because this script is run
+# directly. Without it the run produces no output at all.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
+
 logger = logging.getLogger(__name__)
 
 BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
@@ -89,9 +97,9 @@ app = (
         ),
         when=is_live,
     )
-    # A flush every 10 simulated seconds is 10 real seconds once live, which is how
-    # often the Kafka tail moves. During the backfill it is what bounds the number of
-    # Parquet chunk files, since each flush writes one.
+    # Only batch_size governs this run. The interval flush is a simulation process,
+    # started only when factor is non-zero as the egress is set up, and this run starts
+    # at 0.0. Records therefore leave the buffer when it fills to 2000, or at teardown.
     .with_batching(batch_size=2000, flush_interval=10.0)
     .add_resource("lathe", current_cap=4, max_cap=10)
     .add_service("milling", dist="normal", mean=2.0, std=0.2)

@@ -1,10 +1,37 @@
+"""Live control dashboard for a running Kafka simulation.
+
+Serves a NiceGUI page at http://localhost:8080 that reads `sim-telemetry` and publishes
+parameter updates to `sim-config`, so a simulation can be watched and steered without
+restarting it. Run it beside either kafka example.
+
+Needs a broker (`odctl up kafka-lite`) and nicegui, which is not a dependency of the
+library because nothing in the package imports it: `uv pip install nicegui`.
+"""
+
 import asyncio
+import logging
 from collections import deque
 from datetime import datetime
 
-from nicegui import app, ui
+try:
+    from nicegui import app, ui
+except ModuleNotFoundError as exc:
+    raise SystemExit(
+        "This dashboard needs nicegui, which is not a dependency of dynamic-des "
+        "because the library itself never imports it. Install it with "
+        "'uv pip install nicegui' or 'pip install nicegui', then run this script again."
+    ) from exc
 
 from dynamic_des import KafkaAdminConnector
+
+# Logging is configured here rather than in a wrapper, because this script is run
+# directly. Without it the run produces no output at all.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
+
 
 # Initialize Admin Connector Globally (Safe to share across clients)
 admin = KafkaAdminConnector(bootstrap_servers="localhost:9092", max_tasks=200)
@@ -242,3 +269,7 @@ def run():
         ui.timer(2.0, process_data)
 
     ui.run(title="Real-time Capacity Simulator", port=8080, show=False, reload=False)
+
+
+if __name__ == "__main__":
+    run()

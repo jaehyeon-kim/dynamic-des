@@ -1,3 +1,12 @@
+"""Relational output with table multiplexing, imperative API.
+
+The low-level twin of `declarative/postgres_example.py`. Two `PostgresEgress` instances
+are attached, one per table, and each keeps only the records whose `__table__` key
+matches its own `table_name`.
+
+Needs a database: `odctl up postgres`. Runs until interrupted with Ctrl + C.
+"""
+
 import asyncio
 import logging
 import random

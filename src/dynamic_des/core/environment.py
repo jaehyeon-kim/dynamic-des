@@ -7,11 +7,34 @@ import time
 from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Optional
 
+from pydantic import TypeAdapter
+from pydantic_core import to_jsonable_python
+
 from simpy import RealtimeEnvironment
 
 from dynamic_des.core.registry import SimulationRegistry
 
 logger = logging.getLogger(__name__)
+
+# EventPayload.key and TelemetryPayload.path_id are declared `str`, so building the
+# model coerced them: bytes were decoded and an int was rejected with a
+# ValidationError. Building the dict directly skipped that, which let a non-string
+# key reach the sinks. This is the validator those fields used, so it agrees by
+# construction rather than by imitation.
+_KEY_ADAPTER = TypeAdapter(str)
+
+
+def _jsonable(value: Any) -> Any:
+    """Serializes `value` exactly as `model_dump(mode="json")` did in 0.12.0.
+
+    Two `to_jsonable_python` defaults disagree with the model dump, so both are set
+    back. `by_alias` defaults to True here and to False in the dump, which renamed
+    every field of a model that declares a serialization alias. `inf_nan_mode`
+    defaults to "constants" here and to "null" in the dump, which let a NaN or an
+    infinity through as a float instead of None.
+    """
+    return to_jsonable_python(value, by_alias=False, inf_nan_mode="null")
+
 
 # Pacing a run takes after `go_live_at`. It is fixed rather than configurable because
 # `go_live_at` names a moment, not a speed: going live means one simulated second per
@@ -299,10 +322,14 @@ class EgressMixIn:
         self._event_buffer.append(
             {
                 "stream_type": "telemetry",
-                "sim_ts": round(self.now, 3),  # type: ignore[attr-defined]
+                "sim_ts": float(round(self.now, 3)),  # type: ignore[attr-defined]
                 "timestamp": self._get_iso_timestamp(self.start_datetime, self.now),  # type: ignore[attr-defined]
-                "path_id": path_id,
-                "value": value,
+                "path_id": (
+                    path_id
+                    if type(path_id) is str
+                    else _KEY_ADAPTER.validate_python(path_id)
+                ),
+                "value": _jsonable(value),
             }
         )
 
@@ -318,29 +345,37 @@ class EgressMixIn:
 
         Args:
             event_key (str): A unique identifier for the event (e.g., 'task-001').
-            value (Any): A dictionary containing the event payload. Its contents must
-                be JSON-native, so str, int, float, bool, None, list or dict. A
-                datetime used to be converted to an ISO string on the way out, because
-                the payload went through a Pydantic model dumped in JSON mode. It is
-                now passed through untouched, so a sink that serializes to JSON raises
-                on it rather than silently accepting it.
+            value (Any): A dictionary or a Pydantic model containing the event
+                payload. It is made JSON-serializable on the way out, so a nested model
+                is flattened and a datetime becomes an ISO string, exactly as before.
         """
         if not hasattr(self, "_event_buffer"):
             return  # Fail silently if no egress is configured
 
         # Built directly rather than through EventPayload.model_dump(mode="json").
-        # Constructing and dumping the model cost 1,072 ns per record against 166 ns
-        # for this dict, measured in issue #5, which was 24 percent of a profiled run.
-        # The keys and their order match what the model produced, so nothing downstream
-        # sees a difference. EventPayload remains the published schema and is what the
-        # Avro and documentation paths describe.
+        # Constructing and dumping the model costs 1,790 ns per record against 980 ns
+        # for this dict, on a four-field event. About 550 ns of each is the timestamp
+        # formatting below, which both paths run.
+        #
+        # Every coercion the model performed is reproduced here, because each one
+        # changed what the sinks received. `sim_ts` was declared `float`, so an integer
+        # simulation clock was published as 0.0 rather than 0, and a numpy float was
+        # published as a plain float that orjson can serialize. `key` was declared
+        # `str`. `value` goes through `_jsonable`, which is `to_jsonable_python` with
+        # the two defaults that disagree with the model dump set back. Keys and their
+        # order match what the model produced. EventPayload remains the published
+        # schema and is what the Avro and documentation paths describe.
         self._event_buffer.append(
             {
                 "stream_type": "event",
-                "sim_ts": round(self.now, 3),  # type: ignore[attr-defined]
+                "sim_ts": float(round(self.now, 3)),  # type: ignore[attr-defined]
                 "timestamp": self._get_iso_timestamp(self.start_datetime, self.now),  # type: ignore[attr-defined]
-                "key": event_key,
-                "value": value,
+                "key": (
+                    event_key
+                    if type(event_key) is str
+                    else _KEY_ADAPTER.validate_python(event_key)
+                ),
+                "value": _jsonable(value),
             }
         )
 
@@ -529,6 +564,15 @@ class DynamicRealtimeEnvironment(
         # new value applies from the next event onwards.
         self._factor = LIVE_FACTOR
         self._go_live_sim_time = None
+
+        # setup_egress skips the periodic flush at factor=0, because a timer in
+        # simulation seconds fires constantly when the clock is detached and
+        # batch_size never governs. Now that the clock is paced again the timer is
+        # meaningful, and without it a live tail only reaches its sink at teardown
+        # rather than as events happen, which is the whole point of going live.
+        if hasattr(self, "egress_queues"):
+            self.process(self._periodic_flush())  # type: ignore[attr-defined]
+
         logger.info(
             "Logical clock reached go-live at %s; pacing switched to real time.",
             self._get_iso_timestamp(self.start_datetime, go_live_sim_time),

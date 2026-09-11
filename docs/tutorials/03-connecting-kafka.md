@@ -16,6 +16,8 @@ Bring up a local Kafka cluster with [odctl](https://github.com/jaehyeon-kim/odct
 odctl up kafka-lite
 ```
 
+odctl is a separate CLI, installed once with `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
+
 ---
 
 ## 2. Transitioning to Kafka Connectors
