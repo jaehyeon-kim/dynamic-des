@@ -72,6 +72,9 @@ class SimulationContext:
         # Builder State (Pre-Compilation)
         self._ingress_providers: List[Any] = []
         self._egress_providers: List[Any] = []
+        # Aligned with _egress_providers by position. None means the provider
+        # receives every record.
+        self._egress_predicates: List[Optional[Callable[[dict], bool]]] = []
         self._batch_size = 500
         self._flush_interval = 1.0
         self._max_queued_batches = 2000
@@ -107,18 +110,40 @@ class SimulationContext:
         self._ingress_providers.append(provider)
         return self
 
-    def add_egress(self, provider: Any) -> "SimulationContext":
+    def add_egress(
+        self,
+        provider: Any,
+        when: Optional[Callable[[dict], bool]] = None,
+    ) -> "SimulationContext":
         """
         Registers an asynchronous egress provider for data exfiltration.
+
+        Every registered provider receives every record, so attaching a stream sink and
+        a lake sink writes the same dataset to both in one pass. Pass `when` to send
+        only some records to a provider, which reads the same way as the `path_router`
+        that `ParquetStorageEgress` already accepts.
 
         Args:
             provider: An initialized connector subclassing `BaseEgress`
                 (e.g., `KafkaEgress` or `ParquetStorageEgress`).
+            when: Optional predicate taking one record and returning True to send it to
+                this provider. None sends every record, which is the usual case.
 
         Returns:
             SimulationContext: The current instance for method chaining.
+
+        Example:
+            ```python
+            # Same dataset to both sinks, in one run
+            app.add_egress(kafka).add_egress(parquet)
+
+            # Or split it: hot tail to Kafka, cold history to Parquet
+            app.add_egress(kafka, when=lambda r: r["timestamp"] >= hot_from)
+            app.add_egress(parquet, when=lambda r: r["timestamp"] < hot_from)
+            ```
         """
         self._egress_providers.append(provider)
+        self._egress_predicates.append(when)
         return self
 
     def with_batching(
@@ -489,6 +514,7 @@ class SimulationContext:
                 flush_interval=self._flush_interval,
                 max_queued_batches=self._max_queued_batches,
                 drain_stall_seconds=self._drain_stall_seconds,
+                predicates=self._egress_predicates,
             )
 
         # Hydrate Physical SimPy Resources

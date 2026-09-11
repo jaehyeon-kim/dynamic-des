@@ -40,6 +40,6 @@ The fluent builder API allows chaining configurations:
 
 ### Connectors & Ingestion
 * `.add_ingress(provider)`: Attaches an ingress connector (e.g. `LocalIngress` or `KafkaIngress`) to stream live configuration updates into the switchboard.
-* `.add_egress(provider)`: Attaches an egress connector (e.g. `ConsoleEgress` or `KafkaEgress`) to publish event and telemetry streams.
+* `.add_egress(provider, when=None)`: Attaches an egress connector (e.g. `ConsoleEgress` or `KafkaEgress`) to publish event and telemetry streams. Every attached provider receives every record, so a stream sink and a lake sink can be written in one pass. Pass `when` to give a provider a predicate and route records instead, for example the hot tail to Kafka and cold history to Parquet.
 * `.with_batching(batch_size, flush_interval)`: Tunes the internal queue batching size and flush timeouts for highly efficient I/O.
 * `.with_batching(..., max_queued_batches, drain_stall_seconds)`: Bounds the egress queue and sets how long teardown keeps waiting for it. The queue is bounded so a sink that cannot keep up slows the simulation instead of building a backlog, and teardown drains until the queue stops shrinking rather than abandoning it on a fixed deadline. A sink that stops consuming altogether raises `RuntimeError` rather than losing events silently.

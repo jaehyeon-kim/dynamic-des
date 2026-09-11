@@ -64,7 +64,10 @@ def run():
         arrival={"customer_order": DistributionConfig(dist="exponential", rate=1.0)},
     )
 
-    # Attach two egress instances, multiplexing across the shared output queue
+    # Two egress instances, one per table. Each receives every record and keeps
+    # only the rows whose __table__ matches its own table_name. They used to share
+    # one queue and compete for batches, so whichever provider took a batch
+    # discarded the other's rows from it.
     egress_orders = PostgresEgress(DSN, table_name="orders")
     egress_items = PostgresEgress(DSN, table_name="order_items")
 

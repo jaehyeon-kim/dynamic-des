@@ -35,6 +35,24 @@ Streams telemetry and events in real time to designated Kafka topics.
 ### Storage Egress (`ParquetStorageEgress` / `JsonlStorageEgress`)
 Writes records to compressed, chunked files using PyArrow. Natively supports S3-compatible endpoints, AWS S3, Google Cloud Storage, and local directories.
 
+### Attaching more than one
+
+Every attached provider receives every record. Each has its own queue, so attaching a stream sink and a lake sink writes the same dataset to both in a single run, rather than needing one run per sink with a matching seed.
+
+```python
+app.add_egress(kafka).add_egress(parquet)
+```
+
+Pass `when` to route records instead of duplicating them. The predicate takes one record and returns True to send it to that provider, which reads the same way as the `path_router` that `ParquetStorageEgress` already accepts:
+
+```python
+app.add_egress(kafka,   when=lambda r: r["timestamp"] >= hot_from)  # hot tail
+app.add_egress(parquet, when=lambda r: r["timestamp"] <  hot_from)  # cold history
+app.add_egress(audit)                                               # no predicate: everything
+```
+
+A provider with no predicate receives everything, so the two can be mixed. Records matching no predicate are simply not written anywhere, which is how you drop them.
+
 ---
 
 ## Tuning I/O Efficiency
