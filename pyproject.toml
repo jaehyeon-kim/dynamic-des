@@ -60,7 +60,12 @@ kafka =[
 ]
 redis = ["redis>=5.0.0"]
 postgres =["asyncpg>=0.29.0"]
-dashboard = ["nicegui>=1.4.0"]
+dashboard = [
+    # The dashboard module imports KafkaAdminConnector, so the kafka extra is
+    # required for `pip install dynamic-des[dashboard]` to be usable.
+    "dynamic-des[kafka]",
+    "nicegui>=1.4.0"
+]
 confluent = [
     # ConfluentAvroSerializer lives in the Kafka connector module, so the kafka
     # extra is required for `pip install dynamic-des[confluent]` to be usable.

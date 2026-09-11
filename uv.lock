@@ -1110,6 +1110,8 @@ confluent = [
     { name = "kafka-python" },
 ]
 dashboard = [
+    { name = "aiokafka", extra = ["lz4"] },
+    { name = "kafka-python" },
     { name = "nicegui" },
 ]
 glue = [
@@ -1158,6 +1160,7 @@ requires-dist = [
     { name = "dataclasses-avroschema", extras = ["pydantic"], marker = "extra == 'confluent'" },
     { name = "dataclasses-avroschema", extras = ["pydantic"], marker = "extra == 'glue'" },
     { name = "dynamic-des", extras = ["kafka"], marker = "extra == 'confluent'" },
+    { name = "dynamic-des", extras = ["kafka"], marker = "extra == 'dashboard'" },
     { name = "dynamic-des", extras = ["kafka"], marker = "extra == 'glue'" },
     { name = "dynamic-des", extras = ["kafka", "redis", "postgres", "dashboard", "confluent", "glue", "parquet"], marker = "extra == 'all'" },
     { name = "kafka-python", marker = "extra == 'glue'", specifier = ">=2.0.2" },
