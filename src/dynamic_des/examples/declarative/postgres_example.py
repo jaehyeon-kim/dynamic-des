@@ -9,8 +9,8 @@ from dynamic_des import PostgresEgress, PostgresIngress, SimulationContext
 
 logger = logging.getLogger(__name__)
 
-# Connection string matching docker-compose
-DSN = "postgresql://user:password@localhost:5432/ddes"
+# Connection string matching the odctl `postgres` profile
+DSN = "postgresql://user:password@localhost:5432/odctl"
 
 app = (
     SimulationContext(sim_id="Store", factor=1.0)

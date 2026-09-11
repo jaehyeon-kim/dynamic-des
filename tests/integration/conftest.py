@@ -1,41 +1,65 @@
-import pytest
 import asyncio
-from pathlib import Path
-from python_on_whales import DockerClient
+import shutil
+import subprocess
+import time
+
+import pytest
+
+# Example infrastructure comes from odctl (https://github.com/jaehyeon-kim/odctl).
+# Install it with `uv tool install odctl` or `pip install odctl`.
+ODCTL = "odctl"
+
+
+def _run_odctl(*args: str) -> None:
+    """Run an odctl command and raise with its output when it fails."""
+    subprocess.run([ODCTL, *args], check=True, capture_output=True, text=True)
 
 
 @pytest.fixture(scope="session")
 def check_docker():
-    """Verify Docker is available, skip tests if not."""
+    """Verify Docker and odctl are available, skip integration tests if not."""
+    if shutil.which(ODCTL) is None:
+        pytest.skip("odctl is not installed. Skipping integration tests.")
     try:
-        from python_on_whales import docker
-
-        docker.version()
+        subprocess.run(
+            ["docker", "version"], check=True, capture_output=True, text=True
+        )
     except Exception:
         pytest.skip("Docker is not available. Skipping integration tests.")
 
 
-@pytest.fixture(scope="module")
-def postgres_container(check_docker):
+@pytest.fixture(scope="session")
+def odctl_profile(check_docker):
     """
-    Spins up the postgres container via python-on-whales for integration testing.
-    """
-    # Start the container using the existing project docker-compose
-    compose_file = (
-        Path(__file__).parent.parent.parent
-        / "src"
-        / "dynamic_des"
-        / "examples"
-        / "docker-compose.yml"
-    )
-    client = DockerClient(
-        compose_files=[str(compose_file)], compose_profiles=["postgres"]
-    )
-    client.compose.up(detach=True)
+    Bring odctl profiles up on demand and tear down every started profile at the
+    end of the session.
 
-    dsn = "postgresql://user:password@localhost:5432/ddes"
+    A profile is started once per session. Restarting it between modules costs a
+    full image pull and health-check cycle for no benefit, because each test
+    creates the topics and tables it needs.
+    """
+    started: list[str] = []
+
+    def _up(profile: str) -> None:
+        if profile not in started:
+            _run_odctl("up", profile)
+            started.append(profile)
+
+    yield _up
+
+    for profile in reversed(started):
+        _run_odctl("down", profile, "--volumes")
+
+
+@pytest.fixture(scope="session")
+def postgres_container(odctl_profile):
+    """Starts the odctl `postgres` profile and yields its DSN."""
+    odctl_profile("postgres")
+
+    # odctl names the default database `odctl`, with the user/password pair
+    # reported by `odctl explain postgres`.
+    dsn = "postgresql://user:password@localhost:5432/odctl"
     import asyncpg
-    import time
 
     # Wait for Postgres to be ready
     for _ in range(30):
@@ -50,63 +74,53 @@ def postgres_container(check_docker):
         except Exception:
             time.sleep(1)
     else:
-        client.compose.down(volumes=True)
         pytest.fail("Postgres did not start in time.")
 
     yield dsn
 
-    # Tear down
-    client.compose.down(volumes=True)
 
-
-@pytest.fixture(scope="module")
-def kafka_container(check_docker):
-    """
-    Spins up the kafka broker container via python-on-whales for integration testing.
-    """
-    compose_file = (
-        Path(__file__).parent.parent.parent
-        / "src"
-        / "dynamic_des"
-        / "examples"
-        / "docker-compose.yml"
-    )
-    client = DockerClient(compose_files=[str(compose_file)], compose_profiles=["kafka"])
-    client.compose.up(detach=True)
+@pytest.fixture(scope="session")
+def kafka_container(odctl_profile):
+    """Starts the odctl `kafka-lite` profile and yields its bootstrap servers."""
+    odctl_profile("kafka-lite")
 
     bootstrap_servers = "localhost:9092"
-    import time
 
-    # Simple wait to ensure broker is up (can use aiokafka to be more strict if desired)
-    time.sleep(10)
-
+    # odctl waits for the broker health check before returning, so the listener
+    # is already accepting connections here.
     yield bootstrap_servers
 
-    # Tear down
-    client.compose.down(volumes=True)
 
+@pytest.fixture(scope="session")
+def redis_container(odctl_profile):
+    """Starts the odctl `valkey` profile and yields its connection URL."""
+    odctl_profile("valkey")
 
-@pytest.fixture(scope="module")
-def redis_container(check_docker):
-    """
-    Spins up the redis container via python-on-whales for integration testing.
-    """
-    compose_file = (
-        Path(__file__).parent.parent.parent
-        / "src"
-        / "dynamic_des"
-        / "examples"
-        / "docker-compose.yml"
+    # odctl creates the `user` account with `~* +@all`, which covers keys and
+    # commands but not Pub/Sub channels. Valkey defaults new users to
+    # `resetchannels`, so SUBSCRIBE and PUBLISH are refused with NOPERM until the
+    # account is granted `allchannels`. RedisEgress writes to streams and works
+    # without this; RedisIngress subscribes and does not.
+    subprocess.run(
+        [
+            "docker",
+            "exec",
+            "valkey",
+            "valkey-cli",
+            "--user",
+            "user",
+            "--pass",
+            "password",
+            "ACL",
+            "SETUSER",
+            "user",
+            "allchannels",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
     )
-    client = DockerClient(compose_files=[str(compose_file)], compose_profiles=["redis"])
-    client.compose.up(detach=True)
 
-    redis_url = "redis://localhost:6379/0"
-    import time
-
-    time.sleep(5)  # Wait for Redis to be ready
-
-    yield redis_url
-
-    # Tear down
-    client.compose.down(volumes=True)
+    # odctl disables the unauthenticated default Valkey user, so the URL has to
+    # carry the `user` / `password` pair.
+    yield "redis://user:password@localhost:6379/0"

@@ -38,23 +38,28 @@ app.add_ingress(RedisIngress(REDIS_URL, channel_name="simulation_params"))
 You can easily run this demo using the pre-configured CLI entry points. **To test the dynamic ingress updates**, open a second terminal while the simulation is running and execute the `PUBLISH` command below.
 
 ```bash
-# 1. Spin up the Redis/Valkey database via Docker Compose
-uv run ddes-redis-infra-up
+# 1. Spin up the Valkey database with odctl
+odctl up valkey
 
-# 2. Run the declarative simulation
+# 2. Grant the `user` account access to Pub/Sub channels.
+#    odctl creates it with `~* +@all`, which covers keys and commands but not
+#    channels, so RedisIngress is refused with NOPERM until this runs.
+docker exec -it valkey valkey-cli --user user --pass password ACL SETUSER user allchannels
+
+# 3. Run the declarative simulation
 uv run ddes-redis
 ```
 
 **In a second terminal, execute the dynamic parameter update:**
 ```bash
-# Connect to the Redis container and publish the parameter update
-docker exec -it redis valkey-cli PUBLISH simulation_params '{"param_path": "Factory.arrival.part_arrival.rate", "param_value": 10.0}'
+# Connect to the Valkey container and publish the parameter update
+docker exec -it valkey valkey-cli --user user --pass password PUBLISH simulation_params '{"param_path": "Factory.arrival.part_arrival.rate", "param_value": 10.0}'
 ```
 *You will immediately see the simulation terminal log that the update was ingested and start generating parts much faster!*
 
 ```bash
-# 3. Clean up the infrastructure when finished
-uv run ddes-redis-infra-down
+# 4. Clean up the infrastructure when finished
+odctl down valkey --volumes
 ```
 
 ---

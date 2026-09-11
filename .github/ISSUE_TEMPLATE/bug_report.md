@@ -40,6 +40,6 @@ If applicable, paste the full Python traceback or terminal output here:
 
 ## **Additional context**
 
-- Are you running the Docker infrastructure (`ddes-kafka-infra-up`)?
+- Are you running the Docker infrastructure (`odctl up kafka-lite`)?
 - Are you connecting to an external Redis/Postgres database?
 - Add any other context about the problem here.

@@ -9,14 +9,14 @@ By replacing the Local connectors with `KafkaIngress` and `KafkaEgress`, the sim
 ## Quick Start
 
 ```bash
-# 1. Spin up the Kafka broker and schema registry via Docker Compose
-uv run ddes-kafka-infra-up
+# 1. Spin up the Kafka broker and schema registry with odctl
+odctl up kafka-lite
 
 # 2. Run the imperative simulation (Ctrl + C to stop)
 uv run ddes-imperative-kafka
 
 # 3. Clean up the infrastructure when finished
-uv run ddes-kafka-infra-down
+odctl down kafka-lite --volumes
 ```
 
 ## Full Source Code

@@ -1,12 +1,5 @@
 import logging
 import sys
-from pathlib import Path
-
-from python_on_whales import DockerClient
-
-# Configuration & Pathing
-EXAMPLE_DIR = Path(__file__).parent
-DOCKER_COMPOSE_FILE = EXAMPLE_DIR / "docker-compose.yml"
 
 # Initialize a logger specifically for the examples orchestration
 logger = logging.getLogger(__name__)
@@ -43,41 +36,6 @@ def setup_example_logging(level: int = logging.INFO):
         library_logger.propagate = False
 
 
-# Infrastructure Lifecycle (IaC)
-def manage_infrastructure(profile: str, down: bool = False):
-    """
-    Orchestrates the infrastructure lifecycle using Docker Compose profiles.
-    """
-    # Ensure our CLI logger is ready
-    setup_example_logging()
-
-    # Bind the Docker client to our specific compose file AND the requested profile
-    docker = DockerClient(
-        compose_files=[str(DOCKER_COMPOSE_FILE)], compose_profiles=[profile]
-    )
-
-    if down:
-        logger.info(f"Initiating teardown: Stopping '{profile}' infrastructure...")
-        try:
-            # volumes=True mimics the `docker compose down -v` command
-            docker.compose.down(volumes=True)
-            logger.info(f"'{profile}' infrastructure cleanly stopped and removed.")
-        except Exception as e:
-            logger.error(f"Failed to stop infrastructure: {e}")
-            sys.exit(1)
-    else:
-        logger.info(f"Bootstrapping '{profile}' via {DOCKER_COMPOSE_FILE.name}...")
-        try:
-            docker.compose.up(detach=True)
-            logger.info(f"'{profile}' infrastructure is up and running.")
-        except Exception as e:
-            logger.critical(f"Docker orchestration failed: {e}")
-            logger.critical(
-                "Troubleshooting: Is Docker Desktop running? Is the YAML valid?"
-            )
-            sys.exit(1)
-
-
 # ==========================================
 # CLI Entry Points: Declarative (Context API)
 # ==========================================
@@ -88,48 +46,32 @@ def declarative_local_demo():
     run()
 
 
-def declarative_history_demo(auto_down: bool = False):
+def declarative_history_demo():
     setup_example_logging()
     from .declarative.history_example import run
 
-    try:
-        run()
-    finally:
-        if auto_down:
-            manage_infrastructure("storage", down=True)
+    run()
 
 
-def declarative_postgres_demo(auto_down: bool = False):
+def declarative_postgres_demo():
     setup_example_logging()
     from .declarative.postgres_example import run
 
-    try:
-        run()
-    finally:
-        if auto_down:
-            manage_infrastructure("postgres", down=True)
+    run()
 
 
-def declarative_kafka_demo(auto_down: bool = False):
+def declarative_kafka_demo():
     setup_example_logging()
     from .declarative.kafka_example import run
 
-    try:
-        run()
-    finally:
-        if auto_down:
-            manage_infrastructure("kafka", down=True)
+    run()
 
 
-def declarative_redis_demo(auto_down: bool = False):
+def declarative_redis_demo():
     setup_example_logging()
     from .declarative.redis_example import run
 
-    try:
-        run()
-    finally:
-        if auto_down:
-            manage_infrastructure("redis", down=True)
+    run()
 
 
 # ==========================================
@@ -147,7 +89,7 @@ def imperative_local_demo():
         logger.info("User gracefully interrupted the simulation.")
 
 
-def imperative_kafka_demo(auto_down: bool = False):
+def imperative_kafka_demo():
     """CLI entry point: Runs the Kafka-integrated simulation demo."""
     setup_example_logging()
     logger.info("Starting Kafka-integrated simulation...")
@@ -157,13 +99,9 @@ def imperative_kafka_demo(auto_down: bool = False):
         run()
     except KeyboardInterrupt:
         logger.info("User gracefully interrupted the simulation.")
-    finally:
-        if auto_down:
-            logger.info("Auto-teardown enabled. Cleaning up Kafka infrastructure...")
-            manage_infrastructure(profile="kafka", down=True)
 
 
-def imperative_postgres_demo(auto_down: bool = False):
+def imperative_postgres_demo():
     """CLI entry point: Runs the Postgres-integrated simulation demo."""
     setup_example_logging()
     logger.info("Starting Postgres-integrated simulation...")
@@ -173,13 +111,9 @@ def imperative_postgres_demo(auto_down: bool = False):
         run()
     except KeyboardInterrupt:
         logger.info("User gracefully interrupted the simulation.")
-    finally:
-        if auto_down:
-            logger.info("Auto-teardown enabled. Cleaning up Postgres infrastructure...")
-            manage_infrastructure(profile="postgres", down=True)
 
 
-def imperative_redis_demo(auto_down: bool = False):
+def imperative_redis_demo():
     """CLI entry point: Runs the Redis-integrated simulation demo."""
     setup_example_logging()
     logger.info("Starting Redis-integrated simulation...")
@@ -189,13 +123,9 @@ def imperative_redis_demo(auto_down: bool = False):
         run()
     except KeyboardInterrupt:
         logger.info("User gracefully interrupted the simulation.")
-    finally:
-        if auto_down:
-            logger.info("Auto-teardown enabled. Cleaning up Redis infrastructure...")
-            manage_infrastructure(profile="redis", down=True)
 
 
-def imperative_history_demo(auto_down: bool = False):
+def imperative_history_demo():
     """CLI entry point: Runs the historical batch generation demo."""
     setup_example_logging()
     logger.info("Starting historical data generation to S3/Parquet...")
@@ -205,10 +135,6 @@ def imperative_history_demo(auto_down: bool = False):
         run()
     except KeyboardInterrupt:
         logger.info("User gracefully interrupted the simulation.")
-    finally:
-        if auto_down:
-            logger.info("Auto-teardown enabled. Cleaning up storage infrastructure...")
-            manage_infrastructure(profile="storage", down=True)
 
 
 def kafka_dashboard_demo():
@@ -221,44 +147,3 @@ def kafka_dashboard_demo():
         run()
     except KeyboardInterrupt:
         logger.info("Dashboard shutdown requested.")
-
-
-# Infrastructure Wrappers
-def kafka_infra_up():
-    """Starts the Kafka Docker containers in the background."""
-    manage_infrastructure(profile="kafka", down=False)
-
-
-def kafka_infra_down():
-    """Stops and removes the Kafka Docker containers."""
-    manage_infrastructure(profile="kafka", down=True)
-
-
-def storage_infra_up():
-    """Starts the SeaweedFS/S3 Docker containers in the background."""
-    manage_infrastructure(profile="storage", down=False)
-
-
-def storage_infra_down():
-    """Stops and removes the SeaweedFS/S3 Docker containers."""
-    manage_infrastructure(profile="storage", down=True)
-
-
-def postgres_infra_up():
-    """Starts the Postgres Docker containers in the background."""
-    manage_infrastructure(profile="postgres", down=False)
-
-
-def postgres_infra_down():
-    """Stops and removes the Postgres Docker containers."""
-    manage_infrastructure(profile="postgres", down=True)
-
-
-def redis_infra_up():
-    """Starts the Redis Docker containers in the background."""
-    manage_infrastructure(profile="redis", down=False)
-
-
-def redis_infra_down():
-    """Stops and removes the Redis Docker containers."""
-    manage_infrastructure(profile="redis", down=True)

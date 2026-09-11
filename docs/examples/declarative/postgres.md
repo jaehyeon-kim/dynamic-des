@@ -52,8 +52,8 @@ This example also attaches a `PostgresIngress` listening to a `simulation_params
 You can easily run this demo using the pre-configured CLI entry points. **To test the dynamic ingress updates**, open a second terminal while the simulation is running and execute the SQL command below.
 
 ```bash
-# 1. Spin up the Postgres database via Docker Compose
-uv run ddes-postgres-infra-up
+# 1. Spin up the Postgres database with odctl
+odctl up postgres
 
 # 2. Run the declarative simulation
 uv run ddes-postgres
@@ -62,13 +62,13 @@ uv run ddes-postgres
 **In a second terminal, execute the dynamic parameter update:**
 ```bash
 # Connect to the database container and inject the parameter (maintains audit history!)
-docker exec -it postgres psql -U user -d ddes -c "INSERT INTO simulation_params (param_path, param_value) VALUES ('Store.arrival.customer_order.rate', '5.0');"
+docker exec -it postgres psql -U user -d odctl -c "INSERT INTO simulation_params (param_path, param_value) VALUES ('Store.arrival.customer_order.rate', '5.0');"
 ```
 *You will immediately see the simulation terminal log that the update was ingested and start generating orders much faster!*
 
 ```bash
 # 3. Clean up the infrastructure when finished
-uv run ddes-postgres-infra-down
+odctl down postgres --volumes
 ```
 
 ---

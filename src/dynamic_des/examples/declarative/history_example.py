@@ -54,7 +54,8 @@ def create_history_router(base_path: str):
 # entry-point wiring in examples/__init__.py, must not create a directory or reach out
 # to S3.
 use_s3 = os.getenv("USE_S3", "false").lower() == "true"
-base_path = os.getenv("DEST_PATH", "des-dev/history" if use_s3 else "data")
+# odctl-dev is one of the buckets the odctl `storage` profile creates.
+base_path = os.getenv("DEST_PATH", "odctl-dev/history" if use_s3 else "data")
 filesystem = None
 
 if use_s3:

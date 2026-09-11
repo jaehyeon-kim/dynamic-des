@@ -46,6 +46,15 @@ jobs:
       - name: Set up Python 3.10
         run: uv python install 3.10
 
+      # Example and test infrastructure comes from odctl, which the conftest
+      # drives with `odctl up` and `odctl down`. Without it on PATH every
+      # container-backed test skips instead of failing, so the job would pass
+      # while testing nothing.
+      - name: Install odctl
+        run: |
+          uv tool install odctl
+          echo "$(uv tool dir --bin)" >> "$GITHUB_PATH"
+
       - name: Run Integration Tests
         # Run tests/integration on a single baseline version
         run: uv run --all-extras pytest tests/integration/

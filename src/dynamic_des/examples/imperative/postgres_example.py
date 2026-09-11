@@ -17,7 +17,8 @@ from dynamic_des import (
 
 logger = logging.getLogger("postgres_example")
 
-DSN = "postgresql://user:password@localhost:5432/ddes"
+# Connection string matching the odctl `postgres` profile
+DSN = "postgresql://user:password@localhost:5432/odctl"
 
 
 async def init_db():

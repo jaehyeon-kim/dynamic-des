@@ -1085,7 +1085,6 @@ dependencies = [
     { name = "numpy", version = "2.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "orjson" },
     { name = "pydantic" },
-    { name = "python-on-whales" },
     { name = "simpy" },
 ]
 
@@ -1170,7 +1169,6 @@ requires-dist = [
     { name = "orjson", specifier = ">=3.10.0" },
     { name = "pyarrow", marker = "extra == 'parquet'", specifier = ">=14.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
-    { name = "python-on-whales", specifier = ">=0.70.0" },
     { name = "redis", marker = "extra == 'redis'", specifier = ">=5.0.0" },
     { name = "simpy", specifier = ">=4.0.0" },
 ]
@@ -2885,19 +2883,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/94/01/979e98d542a70714b0cb2b6728ed0b7c46792b695e3eaec3e20711271ca3/python_multipart-0.0.22.tar.gz", hash = "sha256:7340bef99a7e0032613f56dc36027b959fd3b30a787ed62d310e951f7c3a3a58", size = 37612, upload-time = "2026-01-25T10:15:56.219Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1b/d0/397f9626e711ff749a95d96b7af99b9c566a9bb5129b8e4c10fc4d100304/python_multipart-0.0.22-py3-none-any.whl", hash = "sha256:2b2cd894c83d21bf49d702499531c7bafd057d730c201782048f7945d82de155", size = 24579, upload-time = "2026-01-25T10:15:54.811Z" },
-]
-
-[[package]]
-name = "python-on-whales"
-version = "0.81.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pydantic" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e9/81/4b545de811e41ff90762a1c7045fcae215f20f4114eebddedab8eab6f63e/python_on_whales-0.81.0.tar.gz", hash = "sha256:bb6172014e3fe949f908092748bddf34df758cb92c2c3d0536b75bf236abce1b", size = 115066, upload-time = "2026-03-09T14:17:43.534Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a9/cb/5049e041a1d0e6f6cb6ac8737a8215fb4e67cb147f140ef31e67361dc61a/python_on_whales-0.81.0-py3-none-any.whl", hash = "sha256:6d5f81f56d0f95fd311a7cce29a01a1a60841074e4936000dc5f2dc9a7ffafac", size = 119240, upload-time = "2026-03-09T14:17:42.195Z" },
 ]
 
 [[package]]

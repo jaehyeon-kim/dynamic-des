@@ -54,7 +54,7 @@ pip install "dynamic-des[all]"
 
 ## Quick Start: Zero-Setup Demos
 
-Dynamic DES comes with built-in examples and infrastructure orchestration so you can see it in action immediately.
+Dynamic DES comes with built-in examples so you can see it in action immediately. Examples that need a broker, a database or an object store get it from [odctl](https://github.com/jaehyeon-kim/odctl), installed separately with `uv tool install odctl` or `pip install odctl`.
 
 **Run the local, dependency-free simulation:**
 
@@ -66,7 +66,7 @@ ddes-local
 
 ```bash
 # Start the background Kafka cluster (requires Docker)
-ddes-kafka-infra-up
+odctl up kafka-lite
 
 # Open a new terminal and run the simulation
 # Ctrl + C to stop
@@ -78,7 +78,7 @@ ddes-kafka
 ddes-kafka-dashboard
 
 # Clean up the infrastructure when finished
-ddes-kafka-infra-down
+odctl down kafka-lite --volumes
 ```
 
 The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:

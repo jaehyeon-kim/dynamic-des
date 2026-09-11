@@ -43,8 +43,7 @@ dependencies = [
     "simpy>=4.0.0",
     "numpy>=1.26.0",
     "orjson>=3.10.0",
-    "pydantic>=2.0.0",
-    "python-on-whales>=0.70.0"
+    "pydantic>=2.0.0"
 ]
 
 [project.urls]
@@ -108,21 +107,8 @@ dev = [
     "types-redis>=4.6.0",
 ]
 [project.scripts]
-# Infrastructure - Kafka
-ddes-kafka-infra-up = "dynamic_des.examples:kafka_infra_up"
-ddes-kafka-infra-down = "dynamic_des.examples:kafka_infra_down"
-
-# Infrastructure - Storage
-ddes-storage-infra-up = "dynamic_des.examples:storage_infra_up"
-ddes-storage-infra-down = "dynamic_des.examples:storage_infra_down"
-
-# Infrastructure - Postgres
-ddes-postgres-infra-up = "dynamic_des.examples:postgres_infra_up"
-ddes-postgres-infra-down = "dynamic_des.examples:postgres_infra_down"
-
-# Infrastructure - Redis
-ddes-redis-infra-up = "dynamic_des.examples:redis_infra_up"
-ddes-redis-infra-down = "dynamic_des.examples:redis_infra_down"
+# Example infrastructure is provisioned by odctl, not by this package. See
+# https://github.com/jaehyeon-kim/odctl and the Getting Started page.
 
 # Examples & Dashboard
 ddes-local = "dynamic_des.examples:declarative_local_demo"

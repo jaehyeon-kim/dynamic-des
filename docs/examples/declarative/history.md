@@ -16,17 +16,17 @@ uv run ddes-history
 ```
 
 To write to S3 instead, start the object store and set `USE_S3`. The chunks land
-under the `des-dev/history/` prefix, browsable at <http://localhost:8889>:
+under the `odctl-dev/history/` prefix, browsable at <http://localhost:8889>:
 
 ```bash
-# 1. Spin up SeaweedFS via Docker Compose
-uv run ddes-storage-infra-up
+# 1. Spin up SeaweedFS with odctl
+odctl up storage
 
 # 2. Run the simulation against S3
 USE_S3=true uv run ddes-history
 
 # 3. Clean up the infrastructure when finished
-uv run ddes-storage-infra-down
+odctl down storage --volumes
 ```
 
 `DEST_PATH`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY` override the
