@@ -48,6 +48,11 @@ def create_history_router(base_path: str):
 # ==========================================
 # 1. DUAL-MODE STORAGE CONFIGURATION
 # ==========================================
+# Reading environment variables and constructing the S3 client are safe at import.
+# Creating the destination is not, so it lives in ensure_destination() and runs from
+# run(). Importing this module for discovery, by a test collector, a docs build or the
+# entry-point wiring in examples/__init__.py, must not create a directory or reach out
+# to S3.
 use_s3 = os.getenv("USE_S3", "false").lower() == "true"
 base_path = os.getenv("DEST_PATH", "des-dev/history" if use_s3 else "data")
 filesystem = None
@@ -55,25 +60,44 @@ filesystem = None
 if use_s3:
     from pyarrow import fs
 
-    logger.info(f"Configuring S3 Egress. Target Bucket: '{base_path}'")
     filesystem = fs.S3FileSystem(
         access_key=os.getenv("S3_ACCESS_KEY", "user"),
         secret_key=os.getenv("S3_SECRET_KEY", "password"),
         endpoint_override=os.getenv("S3_ENDPOINT", "127.0.0.1:8333"),
         scheme="http",
     )
-    filesystem.create_dir(base_path)
-else:
-    logger.info(f"Configuring Local Egress. Target Folder: '{base_path}'")
-    os.makedirs(base_path, exist_ok=True)
+
+
+def ensure_destination() -> None:
+    """Create the target directory or bucket path, once the caller has asked to run."""
+    if use_s3 and filesystem is not None:
+        logger.info(f"Configuring S3 Egress. Target Bucket: '{base_path}'")
+        filesystem.create_dir(base_path)
+    else:
+        logger.info(f"Configuring Local Egress. Target Folder: '{base_path}'")
+        os.makedirs(base_path, exist_ok=True)
+
 
 router = create_history_router(base_path)
+
+# The week of backdating this example exists to demonstrate. It sits at module scope
+# because the builder below needs it, and the builder has to stay at module scope for
+# the decorators further down to attach to it. The imperative twin computes the same
+# value inside run(), where it has no such constraint.
+LOGICAL_START_TIME = datetime.now() - timedelta(days=7)
 
 # ==========================================
 # 2. Declarative Infrastructure Builder
 # ==========================================
 app = (
-    SimulationContext(sim_id="Line_A", factor=0.0, random_seed=42)
+    SimulationContext(
+        sim_id="Line_A",
+        factor=0.0,
+        random_seed=42,
+        # Without this the example logs that it is backdating a week and then timestamps
+        # every record from the current clock, which is the opposite of what it claims.
+        logical_start_time=LOGICAL_START_TIME,
+    )
     .add_egress(ParquetStorageEgress(path_router=router, filesystem=filesystem))
     .with_batching(batch_size=5000, flush_interval=86400)
     .add_resource("lathe", current_cap=4, max_cap=10)
@@ -121,9 +145,11 @@ def telemetry_generator(context):
 # ==========================================
 def run():
     """Generates 1 week of factory data instantly."""
-    start_time = datetime.now() - timedelta(days=7)
+    ensure_destination()
+
     logger.info(
-        f"Generating historical data mimicking start from {start_time.strftime('%Y-%m-%d %H:%M:%S')}"
+        "Generating historical data mimicking start from "
+        f"{LOGICAL_START_TIME.strftime('%Y-%m-%d %H:%M:%S')}"
     )
     logger.info("Fast-forwarding (factor=0.0)...")
 
