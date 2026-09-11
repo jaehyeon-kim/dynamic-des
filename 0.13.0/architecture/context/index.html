@@ -625,6 +625,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#clock-and-pacing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clock and Pacing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#statistical-profiles" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1220,7 +1231,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Guides
+    Integration Guides
   
 
     
@@ -1236,11 +1247,39 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Guides
+    Integration Guides
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/backfill-then-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live in One Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1358,7 +1397,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
     
@@ -1374,7 +1413,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
           </label>
@@ -1559,6 +1598,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#clock-and-pacing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Clock and Pacing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#statistical-profiles" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1633,6 +1683,10 @@
 <li><code>.add_resource(name, current_cap, max_cap)</code>: Stages a discrete token-based resource (e.g. machines, work areas).</li>
 <li><code>.add_container(name, current_cap, max_cap)</code>: Stages a continuous fluid-like container (e.g. storage tanks, battery charge levels).</li>
 <li><code>.add_variable(name, value)</code>: Stages generic variables or physical parameters (e.g. system conveyor speeds).</li>
+</ul>
+<h3 id="clock-and-pacing">Clock and Pacing</h3>
+<ul>
+<li><code>SimulationContext(..., go_live_at)</code>: Logical instant, measured from <code>logical_start_time</code>, at which <code>factor</code> gives way to real-time pacing. One run can therefore backfill unpaced and then tail live. See <a href="../../guides/backfill-then-live/">Backfill Then Go Live in One Run</a>.</li>
 </ul>
 <h3 id="statistical-profiles">Statistical Profiles</h3>
 <ul>

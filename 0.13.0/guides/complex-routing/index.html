@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../../examples/imperative/redis/">
+        <link rel="prev" href="../backfill-then-live/">
       
       
         <link rel="next" href="../avro-and-pydantic/">
@@ -1112,7 +1112,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Guides
+    Integration Guides
   
 
     
@@ -1128,11 +1128,39 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Guides
+    Integration Guides
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backfill-then-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live in One Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1319,7 +1347,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
     
@@ -1335,7 +1363,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
           </label>
@@ -1530,6 +1558,8 @@
 <h1 id="complex-routing-kafka">Complex Routing (Kafka)</h1>
 <p>In dynamic simulations, not all events are created equal. You may want standard event logs to go to one Kafka topic, system metrics to another, and critical error alarms to a high-priority alarm queue or dead-letter topic.</p>
 <p>Dynamic DES supports this via <strong>Topic Routing (Multiplexing)</strong>. Instead of hardcoding a single event topic, you can pass a dynamic <code>topic_router</code> function into your egress connectors.</p>
+<p>The snippets below publish to Kafka, so start a broker first with <code>odctl up kafka-lite</code>. See <a href="../../getting-started/">Getting Started</a> for the one-time odctl install. Tear it down with <code>odctl down kafka-lite --volumes</code>.</p>
+<p>odctl is a separate CLI, installed once with <code>uv tool install "odctl&gt;=0.5.1"</code> or <code>pip install "odctl&gt;=0.5.1"</code>.</p>
 <hr />
 <h2 id="writing-a-custom-router">Writing a Custom Router</h2>
 <p>A topic router is a standard Python function that receives a dictionary representing the serialized event payload, and returns the target topic name as a string (or <code>None</code> to drop the message entirely).</p>

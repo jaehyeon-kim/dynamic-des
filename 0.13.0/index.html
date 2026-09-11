@@ -1177,7 +1177,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Guides
+    Integration Guides
   
 
     
@@ -1193,11 +1193,39 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Guides
+    Integration Guides
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="guides/backfill-then-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live in One Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1315,7 +1343,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
     
@@ -1331,7 +1359,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
           </label>
@@ -1545,18 +1573,39 @@
 <hr />
 <h2 id="documentation-layout">Documentation Layout</h2>
 <ul>
-<li><strong><a href="getting-started/">Getting Started</a></strong>: Quick installation and zero-setup demo commands.</li>
-<li><strong>Basics (Tutorials)</strong>:</li>
+<li><strong><a href="getting-started/">Getting Started</a></strong>: Install, clone the examples, and start the containers they need.</li>
+<li><strong>Basics (Tutorials)</strong>:<ul>
 <li><strong><a href="tutorials/01-first-factory/">1. Your First Factory (Local)</a></strong>: Define a local factory lifecycle.</li>
 <li><strong><a href="tutorials/02-distributions-resources/">2. Adding Randomness and Rules</a></strong>: Add stochastic distributions and ingress scheduled capacity updates.</li>
 <li><strong><a href="tutorials/03-connecting-kafka/">3. Going Distributed (Kafka)</a></strong>: Connect standard simulation logic to live Kafka streams.</li>
-<li><strong>Core Architecture</strong>:</li>
+</ul>
+</li>
+<li><strong>Core Architecture</strong>:<ul>
 <li><strong><a href="architecture/paradigms/">Standard vs. Low-Level Paradigms</a></strong>: Declarative vs. Imperative styles.</li>
 <li><strong><a href="architecture/context/">Simulation Context</a></strong>: Chained builder details and temporal factor control.</li>
 <li><strong><a href="architecture/environment/">Realtime Environment</a></strong>: Temporal clocks and async background threads.</li>
-<li><strong><a href="architecture/connectors/">Ingress and Egress Connectors</a></strong>: Input/output flows and tuning.</li>
+<li><strong><a href="architecture/connectors/">Ingress and Egress Connectors</a></strong>: Input and output flows, fan-out and tuning.</li>
 <li><strong><a href="architecture/resources/">Resources and Containers</a></strong>: Dynamic SimPy wrappers.</li>
-<li><strong>API Reference</strong>:</li>
+</ul>
+</li>
+<li><strong>Examples</strong>, every script in the <code>examples/</code> folder, in both API styles:<ul>
+<li><strong>Standard API (Declarative)</strong>: <a href="examples/declarative/local/">Local</a>, <a href="examples/declarative/kafka/">Kafka</a>, <a href="examples/declarative/history/">Data Lake</a>, <a href="examples/declarative/postgres/">Postgres</a>, <a href="examples/declarative/redis/">Redis</a>.</li>
+<li><strong>Low-Level API (Imperative)</strong>: <a href="examples/imperative/local/">Local</a>, <a href="examples/imperative/kafka/">Kafka</a>, <a href="examples/imperative/history/">Data Lake</a>, <a href="examples/imperative/postgres/">Postgres</a>, <a href="examples/imperative/redis/">Redis</a>.</li>
+</ul>
+</li>
+<li><strong>Integration Guides</strong>, getting data in and out:<ul>
+<li><strong><a href="guides/backfill-then-live/">Backfill Then Go Live in One Run</a></strong>: History unpaced, then a real-time tail, from one call.</li>
+<li><strong><a href="guides/complex-routing/">Complex Routing (Kafka)</a></strong>: Send records to different topics from one run.</li>
+<li><strong><a href="guides/avro-and-pydantic/">Advanced Serialization (Avro and Pydantic)</a></strong>: Schema-validated binary payloads.</li>
+<li><strong><a href="guides/kafka-security/">Connecting to Secure Kafka</a></strong>: SASL, mTLS, OAuth and AWS IAM.</li>
+</ul>
+</li>
+<li><strong>Modelling Patterns</strong>, shaping what the simulation does:<ul>
+<li><strong><a href="guides/multi-resource-handoffs/">Multi-Resource Handoffs</a></strong>: One task holding several resources.</li>
+<li><strong><a href="guides/preemptive-breakdowns/">Preemptive Machine Breakdowns</a></strong>: Interrupting work already in progress.</li>
+<li><strong><a href="guides/dynamic-topology/">Absolute Edge Cases (Dynamic Topology)</a></strong>: Changing the model while it runs.</li>
+</ul>
+</li>
 <li><strong><a href="api/">API Reference</a></strong>: Technical reference for all public classes.</li>
 </ul>
 

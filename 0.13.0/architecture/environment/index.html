@@ -652,6 +652,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#3-both-in-one-run-go_live_at" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Both, in one run (go_live_at)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1209,7 +1220,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Guides
+    Integration Guides
   
 
     
@@ -1225,11 +1236,39 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Guides
+    Integration Guides
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/backfill-then-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live in One Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1347,7 +1386,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
     
@@ -1363,7 +1402,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
           </label>
@@ -1547,6 +1586,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#3-both-in-one-run-go_live_at" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Both, in one run (go_live_at)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1595,24 +1645,39 @@
 <h3 id="2-fast-forward-batch-mode-factor00">2. Fast-Forward / Batch Mode (<code>factor=0.0</code>)</h3>
 <p>When <code>factor=0.0</code> (the default), the environment operates at maximum CPU speed without matching the real-world clock. Simulated timeouts take 0.0 seconds of real-world time to execute.
 * <strong>Use Case</strong>: Fast-forwarding historical backfills, batch forecasting, and executing integration tests instantly.</p>
+<h3 id="3-both-in-one-run-go_live_at">3. Both, in one run (<code>go_live_at</code>)</h3>
+<p><code>factor</code> applies until the logical clock reaches <code>go_live_at</code>, and from that instant the run is paced at one simulated second per real second. With a backdated <code>logical_start_time</code> and <code>factor=0.0</code>, a single run generates the history as fast as the machine allows and then keeps going in real time.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">go_live_at</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">env</span> <span class="o">=</span> <span class="n">DynamicRealtimeEnvironment</span><span class="p">(</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">factor</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">logical_start_time</span><span class="o">=</span><span class="n">go_live_at</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">),</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">go_live_at</span><span class="o">=</span><span class="n">go_live_at</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
+</span></code></pre></div>
+<ul>
+<li><strong>Use Case</strong>: Seeding a lake with history and then feeding a live stream, without a second process.</li>
+<li>An instant at or before <code>logical_start_time</code> paces the whole run, and a run that ends first is left unpaced. Both datetimes must be naive, or both timezone-aware.</li>
+<li>See <a href="../../guides/backfill-then-live/">Backfill Then Go Live in One Run</a> for the full pattern, including how to route the two halves to different sinks.</li>
+</ul>
 <hr />
 <h2 id="threading-and-asynchronous-io">Threading and Asynchronous I/O</h2>
 <p>Standard SimPy environments are single-threaded and synchronous. Performing heavy network operations (like writing to a Kafka broker or reading from S3) directly inside a SimPy process would block the entire simulation loop.</p>
 <p>To resolve this, the <code>DynamicRealtimeEnvironment</code> coordinates background operations:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────┐
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│              SimPy Environment Thread                   │
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│  - Runs discrete event loop                             │
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│  - Increments simulation clock                          │
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>│  - Pushes raw events to Egress Queue                    │
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└──────────────────────────┬──────────────────────────────┘
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>                           │ Thread-Safe Queue
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>                           v
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>┌─────────────────────────────────────────────────────────┐
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│               Background I/O Thread                     │
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│  - Runs asyncio loop                                    │
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│  - Batch-drains queue                                   │
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│  - Handles socket I/O (Kafka / Object Storage)          │
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>└─────────────────────────────────────────────────────────┘
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>┌─────────────────────────────────────────────────────────┐
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>│              SimPy Environment Thread                   │
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>│  - Runs discrete event loop                             │
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>│  - Increments simulation clock                          │
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>│  - Pushes raw events to Egress Queue                    │
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>└──────────────────────────┬──────────────────────────────┘
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>                           │ Thread-Safe Queue
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>                           v
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>┌─────────────────────────────────────────────────────────┐
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>│               Background I/O Thread                     │
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>│  - Runs asyncio loop                                    │
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>│  - Batch-drains queue                                   │
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>│  - Handles socket I/O (Kafka / Object Storage)          │
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>└─────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <ol>
 <li><strong>SimPy Thread</strong>: Executes SimPy processes and yields timeouts. When a process publishes telemetry, the event is immediately pushed to a thread-safe in-memory queue.</li>

@@ -1112,7 +1112,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Guides
+    Integration Guides
   
 
     
@@ -1128,11 +1128,39 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Guides
+    Integration Guides
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backfill-then-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live in One Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1358,7 +1386,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
     
@@ -1374,7 +1402,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
           </label>
@@ -1608,6 +1636,8 @@
 <h1 id="advanced-serialization-avro-pydantic">Advanced Serialization: Avro &amp; Pydantic</h1>
 <p>By default, <code>KafkaEgress</code> strictly dumps all payloads as highly optimized JSON. While great for lightweight lifecycle and telemetry events, high-velocity ML streams (like <code>PredictionRequests</code>) often require compact, schema-validated binary payloads using Avro.</p>
 <p>Dynamic DES provides a <strong>Pluggable Serialization Strategy</strong>, allowing you to seamlessly mix JSON and Avro streams on the exact same connection, while natively supporting Pydantic validation.</p>
+<p>The snippets below publish to Kafka, so start a broker first with <code>odctl up kafka-lite</code>. See <a href="../../getting-started/">Getting Started</a> for the one-time odctl install. Tear it down with <code>odctl down kafka-lite --volumes</code>.</p>
+<p>odctl is a separate CLI, installed once with <code>uv tool install "odctl&gt;=0.5.1"</code> or <code>pip install "odctl&gt;=0.5.1"</code>.</p>
 <h2 id="pydantic-duck-typing">Pydantic Duck-Typing</h2>
 <p>You do not need to convert your data to dictionaries manually. <code>KafkaEgress</code> uses duck-typing to automatically detect and extract data from Pydantic V1 and V2 models.</p>
 <p>You can yield raw, strongly-typed models directly from your simulation logic:</p>

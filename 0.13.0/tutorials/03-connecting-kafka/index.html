@@ -1203,7 +1203,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Guides
+    Integration Guides
   
 
     
@@ -1219,11 +1219,39 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Guides
+    Integration Guides
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/backfill-then-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live in One Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1341,7 +1369,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
     
@@ -1357,7 +1385,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
           </label>
@@ -1578,9 +1606,10 @@
 <p>First, make sure you install the <code>kafka</code> optional dependencies:
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka]&quot;</span>
 </span></code></pre></div></p>
-<p>Bring up a local Kafka cluster (or use the built-in orchestration helper):
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ddes-kafka-infra-up
+<p>Bring up a local Kafka cluster with <a href="https://github.com/jaehyeon-kim/odctl">odctl</a>, installed separately with <code>uv tool install odctl</code> or <code>pip install odctl</code>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>odctl<span class="w"> </span>up<span class="w"> </span>kafka-lite
 </span></code></pre></div></p>
+<p>odctl is a separate CLI, installed once with <code>uv tool install "odctl&gt;=0.5.1"</code> or <code>pip install "odctl&gt;=0.5.1"</code>.</p>
 <hr />
 <h2 id="2-transitioning-to-kafka-connectors">2. Transitioning to Kafka Connectors</h2>
 <p>Swapping from a local script to a distributed twin is simple: we replace <code>ConsoleEgress</code> and <code>LocalIngress</code> with <code>KafkaEgress</code> and <code>KafkaIngress</code> respectively.</p>

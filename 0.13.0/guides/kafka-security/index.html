@@ -1112,7 +1112,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Guides
+    Integration Guides
   
 
     
@@ -1128,11 +1128,39 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Guides
+    Integration Guides
   
 
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backfill-then-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live in One Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1330,7 +1358,7 @@
   <span class="md-ellipsis">
     
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
     
@@ -1346,7 +1374,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Advanced Control Flows
+    Modelling Patterns
   
 
           </label>
@@ -1553,6 +1581,8 @@
 <p>Dynamic DES natively supports enterprise Kafka security protocols (SASL, mTLS, OAuth, AWS IAM) without requiring custom code.</p>
 <p>Because our connectors (<code>KafkaIngress</code>, <code>KafkaEgress</code>, and <code>KafkaAdminConnector</code>) wrap the <code>aiokafka</code> and <code>kafka-python</code> libraries, they utilize a <code>**kwargs</code> passthrough pattern. This means you can inject any standard connection argument from those libraries directly into your Dynamic DES classes.</p>
 <p>Below are examples of how to connect to various secure enterprise environments.</p>
+<p>Every example here connects to a managed or secured cluster, so no local container is involved. To try the connectors locally without security instead, start a broker with <code>odctl up kafka-lite</code> and see <a href="../../getting-started/">Getting Started</a>.</p>
+<p>odctl is a separate CLI, installed once with <code>uv tool install "odctl&gt;=0.5.1"</code> or <code>pip install "odctl&gt;=0.5.1"</code>.</p>
 <h2 id="confluent-cloud-sasl-plain">Confluent Cloud (SASL PLAIN)</h2>
 <p>To connect to Confluent Cloud (or any cluster using standard SASL PLAIN/SCRAM), pass the <code>security_protocol</code>, <code>sasl_mechanism</code>, and credentials as keyword arguments.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dynamic_des</span><span class="w"> </span><span class="kn">import</span> <span class="n">KafkaEgress</span>
