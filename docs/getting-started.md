@@ -59,11 +59,9 @@ Each example needs one odctl profile, started before you run it and torn down af
 
 Kafka and Redis are the two whose profile names are not what you would guess, because odctl ships a one-broker Kafka as `kafka-lite` and uses Valkey rather than Redis.
 
-### What changed
+### Endpoints these profiles publish
 
-Dynamic DES used to ship its own `docker-compose.yml` and a set of `ddes-*` console scripts. Both are gone. odctl provides the containers, and the examples live in `examples/` at the repository root, run directly with `uv run`.
-
-Three endpoints moved with the switch. The Postgres database is now `odctl` rather than `ddes`. The object store bucket is `odctl-dev` rather than `des-dev`. Valkey now requires the `user` / `password` credentials, so the connection URL is `redis://user:password@localhost:6379/0`.
+The Postgres database is `odctl`. The object store bucket is `odctl-dev`. Valkey requires the `user` / `password` credentials, so the connection URL is `redis://user:password@localhost:6379/0`.
 
 ---
 
