@@ -131,6 +131,50 @@ def test_logical_start_time_forwarding(MockEnv):
     MockEnv.assert_called_once_with(factor=0.0, logical_start_time=start)
 
 
+@patch("dynamic_des.core.context.DynamicRealtimeEnvironment")
+def test_go_live_at_forwarding(MockEnv):
+    """Validates that a go-live instant is forwarded to the environment."""
+    from datetime import datetime, timedelta
+
+    start = datetime(2024, 1, 1, 12, 0, 0)
+    go_live = start + timedelta(hours=1)
+    app = SimulationContext(
+        "TestSim", factor=0.0, logical_start_time=start, go_live_at=go_live
+    )
+    app.run(until=1)
+
+    MockEnv.assert_called_once_with(
+        factor=0.0, logical_start_time=start, go_live_at=go_live
+    )
+
+
+def test_go_live_at_switches_pacing_during_a_builder_run():
+    """The backfill-then-live run: fast until the go-live instant, real time after it."""
+    from datetime import datetime, timedelta
+
+    start = datetime(2024, 1, 1, 12, 0, 0)
+    app = SimulationContext(
+        "TestSim",
+        factor=0.0,
+        logical_start_time=start,
+        go_live_at=start + timedelta(seconds=0.5),
+    )
+
+    seen: list = []
+
+    @app.telemetry_loop(interval=0.25)
+    def watch(context):
+        seen.append((round(context.env.now, 3), context.env.factor))
+
+    app.run(until=1.0)
+
+    before = [factor for sim_time, factor in seen if sim_time < 0.5]
+    after = [factor for sim_time, factor in seen if sim_time >= 0.5]
+
+    assert before and set(before) == {0.0}
+    assert len(after) >= 2 and set(after) == {1.0}
+
+
 def test_lightweight_integration():
     """
     A full fast-forward integration test to ensure decorators yield correctly,

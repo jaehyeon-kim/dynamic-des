@@ -46,3 +46,8 @@ async def test_console_egress(caplog):
 
     assert "[TEL] {'path_id': 'test', 'value': 1}" in caplog.text
     assert "[EVT] {'key': 'task-1', 'value': {'status': 'ok'}}" in caplog.text
+
+    # Every egress provider receives the same dictionaries, so printing must not
+    # take stream_type away from another sink attached to the same simulation.
+    assert batch[0]["stream_type"] == "telemetry"
+    assert batch[1]["stream_type"] == "event"

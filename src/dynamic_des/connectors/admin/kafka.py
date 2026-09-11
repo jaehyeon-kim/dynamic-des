@@ -26,7 +26,7 @@ class KafkaAdminConnector:
         kwargs (dict): Additional arguments passed to Kafka clients.
     """
 
-    def __init__(self, bootstrap_servers: str, max_tasks: int = 100, **kwargs):
+    def __init__(self, bootstrap_servers: str, max_tasks: int = 100, **kwargs: Any):
         """
         Initialize the connector with broker settings and state limits.
 

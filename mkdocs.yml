@@ -33,6 +33,13 @@ plugins:
             show_root_toc_entry: true # Ensures class appears in TOC
             show_root_heading: true # Shows the class name as a heading
             show_category_heading: true # Groups methods, attributes, etc.
+            # The constructor arguments belong under the class, not in a separate
+            # "Functions" entry called __init__, which tells a reader nothing.
+            merge_init_into_class: true
+            # The default filter hides _private but not dunders, so __init__ and its
+            # siblings appeared in the page. This hides every underscore name.
+            filters: ["!^_"]
+            docstring_section_style: table
 
 extra:
   version:
@@ -64,11 +71,12 @@ nav:
           - Fast-Forward to Data Lake: examples/imperative/history.md
           - Relational DB (Postgres): examples/imperative/postgres.md
           - In-Memory Store (Redis): examples/imperative/redis.md
-  - Advanced Guides:
+  - Integration Guides:
+      - Backfill Then Go Live in One Run: guides/backfill-then-live.md
       - Complex Routing (Kafka): guides/complex-routing.md
       - Advanced Serialization (Avro and Pydantic): guides/avro-and-pydantic.md
       - Connecting to Secure Kafka: guides/kafka-security.md
-  - Advanced Control Flows:
+  - Modelling Patterns:
       - Multi-Resource Handoffs (Hybrid Pattern): guides/multi-resource-handoffs.md
       - Preemptive Machine Breakdowns (Hybrid Pattern): guides/preemptive-breakdowns.md
       - Absolute Edge Cases (Dynamic Topology): guides/dynamic-topology.md

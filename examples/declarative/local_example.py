@@ -1,6 +1,24 @@
+"""Local simulation, declarative API, no containers.
+
+The smallest complete example. `Factory_A` is built with `SimulationContext` and writes
+to `ConsoleEgress`, so events and telemetry are printed to the terminal and nothing
+external is involved.
+
+Start here. It needs no broker, no database and no object store, and it ends on its own
+after 60 simulation seconds.
+"""
+
 import logging
 
 from dynamic_des import ConsoleEgress, SimulationContext
+
+# Logging is configured here rather than in a wrapper, because this script is run
+# directly. Without it the run produces no output at all.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%H:%M:%S",
+)
 
 logger = logging.getLogger(__name__)
 

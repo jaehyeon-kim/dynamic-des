@@ -48,38 +48,89 @@ pip install "dynamic-des[kafka,glue]"
 # For Data Lake Storage (Parquet & PyArrow VFS)
 pip install "dynamic-des[parquet]"
 
-# For all backends (Kafka, Redis, Postgres, Dashboard, Avro, Parquet)
+# For all backends (Kafka, Redis, Postgres, Avro, Parquet)
 pip install "dynamic-des[all]"
 ```
 
-## Quick Start: Zero-Setup Demos
+## Quick Start: Running an Example
 
-Dynamic DES comes with built-in examples and infrastructure orchestration so you can see it in action immediately.
-
-**Run the local, dependency-free simulation:**
+Dynamic DES ships runnable examples in the [`examples/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) folder of this repository. Download the ones you want, then run them.
 
 ```bash
-ddes-local
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/local_example.py
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/kafka_example.py
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/kafka_dashboard.py
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/backfill_live_example.py
 ```
 
-**Run the full Real-Time Digital Twin stack with Kafka and a live UI:**
+### With uv
 
 ```bash
-# Start the background Kafka cluster (requires Docker)
-ddes-kafka-infra-up
+# 1. Install odctl, which runs the containers
+uv tool install "odctl>=0.5.1"
 
-# Open a new terminal and run the simulation
-# Ctrl + C to stop
-ddes-kafka
+# 2. Local, dependency-free simulation
+uv run --no-project --with dynamic-des local_example.py
 
-# Open a new terminal and start the control dashboard (opens in browser)
-# Visit http://localhost:8080
-# Ctrl + C to stop
-ddes-kafka-dashboard
+# 3. Start the Kafka broker and schema registry (requires Docker)
+odctl up kafka-lite
 
-# Clean up the infrastructure when finished
-ddes-kafka-infra-down
+# 4. Run the real-time digital twin (Ctrl + C to stop)
+uv run --no-project --with "dynamic-des[kafka]" kafka_example.py
+
+# 5. In a second terminal, watch and steer the run from the dashboard. It serves
+#    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
+uv run --no-project --with "dynamic-des[kafka]" --with nicegui kafka_dashboard.py
+
+# 6. Backfill ten minutes of history to Parquet, generated instantly rather than
+#    waited for, then tail live to Kafka for sixty seconds
+uv run --no-project --with "dynamic-des[kafka,parquet]" backfill_live_example.py
+
+# 7. Clean up the infrastructure when finished
+odctl down kafka-lite --volumes
 ```
+
+### With pip
+
+```bash
+# 1. Install the package with both extras, odctl for the containers and
+#    nicegui for the dashboard
+pip install "dynamic-des[kafka,parquet]" "odctl>=0.5.1" nicegui
+
+# 2. Local, dependency-free simulation
+python local_example.py
+
+# 3. Start the Kafka broker and schema registry (requires Docker)
+odctl up kafka-lite
+
+# 4. Run the real-time digital twin (Ctrl + C to stop)
+python kafka_example.py
+
+# 5. In a second terminal, watch and steer the run from the dashboard. It serves
+#    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
+python kafka_dashboard.py
+
+# 6. Backfill ten minutes of history to Parquet, generated instantly rather than
+#    waited for, then tail live to Kafka for sixty seconds
+python backfill_live_example.py
+
+# 7. Clean up the infrastructure when finished
+odctl down kafka-lite --volumes
+```
+
+Examples that need a broker, a database or an object store get their container from [odctl](https://github.com/jaehyeon-kim/odctl). Start the profile an example needs before you run it, and stop it with `odctl down <profile> --volumes` when you are finished. Kafka and Redis are the two whose odctl profile names differ, because odctl ships a one-broker Kafka as `kafka-lite` and uses Valkey rather than Redis.
+
+| Profile | Start | Needed by |
+|---|---|---|
+| kafka-lite | `odctl up kafka-lite` | `declarative/kafka_example.py`, `imperative/kafka_example.py`, `declarative/backfill_live_example.py`, `kafka_dashboard.py` |
+| postgres | `odctl up postgres` | `declarative/postgres_example.py`, `imperative/postgres_example.py` |
+| valkey | `odctl up valkey` | `declarative/redis_example.py`, `imperative/redis_example.py` |
+| storage | `odctl up storage` | `declarative/history_example.py` with `USE_S3=true` |
+
+Paths in that table are relative to the `examples/` folder. `declarative/local_example.py` needs no container, and `declarative/history_example.py` needs one only when `USE_S3=true`.
+
+Guide: [Backfill then live](https://jaehyeon-kim.github.io/dynamic-des/guides/backfill-then-live/).
+
 
 The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
 
@@ -187,7 +238,7 @@ Used for discrete task lifecycle events (e.g., a part arriving, entering a queue
 
 ### More Examples
 
-For more examples, including implementations using **Kafka** providers, please explore the [examples](./src/dynamic_des/examples/) folder.
+For more examples, including implementations using **Kafka** providers, please explore the [examples](./examples/) folder, which has its own README naming what to install and which odctl profile each one needs.
 
 ## Core Concepts
 

@@ -1,3 +1,14 @@
+"""Kafka Digital Twin, declarative API.
+
+Builds `Line_A` with `SimulationContext` and connects it to Kafka in both directions.
+`KafkaIngress` reads parameter updates from `sim-config`, so the running simulation can
+be steered without restarting it. `KafkaEgress` publishes lifecycle events to
+`sim-events` and metrics to `sim-telemetry`, with Pydantic models giving the events a
+declared shape.
+
+Needs a broker: `odctl up kafka-lite`. Runs until interrupted with Ctrl + C.
+"""
+
 import logging
 import os
 import time

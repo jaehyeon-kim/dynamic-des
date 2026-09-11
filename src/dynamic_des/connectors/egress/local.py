@@ -41,11 +41,15 @@ class ConsoleEgress(BaseEgress):
 
                 for data in batch:
                     # Identify the stream type for the prefix
-                    stream = data.pop("stream_type", "unknown")
+                    stream = data.get("stream_type", "unknown")
                     prefix = "[TEL]" if stream == "telemetry" else "[EVT]"
 
-                    # Log the remaining data (path_id/key, value, timestamp)
-                    logger.info(f"{prefix} {data}")
+                    # Log the remaining data (path_id/key, value, timestamp) without
+                    # altering the record. Every egress provider is handed the same
+                    # dictionary objects, so removing a key here would also remove it
+                    # from what another attached sink writes.
+                    rest = {k: v for k, v in data.items() if k != "stream_type"}
+                    logger.info(f"{prefix} {rest}")
 
             except queue.Empty:
                 # Yield to the event loop

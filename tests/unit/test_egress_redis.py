@@ -1,6 +1,7 @@
 import asyncio
+import json
 import queue
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -49,3 +50,37 @@ async def test_redis_egress():
         # Check third call (custom stream)
         args, _ = mock_pipe.xadd.call_args_list[2]
         assert args[0] == "custom_stream"
+
+
+@pytest.mark.asyncio
+async def test_stream_key_is_read_from_the_nested_payload():
+    """`publish_event` nests the caller's dict under `value`, so `__stream__` is there
+    rather than at the top level. Reading only the top level sent every record to the
+    default stream and the documented routing silently did nothing."""
+    egress = RedisEgress("redis://localhost:6379", stream_name="default_events")
+    egress.client = AsyncMock()
+    pipe = AsyncMock()
+    egress.client.pipeline = MagicMock(return_value=pipe)
+
+    q: queue.Queue = queue.Queue()
+    q.put(
+        [
+            {
+                "stream_type": "event",
+                "key": "part-1",
+                "value": {"__stream__": "part_events", "status": "queued"},
+            },
+            {"stream_type": "telemetry", "value": {"metric": 1}},
+        ]
+    )
+
+    task = asyncio.create_task(egress.run(q))
+    await asyncio.sleep(0.2)
+    task.cancel()
+
+    targets = [call.args[0] for call in pipe.xadd.call_args_list]
+    assert targets == ["part_events", "default_events"]
+
+    routed = json.loads(pipe.xadd.call_args_list[0].args[1]["payload"])
+    assert "__stream__" not in routed["value"], "the key should not reach the stream"
+    assert routed["value"] == {"status": "queued"}

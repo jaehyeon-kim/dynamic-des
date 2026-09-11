@@ -200,11 +200,12 @@ class KafkaEgress(BaseEgress):
     (e.g., splitting ML vs. UI events).
 
     Note:
-        `stream_type` is routing metadata, so it is removed from the record before
-        serialization and does not appear in the published message. The topic
-        already identifies the stream, so consumers filter by topic rather than by
-        field. This differs from `ParquetStorageEgress`, which keeps `stream_type`
-        as a column in the written files.
+        By default `stream_type` is treated as routing metadata and is left out of
+        the published message, because the topic already identifies the stream.
+        `ParquetStorageEgress` keeps `stream_type` as a column, so a downstream
+        filter written against Parquet files matches nothing when it is pointed at
+        a Kafka topic. Set `include_stream_type=True` to keep the field in the
+        message and make both paths carry it.
 
     Attributes:
         bootstrap_servers (str): Comma-separated list of Kafka brokers.
@@ -213,6 +214,7 @@ class KafkaEgress(BaseEgress):
         topic_router (Callable): Optional external logic to determine the topic.
         topic_serializers (Optional[Dict[str, MessageSerializer]]): Optional mapping of topics to specific serializers.
         default_serializer (Optional[MessageSerializer]): Fallback serializer if a topic is not in `topic_serializers`.
+        include_stream_type (bool): Whether the published message keeps the `stream_type` field.
         producer_config (dict): Configuration dictionary passed to AIOKafkaProducer.
 
     Examples:
@@ -250,6 +252,7 @@ class KafkaEgress(BaseEgress):
         topic_router: Optional[Callable[[dict], str]] = None,
         topic_serializers: Optional[Dict[str, MessageSerializer]] = None,
         default_serializer: Optional[MessageSerializer] = None,
+        include_stream_type: bool = False,
         **kwargs: Any,
     ):
         """
@@ -262,11 +265,20 @@ class KafkaEgress(BaseEgress):
             topic_router: Optional callable to dynamically route payloads to specific topics.
             topic_serializers: Mapping of target topics to their specific `MessageSerializer` implementations.
             default_serializer: The fallback serializer to use if a topic lacks a specific mapping. Defaults to `JsonSerializer`.
+            include_stream_type: Keep `stream_type` in the published message. Defaults to
+                False, which is the wire format every existing deployment already reads.
+                Turn it on when the same consumer code has to work against both a Kafka
+                topic and Parquet files, since the Parquet writer keeps the field.
+                An Avro serializer only carries the field if the registered schema
+                declares it: both `ConfluentAvroSerializer` and `GlueAvroSerializer`
+                encode field by field from the schema, so an undeclared `stream_type`
+                is dropped without an error rather than failing the send.
             **kwargs: Additional overrides for the AIOKafkaProducer configuration.
         """
         self.telemetry_topic = telemetry_topic
         self.event_topic = event_topic
         self.topic_router = topic_router
+        self.include_stream_type = include_stream_type
 
         # Initialize serializers in a backward-compatible way
         self.topic_serializers = topic_serializers or {}
@@ -319,10 +331,10 @@ class KafkaEgress(BaseEgress):
                                 if self.topic_router:
                                     # Use externalized logic if provided
                                     topic = self.topic_router(data)
-                                    stream = data.pop("stream_type", "event")
+                                    stream = data.get("stream_type", "event")
                                 else:
                                     # Fallback to standard dynamic-des routing
-                                    stream = data.pop("stream_type")
+                                    stream = data["stream_type"]
                                     topic = (
                                         self.telemetry_topic
                                         if stream == "telemetry"
@@ -344,11 +356,24 @@ class KafkaEgress(BaseEgress):
                                         else None
                                     )
 
+                                # Build the payload without touching the record itself.
+                                # Every egress provider receives the same dictionary
+                                # objects, so removing a key here would also remove it
+                                # from what a Parquet or Redis sink writes.
+                                if self.include_stream_type:
+                                    payload = data
+                                else:
+                                    payload = {
+                                        k: v
+                                        for k, v in data.items()
+                                        if k != "stream_type"
+                                    }
+
                                 # Apply configured Serializer strategy
                                 serializer = self.topic_serializers.get(
                                     topic, self.default_serializer
                                 )
-                                payload_bytes = serializer.serialize(topic, data)
+                                payload_bytes = serializer.serialize(topic, payload)
 
                                 await producer.send(topic, value=payload_bytes, key=key)
 

@@ -4,6 +4,10 @@ In dynamic simulations, not all events are created equal. You may want standard 
 
 Dynamic DES supports this via **Topic Routing (Multiplexing)**. Instead of hardcoding a single event topic, you can pass a dynamic `topic_router` function into your egress connectors.
 
+The snippets below publish to Kafka, so start a broker first with `odctl up kafka-lite`. See [Getting Started](../getting-started.md) for the one-time odctl install. Tear it down with `odctl down kafka-lite --volumes`.
+
+odctl is a separate CLI, installed once with `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
+
 ---
 
 ## Writing a Custom Router

@@ -1,3 +1,13 @@
+"""Local simulation with scheduled parameter changes, imperative API.
+
+The low-level twin of `declarative/local_example.py`, built on
+`DynamicRealtimeEnvironment` directly. It adds what the declarative version does not
+have: `LocalIngress` schedules two capacity changes, so the lathe goes from 1 to 3 at
+t=10s and down to 2 at t=20s, and the telemetry shows the effect.
+
+Needs no containers. Ends on its own after 30 simulation seconds.
+"""
+
 import logging
 
 import numpy as np
@@ -103,3 +113,7 @@ def run():
         env.run(until=30)
     finally:
         env.teardown()
+
+
+if __name__ == "__main__":
+    run()

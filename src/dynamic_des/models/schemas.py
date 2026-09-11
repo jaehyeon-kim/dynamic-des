@@ -25,8 +25,9 @@ class TelemetryPayload(BaseStreamPayload):
     """
     Schema for low-volume, single-metric telemetry updates.
 
-    This payload is used for publishing continuous system state variables—such as resource
-    utilization, queue lengths, or system lag—typically used for real-time dashboards.
+    This payload is used for publishing continuous system state variables, such as
+    resource utilization, queue lengths, or system lag, typically used for real-time
+    dashboards.
 
     Attributes:
         stream_type (Literal["telemetry"]): Hardcoded to "telemetry" for downstream routing.

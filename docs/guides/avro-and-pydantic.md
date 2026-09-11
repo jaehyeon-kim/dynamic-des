@@ -4,6 +4,10 @@ By default, `KafkaEgress` strictly dumps all payloads as highly optimized JSON. 
 
 Dynamic DES provides a **Pluggable Serialization Strategy**, allowing you to seamlessly mix JSON and Avro streams on the exact same connection, while natively supporting Pydantic validation.
 
+The snippets below publish to Kafka, so start a broker first with `odctl up kafka-lite`. See [Getting Started](../getting-started.md) for the one-time odctl install. Tear it down with `odctl down kafka-lite --volumes`.
+
+odctl is a separate CLI, installed once with `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
+
 ## Pydantic Duck-Typing
 
 You do not need to convert your data to dictionaries manually. `KafkaEgress` uses duck-typing to automatically detect and extract data from Pydantic V1 and V2 models.

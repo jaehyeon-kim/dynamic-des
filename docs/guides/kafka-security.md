@@ -6,6 +6,10 @@ Because our connectors (`KafkaIngress`, `KafkaEgress`, and `KafkaAdminConnector`
 
 Below are examples of how to connect to various secure enterprise environments.
 
+Every example here connects to a managed or secured cluster, so no local container is involved. To try the connectors locally without security instead, start a broker with `odctl up kafka-lite` and see [Getting Started](../getting-started.md).
+
+odctl is a separate CLI, installed once with `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
+
 ## Confluent Cloud (SASL PLAIN)
 
 To connect to Confluent Cloud (or any cluster using standard SASL PLAIN/SCRAM), pass the `security_protocol`, `sasl_mechanism`, and credentials as keyword arguments.

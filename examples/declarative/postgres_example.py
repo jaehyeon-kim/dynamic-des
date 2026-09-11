@@ -1,3 +1,13 @@
+"""Relational output with table multiplexing, declarative API.
+
+`Store` writes interrelated commerce data to PostgreSQL. Two `PostgresEgress` instances
+are attached, one per table, and each keeps only the records whose `__table__` key
+matches its own `table_name`, so one event stream fills `orders` and `order_items`
+correctly. `PostgresIngress` polls `simulation_params` for parameter updates.
+
+Needs a database: `odctl up postgres`. Runs until interrupted with Ctrl + C.
+"""
+
 import asyncio
 import logging
 import random
@@ -9,8 +19,8 @@ from dynamic_des import PostgresEgress, PostgresIngress, SimulationContext
 
 logger = logging.getLogger(__name__)
 
-# Connection string matching docker-compose
-DSN = "postgresql://user:password@localhost:5432/ddes"
+# Connection string matching the odctl `postgres` profile
+DSN = "postgresql://user:password@localhost:5432/odctl"
 
 app = (
     SimulationContext(sim_id="Store", factor=1.0)

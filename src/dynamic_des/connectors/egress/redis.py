@@ -70,10 +70,25 @@ class RedisEgress(BaseEgress):
                 pipe = self.client.pipeline()
                 count = 0
                 for item in batch:
-                    # Support multi-stream multiplexing
-                    target = item.get("__stream__", self.stream_name)
+                    # Multi-stream multiplexing. `item` is an EventPayload or
+                    # TelemetryPayload dict, and the caller's own data sits under
+                    # `value`, so `__stream__` is looked for there first. Reading only
+                    # the top level found nothing, because publish_event never puts it
+                    # there, so every record went to the default stream and the
+                    # routing silently did nothing. PostgresEgress unwraps the same
+                    # way for `__table__`, which is why table routing always worked.
+                    value = item.get("value")
+                    nested = value if isinstance(value, dict) else {}
+                    target = nested.get(
+                        "__stream__", item.get("__stream__", self.stream_name)
+                    )
+
                     item_copy = item.copy()
                     item_copy.pop("__stream__", None)
+                    if "__stream__" in nested:
+                        item_copy["value"] = {
+                            k: v for k, v in nested.items() if k != "__stream__"
+                        }
 
                     # Redis Streams expect a dict of string fields.
                     # We serialize the entire item into a single 'payload' field.

@@ -6,11 +6,34 @@ on:
   pull_request:
     branches: [main]
 
+# Read-only by default, so a pull request build cannot write to the repository.
+# The docs job raises its own permissions, because it is the only one that pushes.
 permissions:
-  contents: write
-  pages: write
+  contents: read
+
+# A new push to a pull request supersedes the run already going for it, so the older
+# run is cancelled rather than finishing work nobody reads. Pushes to main always
+# complete, because cancel-in-progress is limited to pull requests.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Linting is not version specific, so it runs once rather than in all five
+  # unit-test legs, where a single hook failure used to fail the matrix five times.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+
   unit-test:
     runs-on: ubuntu-latest
     strategy:
@@ -24,14 +47,15 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Set up Python ${{ matrix.python-version }}
+      # Pre-downloads the interpreter. `uv run --python` below is what selects it.
+      - name: Fetch Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
 
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
-
       - name: Run Unit Tests
-        run: uv run --with pytest-cov --all-extras pytest tests/unit/ --cov=src/dynamic_des --cov-report=xml
+        # --python is what selects the interpreter. `uv python install` above only
+        # downloads it, so without this every leg of the matrix would run the
+        # version in .python-version and the other four would test nothing new.
+        run: uv run --python ${{ matrix.python-version }} --with pytest-cov --all-extras pytest tests/unit/ --cov=src/dynamic_des --cov-report=xml
 
   integration-test:
     runs-on: ubuntu-latest
@@ -43,12 +67,23 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Set up Python 3.10
+      # Pre-downloads the interpreter. `uv run --python` below is what selects it.
+      - name: Fetch Python 3.10
         run: uv python install 3.10
 
+      # Example and test infrastructure comes from odctl, which the conftest
+      # drives with `odctl up` and `odctl down`. odctl is in the dev dependency
+      # group, so `uv run` installs it into .venv and puts it on PATH. Without
+      # it on PATH every container-backed test skips instead of failing, and the
+      # job reports green while testing nothing, so fail here if it is missing.
+      - name: Verify odctl is on PATH
+        run: |
+          uv run --python 3.10 --all-extras python -c "import shutil, sys; path = shutil.which('odctl'); print(path or 'odctl not found on PATH'); sys.exit(0 if path else 1)"
+
       - name: Run Integration Tests
-        # Run tests/integration on a single baseline version
-        run: uv run --all-extras pytest tests/integration/
+        # Run tests/integration on a single baseline version. -ra lists every
+        # skipped test, so an unexpected skip is visible in the job log.
+        run: uv run --python 3.10 --all-extras pytest tests/integration/ -ra
 
       # - name: Upload coverage reports to Codecov
       #   uses: codecov/codecov-action@v4
@@ -56,8 +91,103 @@ jobs:
       #     token: ${{ secrets.CODECOV_TOKEN }}
       #     file: ./coverage.xml
 
+  # Each leg installs exactly one extra into an empty environment, then imports and
+  # constructs the connectors that extra exists to enable. Running the suite with
+  # --all-extras hides a missing transitive dependency in one extra, because another
+  # extra supplies it. None of these constructors open a socket, so no broker,
+  # registry or database is needed.
+  extras-isolation:
+    name: Import ${{ matrix.extra }} extra alone
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - extra: kafka
+            check: |
+              from dynamic_des import KafkaAdminConnector, KafkaEgress, KafkaIngress
+
+              KafkaEgress(bootstrap_servers="localhost:9092")
+              KafkaIngress(topic="sim-config", bootstrap_servers="localhost:9092")
+              KafkaAdminConnector(bootstrap_servers="localhost:9092")
+          - extra: confluent
+            check: |
+              import json
+
+              from dynamic_des.connectors.egress.kafka import ConfluentAvroSerializer
+              from dynamic_des.connectors.ingress.kafka import ConfluentAvroDeserializer
+
+              schema = json.dumps(
+                  {
+                      "type": "record",
+                      "name": "Ping",
+                      "fields": [{"name": "value", "type": "double"}],
+                  }
+              )
+              ConfluentAvroSerializer(registry_url="http://localhost:8081", schema_str=schema)
+              ConfluentAvroDeserializer(registry_url="http://localhost:8081")
+          - extra: glue
+            check: |
+              import json
+
+              from dynamic_des.connectors.egress.kafka import GlueAvroSerializer
+              from dynamic_des.connectors.ingress.kafka import GlueAvroDeserializer
+
+              schema = json.dumps(
+                  {
+                      "type": "record",
+                      "name": "Ping",
+                      "fields": [{"name": "value", "type": "double"}],
+                  }
+              )
+              GlueAvroSerializer(registry_name="sim-registry", schema_str=schema)
+              GlueAvroDeserializer(registry_name="sim-registry")
+          - extra: redis
+            check: |
+              from dynamic_des import RedisEgress, RedisIngress
+
+              RedisEgress(url="redis://localhost:6379/0")
+              RedisIngress(url="redis://localhost:6379/0")
+          - extra: postgres
+            check: |
+              from dynamic_des import PostgresEgress, PostgresIngress
+
+              PostgresEgress(connection_dsn="postgresql://user:pass@localhost:5432/sim")
+              PostgresIngress(connection_dsn="postgresql://user:pass@localhost:5432/sim")
+          - extra: parquet
+            check: |
+              from dynamic_des import JsonlStorageEgress, ParquetStorageEgress
+
+              JsonlStorageEgress(default_path="data/events.jsonl")
+              ParquetStorageEgress(default_path="data/events.parquet")
+
+              # Both writers import pyarrow lazily inside their run loops, so
+              # constructing them does not prove pyarrow is installed.
+              import pyarrow.parquet
+              from pyarrow import fs
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install only the ${{ matrix.extra }} extra
+        run: |
+          uv venv --python 3.12
+          uv pip install ".[${{ matrix.extra }}]"
+
+      - name: Import and construct the ${{ matrix.extra }} connectors
+        env:
+          CHECK: ${{ matrix.check }}
+        run: .venv/bin/python -c "$CHECK"
+
   docs:
-    needs: [unit-test, integration-test]
+    needs: [lint, unit-test, integration-test]
+    permissions:
+      contents: write
+      pages: write
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
