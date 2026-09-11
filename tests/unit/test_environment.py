@@ -259,3 +259,67 @@ def test_stall_window_is_honoured_before_giving_up():
 
     assert elapsed >= 1.0
     assert elapsed < 6.0
+
+
+class RecordingEgress:
+    """Captures every record it is handed, so a test can compare sinks."""
+
+    def __init__(self):
+        self.records: list = []
+        self.active_tasks = 0
+
+    async def run(self, egress_queue: queue.Queue):
+        while True:
+            try:
+                batch = egress_queue.get_nowait()
+                self.records.extend(batch)
+            except queue.Empty:
+                await asyncio.sleep(0.01)
+
+
+def test_two_providers_each_receive_every_record():
+    """Fan-out. Providers used to share one queue and compete for batches, so a run
+    with two sinks wrote part of the data to each with no error."""
+    first, second = RecordingEgress(), RecordingEgress()
+    env = DynamicRealtimeEnvironment(strict=False)
+    env.setup_egress(providers=[first, second], batch_size=1)
+
+    for i in range(5):
+        env.publish_telemetry("metric", i)
+
+    env.teardown()
+
+    assert len(first.records) == 5
+    assert len(second.records) == 5
+    assert [r["value"] for r in first.records] == [r["value"] for r in second.records]
+
+
+def test_a_predicate_routes_records_to_one_provider():
+    """Per-record routing. Each provider takes an optional predicate."""
+    hot, cold = RecordingEgress(), RecordingEgress()
+    env = DynamicRealtimeEnvironment(strict=False)
+    env.setup_egress(
+        providers=[hot, cold],
+        batch_size=1,
+        predicates=[
+            lambda r: r.get("value", 0) >= 3,
+            lambda r: r.get("value", 0) < 3,
+        ],
+    )
+
+    for i in range(5):
+        env.publish_telemetry("metric", i)
+
+    env.teardown()
+
+    assert sorted(r["value"] for r in hot.records) == [3, 4]
+    assert sorted(r["value"] for r in cold.records) == [0, 1, 2]
+
+
+def test_predicate_count_must_match_provider_count():
+    """A misaligned list would silently route the wrong records, so it is rejected."""
+    env = DynamicRealtimeEnvironment(strict=False)
+    with pytest.raises(ValueError, match="matched by position"):
+        env.setup_egress(
+            providers=[RecordingEgress(), RecordingEgress()], predicates=[None]
+        )
