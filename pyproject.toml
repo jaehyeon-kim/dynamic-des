@@ -47,9 +47,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://jaehyeon-kim.github.io/dynamic-des/"
+Homepage = "https://jaehyeon.me/dynamic-des/"
 Repository = "https://github.com/jaehyeon-kim/dynamic-des"
-Documentation = "https://jaehyeon-kim.github.io/dynamic-des/"
+Documentation = "https://jaehyeon.me/dynamic-des/"
 Issues = "https://github.com/jaehyeon-kim/dynamic-des/issues"
 
 [project.optional-dependencies]
