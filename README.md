@@ -1,7 +1,7 @@
 # Dynamic DES
 
 [![CI Pipeline](https://github.com/jaehyeon-kim/dynamic-des/actions/workflows/pipeline.yml/badge.svg)](https://github.com/jaehyeon-kim/dynamic-des/actions/workflows/pipeline.yml)
-[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://jaehyeon-kim.github.io/dynamic-des/)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://jaehyeon.me/dynamic-des/)
 [![PyPI version](https://badge.fury.io/py/dynamic-des.svg)](https://badge.fury.io/py/dynamic-des)
 [![Python Versions](https://img.shields.io/pypi/pyversions/dynamic-des.svg)](https://pypi.org/project/dynamic-des/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -44,6 +44,12 @@ pip install "dynamic-des[kafka,confluent]"
 
 # For AWS Glue Schema Registry (Avro)
 pip install "dynamic-des[kafka,glue]"
+
+# For Redis support
+pip install "dynamic-des[redis]"
+
+# For PostgreSQL support
+pip install "dynamic-des[postgres]"
 
 # For Data Lake Storage (Parquet & PyArrow VFS)
 pip install "dynamic-des[parquet]"
@@ -129,7 +135,7 @@ Examples that need a broker, a database or an object store get their container f
 
 Paths in that table are relative to the `examples/` folder. `declarative/local_example.py` needs no container, and `declarative/history_example.py` needs one only when `USE_S3=true`.
 
-Guide: [Backfill then live](https://jaehyeon-kim.github.io/dynamic-des/guides/backfill-then-live/).
+Guide: [Backfill then live](https://jaehyeon.me/dynamic-des/latest/guides/backfill-then-live/).
 
 
 The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
@@ -270,6 +276,17 @@ To handle high throughput, the `EgressMixIn` uses:
 
 For full documentation, architecture details, and API reference, visit:
 [https://jaehyeon.me/dynamic-des/](https://jaehyeon.me/dynamic-des/).
+
+## Related reading
+
+Blog posts that use this library:
+
+- [Building a Real-Time Industrial Digital Twin with Apache Flink and Online Machine Learning](https://jaehyeon.me/blog/2026-04-21-digital-twin-online-machine-learning/): a Flink and Kotlin pipeline that detects concept drift in a hot strip mill and corrects for roller wear.
+- [Why Digital Twins Are Rewiring Industry 4.0](https://jaehyeon.me/blog/2026-04-23-digital-twin-industry-4-0/): the architectural layers that separate traditional simulations, operational twins and event-driven hybrid pipelines.
+- [Building an Event-Driven Hybrid Digital Twin with dynamic-des](https://jaehyeon.me/blog/2026-04-28-digital-twin-dynamic-des/): the Switchboard pattern, mutable resources and dynamic topic routing behind this library.
+- [One Simulation, Two Pipelines: Batch Training and Live Inference with Dynamic DES v0.8.1](https://jaehyeon.me/blog/2026-05-25-dynamic-des-parquet-support/): one SimPy codebase that writes batch Parquet for training and streams live Kafka events for inference.
+- [Dynamic DES v0.11.1: A Declarative API with Postgres and Redis Connectors](https://jaehyeon.me/blog/2026-07-17-dynamic-des-declarative-connectors/): what the declarative `SimulationContext` API changed, and the Postgres and Redis connectors it added.
+- [Building an Agentic Analytics System over an Iceberg Lakehouse](https://jaehyeon.me/blog/2026-07-18-agentic-analytics-system/): a local analytics stack that uses this library to generate the lakehouse data an agent queries.
 
 ## License
 
