@@ -165,6 +165,17 @@ jobs:
               # constructing them does not prove pyarrow is installed.
               import pyarrow.parquet
               from pyarrow import fs
+          - extra: iceberg
+            check: |
+              from dynamic_des import IcebergStorageEgress
+
+              IcebergStorageEgress(catalog=object(), default_table="sim.events")
+
+              # The connector takes the catalog from the caller and imports pyarrow
+              # lazily, so constructing it proves neither is installed. The REST
+              # catalog client and the Arrow FileIO are what the extra has to carry.
+              from pyiceberg.catalog.rest import RestCatalog
+              from pyiceberg.io.pyarrow import PyArrowFileIO
     steps:
       - uses: actions/checkout@v7
 

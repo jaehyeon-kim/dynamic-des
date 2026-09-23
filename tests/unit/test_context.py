@@ -1,3 +1,5 @@
+import asyncio
+import queue
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -270,3 +272,64 @@ def test_egress_bounds_reach_the_environment(MockEnv):
     _, kwargs = instance.setup_egress.call_args
     assert kwargs["max_queued_batches"] == 64
     assert kwargs["drain_stall_seconds"] == 3.0
+
+
+@patch("dynamic_des.core.context.DynamicRealtimeEnvironment")
+def test_per_provider_cadence_reaches_the_environment(MockEnv):
+    """A cadence given on add_egress has to arrive, aligned by position."""
+    instance = MockEnv.return_value
+
+    app = (
+        SimulationContext("TestSim", factor=0.0)
+        .add_egress(MagicMock(), batch_size=5, flush_interval=0.25)
+        .add_egress(MagicMock())
+        .with_batching(batch_size=100, flush_interval=2.0)
+    )
+    app.run(until=1)
+
+    _, kwargs = instance.setup_egress.call_args
+    # None is the second sink saying nothing, which setup_egress reads as the default.
+    assert kwargs["batch_sizes"] == [5, None]
+    assert kwargs["flush_intervals"] == [0.25, None]
+
+
+class _CountingEgress:
+    """Records the size of every batch it is handed, so sinks can be compared."""
+
+    def __init__(self):
+        self.batch_sizes: list = []
+
+    async def run(self, egress_queue):
+        try:
+            while True:
+                try:
+                    self.batch_sizes.append(len(egress_queue.get_nowait()))
+                except queue.Empty:
+                    await asyncio.sleep(0.01)
+        except asyncio.CancelledError:
+            pass
+
+
+def test_per_provider_cadence_takes_effect_through_the_builder():
+    """The whole path, not just the call: a small sink flushes while a large one waits."""
+    small = _CountingEgress()
+    large = _CountingEgress()
+
+    app = (
+        SimulationContext("TestSim", factor=0.0)
+        .add_egress(small, batch_size=2)
+        .add_egress(large, batch_size=10**6)
+        .with_batching(batch_size=10**6, flush_interval=1.0)
+    )
+
+    @app.telemetry_loop(interval=1.0)
+    def emit(context):
+        context._env.publish_event("task", {"n": 1})
+
+    app.run(until=6)
+
+    # The small sink flushed on its own size during the run; the large one held
+    # everything until teardown, so it saw one batch rather than several.
+    assert len(small.batch_sizes) > 1
+    assert set(small.batch_sizes) == {2}
+    assert len(large.batch_sizes) == 1
