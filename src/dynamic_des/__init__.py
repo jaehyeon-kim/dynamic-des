@@ -97,6 +97,18 @@ except ImportError:
     pass
 
 # ---------------------------------------------------------
+# Optional: Iceberg Connector (Requires `pip install dynamic-des[iceberg]`)
+# ---------------------------------------------------------
+try:
+    from dynamic_des.connectors.egress.iceberg import (
+        IcebergStorageEgress,  # noqa: F401
+    )
+
+    __all__.extend(["IcebergStorageEgress"])
+except ImportError:
+    pass
+
+# ---------------------------------------------------------
 # Optional: Postgres Connectors (Requires `pip install dynamic-des[postgres]`)
 # ---------------------------------------------------------
 try:

@@ -129,3 +129,42 @@ def redis_container(odctl_profile):
     # odctl disables the unauthenticated default Valkey user, so the URL has to
     # carry the `user` / `password` pair.
     yield "redis://user:password@localhost:6379/0"
+
+
+@pytest.fixture(scope="session")
+def iceberg_catalog(odctl_profile):
+    """Starts the odctl `catalog` profile and yields a pyiceberg REST catalog.
+
+    The profile pulls in `deps`, `postgres` and `storage` itself, so the REST
+    fixture is backed by Postgres and writes its data files to SeaweedFS.
+
+    pyiceberg reads `s3.force-virtual-addressing`, not the `s3.path-style-access`
+    name the catalog container uses. It defaults to path style for S3FileIO, which
+    is what SeaweedFS needs, so the property is left out rather than set wrongly.
+    """
+    odctl_profile("catalog")
+
+    uri = "http://localhost:8181"
+    for _ in range(60):
+        try:
+            with urllib.request.urlopen(f"{uri}/v1/config", timeout=2) as response:
+                if response.status == 200:
+                    break
+        except Exception:
+            time.sleep(1)
+    else:
+        pytest.fail("The Iceberg REST catalog did not start in time.")
+
+    from pyiceberg.catalog.rest import RestCatalog
+
+    yield RestCatalog(
+        "odctl",
+        **{
+            "uri": uri,
+            "warehouse": "s3://warehouse/",
+            "s3.endpoint": "http://localhost:8333",
+            "s3.access-key-id": "user",
+            "s3.secret-access-key": "password",
+            "s3.region": "us-east-1",
+        },
+    )

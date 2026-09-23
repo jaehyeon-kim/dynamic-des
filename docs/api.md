@@ -15,6 +15,9 @@
     options:
       heading_level: 3
       show_root_heading: true
+      # setup_egress and the publish methods come from the egress and ingress
+      # mixins, and mkdocstrings skips inherited members unless asked.
+      inherited_members: true
       members:
         - setup_ingress
         - setup_egress
@@ -196,6 +199,11 @@
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.egress.storage.ParquetStorageEgress
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.egress.iceberg.IcebergStorageEgress
     options:
       heading_level: 3
 

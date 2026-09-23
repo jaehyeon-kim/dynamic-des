@@ -35,6 +35,9 @@ Streams telemetry and events in real time to designated Kafka topics.
 ### Storage Egress (`ParquetStorageEgress` / `JsonlStorageEgress`)
 Writes records to compressed, chunked files using PyArrow. Natively supports S3-compatible endpoints, AWS S3, Google Cloud Storage, and local directories.
 
+### Iceberg Egress (`IcebergStorageEgress`)
+Appends records into an Apache Iceberg table through a catalog the caller supplies, so REST, SQL and Glue all work. One flush is one commit, which is why this provider wants a large `batch_size` of its own: every commit writes a manifest, a manifest list and a new `metadata.json`, and query planning degrades as snapshots accumulate.
+
 ### Attaching more than one
 
 Every attached provider receives every record. Each has its own queue, so attaching a stream sink and a lake sink writes the same dataset to both in a single run, rather than needing one run per sink with a matching seed.
@@ -66,3 +69,9 @@ The maximum number of events to buffer in memory before triggering a flush.
 ### `flush_interval`
 The maximum number of seconds to wait before flushing the memory buffer, even if `batch_size` has not been reached.
 * **Tuning Guide**: In real-time mode (`factor=1.0`), set this to a low value (e.g. `0.5` or `1.0` seconds) to keep downstream UI dashboards responsive.
+
+### Per-provider cadence
+
+`with_batching` sets the default, and both values can be overridden per sink by passing them on `add_egress`. Each provider buffers separately, so memory is the sum of the buffers. See [Backfill Then Go Live in One Run](../guides/backfill-then-live.md).
+
+The two limits are an OR, so the effective batch is the smaller of `batch_size` and what arrives within `flush_interval`. A high size with a short interval means the size never governs, which is reported once per run.

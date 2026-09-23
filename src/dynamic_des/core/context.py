@@ -84,6 +84,10 @@ class SimulationContext:
         # Aligned with _egress_providers by position. None means the provider
         # receives every record.
         self._egress_predicates: List[Optional[Callable[[dict], bool]]] = []
+        # Aligned with _egress_providers by position. None falls back to the
+        # context default set by with_batching.
+        self._egress_batch_sizes: List[Optional[int]] = []
+        self._egress_flush_intervals: List[Optional[float]] = []
         self._batch_size = 500
         self._flush_interval = 1.0
         self._max_queued_batches = 2000
@@ -123,6 +127,8 @@ class SimulationContext:
         self,
         provider: Any,
         when: Optional[Callable[[dict], bool]] = None,
+        batch_size: Optional[int] = None,
+        flush_interval: Optional[float] = None,
     ) -> "SimulationContext":
         """
         Registers an asynchronous egress provider for data exfiltration.
@@ -137,9 +143,19 @@ class SimulationContext:
                 (e.g., `KafkaEgress` or `ParquetStorageEgress`).
             when: Optional predicate taking one record and returning True to send it to
                 this provider. None sends every record, which is the usual case.
+            batch_size: Records this provider buffers before flushing. None uses the
+                context default from `with_batching`. A stream sink wants a small
+                value to keep latency down; a file or lake sink wants a large one,
+                because the batch is the file and, for Iceberg, the commit.
+            flush_interval: Simulation seconds this provider waits before forcing a
+                flush. None uses the context default. Ignored when `factor` is 0,
+                because simulation time is then detached from the wall clock.
 
         Returns:
             SimulationContext: The current instance for method chaining.
+
+        Each provider buffers separately, so memory is the sum of the buffers rather
+        than one. A large lake buffer will dominate that sum.
 
         Example:
             ```python
@@ -149,10 +165,16 @@ class SimulationContext:
             # Or split it: hot tail to Kafka, cold history to Parquet
             app.add_egress(kafka, when=lambda r: r["timestamp"] >= hot_from)
             app.add_egress(parquet, when=lambda r: r["timestamp"] < hot_from)
+
+            # Different cadences: Kafka for latency, Parquet for file size
+            app.add_egress(kafka, batch_size=500, flush_interval=1.0)
+            app.add_egress(parquet, batch_size=200_000, flush_interval=300)
             ```
         """
         self._egress_providers.append(provider)
         self._egress_predicates.append(when)
+        self._egress_batch_sizes.append(batch_size)
+        self._egress_flush_intervals.append(flush_interval)
         return self
 
     def with_batching(
@@ -164,6 +186,10 @@ class SimulationContext:
     ) -> "SimulationContext":
         """
         Configures the internal egress buffering strategy to mitigate I/O lock contention.
+
+        `batch_size` and `flush_interval` are defaults. A provider that names either
+        on `add_egress` uses its own instead, which is how a stream sink and a lake
+        sink share one run.
 
         Args:
             batch_size: The maximum number of standard events to hold in memory
@@ -526,6 +552,8 @@ class SimulationContext:
                 max_queued_batches=self._max_queued_batches,
                 drain_stall_seconds=self._drain_stall_seconds,
                 predicates=self._egress_predicates,
+                batch_sizes=self._egress_batch_sizes,
+                flush_intervals=self._egress_flush_intervals,
             )
 
         # Hydrate Physical SimPy Resources

@@ -55,7 +55,8 @@ Each example needs one odctl profile, started before you run it and torn down af
 | kafka, backfill-live, dashboard | `odctl up kafka-lite` | `odctl down kafka-lite --volumes` |
 | postgres | `odctl up postgres` | `odctl down postgres --volumes` |
 | redis | `odctl up valkey` | `odctl down valkey --volumes` |
-| history with `USE_S3=true` | `odctl up storage` | `odctl down storage --volumes` |
+| parquet with `USE_S3=true` | `odctl up storage` | `odctl down storage --volumes` |
+| iceberg | `odctl up catalog` | `odctl down catalog --volumes` |
 
 Kafka and Redis are the two whose profile names are not what you would guess, because odctl ships a one-broker Kafka as `kafka-lite` and uses Valkey rather than Redis.
 
@@ -138,9 +139,9 @@ Examples that need a broker, a database or an object store get their container f
 | kafka-lite | `odctl up kafka-lite` | `declarative/kafka_example.py`, `imperative/kafka_example.py`, `declarative/backfill_live_example.py`, `kafka_dashboard.py` |
 | postgres | `odctl up postgres` | `declarative/postgres_example.py`, `imperative/postgres_example.py` |
 | valkey | `odctl up valkey` | `declarative/redis_example.py`, `imperative/redis_example.py` |
-| storage | `odctl up storage` | `declarative/history_example.py` with `USE_S3=true` |
+| storage | `odctl up storage` | `declarative/parquet_example.py` with `USE_S3=true` |
 
-Paths in that table are relative to the `examples/` folder. `declarative/local_example.py` needs no container, and `declarative/history_example.py` needs one only when `USE_S3=true`.
+Paths in that table are relative to the `examples/` folder. `declarative/local_example.py` needs no container, and `declarative/parquet_example.py` needs one only when `USE_S3=true`.
 
 Guide: [Backfill then live](guides/backfill-then-live.md).
 
@@ -156,4 +157,5 @@ Ready to build your own system? We have prepared a gallery of real-world use cas
 
 - [Local Simulation](examples/declarative/local.md): A dependency-free approach to testing.
 - [Kafka Digital Twin](examples/declarative/kafka.md): A full manufacturing architecture with dynamic queues.
-- [Fast-Forward to Data Lake](examples/declarative/history.md): Batch processing simulation data into Parquet.
+- [Fast-Forward to Parquet](examples/declarative/parquet.md): Batch processing simulation data into Parquet.
+- [Fast-Forward to Iceberg](examples/declarative/iceberg.md): The same run, committed into an Iceberg table.

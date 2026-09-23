@@ -797,3 +797,210 @@ def test_envelope_key_order_matches_the_published_schema():
         assert list(TelemetryPayload.model_fields) == list(env._event_buffer[1])
     finally:
         env.teardown()
+
+
+def test_two_providers_flush_at_their_own_sizes():
+    """One cadence for every sink meant a stream sink and a lake sink could not
+    coexist: the stream one wants small frequent batches and the lake one wants
+    large rare ones, because the batch is the file."""
+    small, large = TrackingEgress(), TrackingEgress()
+    env = DynamicRealtimeEnvironment(strict=False)
+    env.setup_egress(
+        providers=[small, large],
+        batch_sizes=[2, 10**6],
+        lag_monitor_interval=0,
+    )
+
+    for index in range(6):
+        env.publish_event(f"task-{index}", {"n": index})
+
+    # The small sink flushed three batches of two; the large one is still buffering.
+    assert [len(batch) for batch in env._event_buffers] == [0, 6]
+    env.teardown_egress()
+
+    assert [len(batch) for batch in small.received_batches] == [2, 2, 2]
+    assert [len(batch) for batch in large.received_batches] == [6]
+
+
+def test_omitting_the_per_provider_values_reproduces_the_shared_cadence():
+    """Every existing call passes neither, so both have to fall back to the context
+    default rather than to a hardcoded number."""
+    first, second = TrackingEgress(), TrackingEgress()
+    env = DynamicRealtimeEnvironment(strict=False)
+    env.setup_egress(providers=[first, second], batch_size=3, lag_monitor_interval=0)
+
+    assert env.egress_batch_sizes == [3, 3]
+    assert env.egress_flush_intervals == [1.0, 1.0]
+
+    for index in range(3):
+        env.publish_event(f"task-{index}", {"n": index})
+    env.teardown_egress()
+
+    assert [len(batch) for batch in first.received_batches] == [3]
+    assert [len(batch) for batch in second.received_batches] == [3]
+
+
+def test_a_predicate_keeps_records_out_of_the_other_buffer():
+    """The predicate moved from flush time to append time, so a record is tested once
+    on the way in rather than against every predicate at fan-out. A buffer must then
+    hold only what its own sink takes."""
+    evens, odds = TrackingEgress(), TrackingEgress()
+    env = DynamicRealtimeEnvironment(strict=False)
+    env.setup_egress(
+        providers=[evens, odds],
+        batch_size=10**6,
+        predicates=[
+            lambda record: record["value"]["n"] % 2 == 0,
+            lambda record: record["value"]["n"] % 2 == 1,
+        ],
+        lag_monitor_interval=0,
+    )
+
+    for index in range(6):
+        env.publish_event(f"task-{index}", {"n": index})
+
+    assert [len(buffer) for buffer in env._event_buffers] == [3, 3]
+    env.teardown_egress()
+    assert [record["value"]["n"] for record in evens.received_batches[0]] == [0, 2, 4]
+    assert [record["value"]["n"] for record in odds.received_batches[0]] == [1, 3, 5]
+
+
+def test_teardown_drains_every_buffer():
+    """A partial batch in any provider's buffer is data the run produced, so teardown
+    has to flush all of them rather than only the first."""
+    first, second, third = TrackingEgress(), TrackingEgress(), TrackingEgress()
+    env = DynamicRealtimeEnvironment(strict=False)
+    env.setup_egress(
+        providers=[first, second, third],
+        batch_sizes=[10**6, 10**6, 10**6],
+        lag_monitor_interval=0,
+    )
+
+    env.publish_event("task-001", {"n": 1})
+    env.teardown_egress()
+
+    for provider in (first, second, third):
+        assert [len(batch) for batch in provider.received_batches] == [1]
+
+
+def test_mismatched_per_provider_lists_are_rejected():
+    """Aligned by position, so a short list would silently give the wrong sink the
+    wrong cadence."""
+    env = DynamicRealtimeEnvironment(strict=False)
+    with pytest.raises(ValueError, match="matched by position"):
+        env.setup_egress(
+            providers=[TrackingEgress(), TrackingEgress()],
+            batch_sizes=[10],
+            lag_monitor_interval=0,
+        )
+
+
+def test_a_batch_size_that_never_governs_is_reported_once(caplog):
+    """The two limits are an OR, so a high batch_size with a short flush_interval
+    means the size does nothing. No configuration-time check can catch it, because
+    the arrival rate is unknown until the run starts."""
+    env = DynamicRealtimeEnvironment(strict=False)
+    env.setup_egress(
+        providers=[TrackingEgress()], batch_sizes=[1000], lag_monitor_interval=0
+    )
+
+    with caplog.at_level(logging.WARNING):
+        for _ in range(25):
+            env.publish_event("task", {"n": 1})
+            env._note_timer_flush(0)
+            env._flush_buffer(0)
+
+    warnings = [r for r in caplog.records if "never governs" in r.message]
+    assert len(warnings) == 1
+    # Named, because an index alone makes the reader count their add_egress calls.
+    assert "TrackingEgress" in warnings[0].getMessage()
+    env.teardown_egress()
+
+
+def test_no_warning_when_batch_size_governs(caplog):
+    """A sink whose size does govern is configured correctly and must stay quiet."""
+    env = DynamicRealtimeEnvironment(strict=False)
+    env.setup_egress(
+        providers=[TrackingEgress()], batch_sizes=[2], lag_monitor_interval=0
+    )
+
+    with caplog.at_level(logging.WARNING):
+        for _ in range(50):
+            env.publish_event("task", {"n": 1})
+            env._note_timer_flush(0)
+
+    assert not [r for r in caplog.records if "never governs" in r.message]
+    env.teardown_egress()
+
+
+def test_going_live_starts_a_flush_timer_for_every_provider():
+    """setup_egress skips the timers at factor=0, so going live starts them. It started
+    one before the buffers were split per provider, which left every sink after the
+    first reaching its destination only at teardown."""
+    first, second = TrackingEgress(), TrackingEgress()
+    env = DynamicRealtimeEnvironment(
+        factor=0.0,
+        strict=False,
+        logical_start_time=LOGICAL_START,
+        go_live_at=LOGICAL_START + timedelta(seconds=0.2),
+    )
+    env.setup_egress(
+        providers=[first, second],
+        batch_sizes=[10**6, 10**6],
+        flush_intervals=[0.05, 0.05],
+        lag_monitor_interval=0,
+    )
+
+    def emit():
+        while True:
+            env.publish_event("task", {"n": 1})
+            yield env.timeout(0.05)
+
+    env.process(emit())
+    env.run(until=0.6)
+
+    # Both sinks received data while the run was still going, not just at teardown.
+    assert first.received_batches
+    assert second.received_batches
+    env.teardown_egress()
+
+
+@pytest.mark.parametrize("provider_count", [1, 2])
+def test_go_live_does_not_duplicate_periodic_flush(provider_count):
+    """A run that starts paced keeps one flush timer per provider after go-live."""
+    start = datetime(2026, 1, 1)
+    env = DynamicRealtimeEnvironment(
+        logical_start_time=start,
+        # Non-zero, so setup_egress starts the timers, but small enough that the
+        # backfill costs almost no real time. factor is real seconds per sim second.
+        factor=0.01,
+        strict=False,
+        go_live_at=start + timedelta(seconds=0.2),
+    )
+    started = []
+    original = env._periodic_flush
+
+    def record(index):
+        started.append(index)
+        return original(index)
+
+    env._periodic_flush = record
+    env.setup_egress(
+        providers=[TrackingEgress() for _ in range(provider_count)],
+        flush_interval=0.05,
+        lag_monitor_interval=0,
+    )
+    assert started == list(range(provider_count))
+
+    def tick():
+        while True:
+            yield env.timeout(0.05)
+
+    env.process(tick())
+    env.run(until=0.4)
+
+    # Without the guard the go-live switch starts a second timer per provider, which
+    # flushes each buffer twice an interval and hides a starved batch_size. One sink
+    # is affected exactly as many are, so both counts are checked.
+    assert started == list(range(provider_count))
+    env.teardown_egress()

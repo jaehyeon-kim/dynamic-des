@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="dynamic-des-switchboard" name="Page-1">
-        <mxGraphModel dx="1208" dy="418" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
+        <mxGraphModel dx="1402" dy="757" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="900" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -23,7 +23,7 @@
                     <mxGeometry x="64" y="274" width="180" height="330" as="geometry"/>
                 </mxCell>
                 <mxCell id="sink_group" value="&lt;b style=&quot;font-size: 14px;&quot;&gt;Egress Sinks&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#666666;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=8;fontFamily=Comic Sans MS;" parent="1" vertex="1">
-                    <mxGeometry x="964" y="274" width="180" height="375" as="geometry"/>
+                    <mxGeometry x="964" y="210" width="180" height="480" as="geometry"/>
                 </mxCell>
                 <mxCell id="src_kafka" value="Kafka" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
                     <mxGeometry x="84" y="314" width="140" height="45" as="geometry"/>
@@ -50,23 +50,26 @@
                     <mxGeometry x="364" y="644" width="480" height="100" as="geometry"/>
                 </mxCell>
                 <mxCell id="sink_kafka" value="Kafka" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
-                    <mxGeometry x="984" y="314" width="140" height="45" as="geometry"/>
+                    <mxGeometry x="984" y="250" width="140" height="45" as="geometry"/>
                 </mxCell>
                 <mxCell id="sink_redis" value="Redis" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
-                    <mxGeometry x="984" y="384" width="140" height="45" as="geometry"/>
+                    <mxGeometry x="984" y="320" width="140" height="45" as="geometry"/>
                 </mxCell>
                 <mxCell id="sink_pg" value="PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
-                    <mxGeometry x="984" y="454" width="140" height="45" as="geometry"/>
+                    <mxGeometry x="984" y="390" width="140" height="45" as="geometry"/>
                 </mxCell>
                 <mxCell id="sink_lake" value="&lt;b&gt;Data Lake&lt;/b&gt;&lt;br&gt;Parquet / JSONL&lt;br&gt;&lt;i&gt;S3, GCS, Azure, SeaweedFS&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
-                    <mxGeometry x="984" y="534" width="140" height="90" as="geometry"/>
+                    <mxGeometry x="984" y="470" width="140" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="sink_iceberg" value="&lt;b&gt;Lakehouse&lt;/b&gt;&lt;br&gt;Apache Iceberg&lt;br&gt;&lt;i&gt;REST, SQL, Glue catalogs&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="984" y="580" width="140" height="90" as="geometry"/>
                 </mxCell>
                 <mxCell id="e_api_reg" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;sketch=1;html=1;strokeWidth=3;endArrow=block;strokeColor=#d79b00;dashed=1;fontFamily=Comic Sans MS;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="api_group" target="registry" edge="1">
                     <mxGeometry x="0.0038" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="2" value="&lt;font face=&quot;Comic Sans MS&quot;&gt;builds &amp;amp; configures&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_api_reg">
+                <mxCell id="2" value="&lt;font face=&quot;Comic Sans MS&quot;&gt;builds &amp;amp; configures&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="e_api_reg" vertex="1" connectable="0">
                     <mxGeometry x="-0.2151" relative="1" as="geometry">
                         <mxPoint x="-2" y="10" as="offset"/>
                     </mxGeometry>
@@ -89,7 +92,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="3" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: &amp;quot;Comic Sans MS&amp;quot;;&quot;&gt;telemetry &amp;amp; events&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="e_res_eg">
+                <mxCell id="3" value="&lt;span style=&quot;color: rgb(0, 0, 0); font-family: &amp;quot;Comic Sans MS&amp;quot;;&quot;&gt;telemetry &amp;amp; events&lt;/span&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="e_res_eg" vertex="1" connectable="0">
                     <mxGeometry x="0.1969" y="1" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
