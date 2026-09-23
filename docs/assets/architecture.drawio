@@ -58,7 +58,7 @@
                 <mxCell id="sink_pg" value="PostgreSQL" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#f5f5f5;strokeColor=#666666;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
                     <mxGeometry x="984" y="390" width="140" height="45" as="geometry"/>
                 </mxCell>
-                <mxCell id="sink_lake" value="&lt;b&gt;Data Lake&lt;/b&gt;&lt;br&gt;Parquet / JSONL&lt;br&gt;&lt;i&gt;S3, SeaweedFS&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
+                <mxCell id="sink_lake" value="&lt;b&gt;Data Lake&lt;/b&gt;&lt;br&gt;Parquet / JSONL&lt;br&gt;&lt;i&gt;Local, S3, SeaweedFS&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
                     <mxGeometry x="984" y="470" width="140" height="90" as="geometry"/>
                 </mxCell>
                 <mxCell id="sink_iceberg" value="&lt;b&gt;Lakehouse&lt;/b&gt;&lt;br&gt;Apache Iceberg&lt;br&gt;&lt;i&gt;REST catalog&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffffff;strokeColor=#6c8ebf;fontFamily=Comic Sans MS;strokeWidth=2;" parent="1" vertex="1">
