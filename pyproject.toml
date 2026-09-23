@@ -1,6 +1,6 @@
 [project]
 name = "dynamic-des"
-version = "0.13.0"
+version = "0.14.0"
 description = "A dynamic, real-time control plane for SimPy-based discrete-event digital twins."
 readme = "README.md"
 authors = [
@@ -80,8 +80,13 @@ glue = [
 parquet = [
     "pyarrow>=14.0.0"
 ]
+iceberg = [
+    # pyiceberg reads and writes through pyarrow, and its own pyarrow extra is what
+    # pins a compatible pair. Writing is not possible without it.
+    "pyiceberg[pyarrow]>=0.12.0"
+]
 all = [
-    "dynamic-des[kafka,redis,postgres,confluent,glue,parquet]"
+    "dynamic-des[kafka,redis,postgres,confluent,glue,parquet,iceberg]"
 ]
 [build-system]
 requires = ["uv_build>=0.9.16,<0.12.0"]

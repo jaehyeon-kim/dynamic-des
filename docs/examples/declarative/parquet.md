@@ -1,4 +1,4 @@
-# Fast-Forward to Data Lake (Standard Declarative API)
+# Fast-Forward to Parquet (Standard Declarative API)
 
 While `dynamic-des` is designed for real-time digital twins, it is equally powerful as a **synchronized forecasting engine**. By manipulating the environment's time factor and initial state, you can run simulations to generate vast amounts of historical data or instantly predict future states.
 
@@ -11,14 +11,14 @@ This example demonstrates how to run a simulation in **fast-forward mode** using
 Download the script, then run it. The run writes Parquet chunks to a local `data/` folder by default, so no infrastructure is needed.
 
 ```bash
-curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/history_example.py
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/parquet_example.py
 ```
 
 ### With uv
 
 ```bash
 # 1. Run the simulation
-uv run --no-project --with "dynamic-des[parquet]" history_example.py
+uv run --no-project --with "dynamic-des[parquet]" parquet_example.py
 ```
 
 ### With pip
@@ -28,7 +28,7 @@ uv run --no-project --with "dynamic-des[parquet]" history_example.py
 pip install "dynamic-des[parquet]"
 
 # 2. Run the simulation
-python history_example.py
+python parquet_example.py
 ```
 
 To write to S3 instead, start the object store and set `USE_S3`. The chunks land under the `odctl-dev/history/` prefix, browsable at <http://localhost:8889>. `odctl` comes from `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
@@ -38,10 +38,10 @@ To write to S3 instead, start the object store and set `USE_S3`. The chunks land
 odctl up storage
 
 # 2. Run the simulation against S3, with uv
-USE_S3=true uv run --no-project --with "dynamic-des[parquet]" history_example.py
+USE_S3=true uv run --no-project --with "dynamic-des[parquet]" parquet_example.py
 
 #    ...or with pip
-USE_S3=true python history_example.py
+USE_S3=true python parquet_example.py
 
 # 3. Clean up the infrastructure when finished
 odctl down storage --volumes
@@ -55,7 +55,7 @@ This script simulates a manufacturing line over a 7-day period. It demonstrates 
 
 Scripts live in the [`examples/` folder](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples) of the repository, and the label on the block below is this one's path there.
 
-```python title="examples/declarative/history_example.py"
+```python title="examples/declarative/parquet_example.py"
 """
 Historical Data Generation Example.
 

@@ -2,7 +2,7 @@
 
 **Dynamic DES** is a high-performance, real-time control plane for [SimPy](https://simpy.readthedocs.io/).
 
-It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. It also transforms your models into **synchronized forecasting engines** by fast-forwarding through simulation time to predict future states or backfill Data Lakes with schema-enforced **Parquet** or **JSONL** files directly to **AWS S3, Google Cloud Storage (GCS), Azure Blob, and SeaweedFS** using PyArrow VFS.
+It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. It also transforms your models into **synchronized forecasting engines** by fast-forwarding through simulation time to predict future states or backfill Data Lakes with schema-enforced **Parquet** or **JSONL** files directly to **AWS S3, Google Cloud Storage (GCS), Azure Blob, and SeaweedFS** using PyArrow VFS, or commit the same run into an **Apache Iceberg** table through any catalog.
 
 <div align="center">
   <img src="assets/architecture.png" alt="Dynamic DES architecture" width="900" />
@@ -18,6 +18,7 @@ It bridges the gap between static discrete-event simulations and the live world 
 - **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
 - **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers.
 - **🗄️ Data Lake Ready**: Write chunked Parquet and JSONL datasets directly to object storage via PyArrow VFS, with built-in schema inference and drift prevention.
+- **🧊 Lakehouse Ready**: Append straight into an Apache Iceberg table through any catalog, with one commit per flush so the snapshot count stays under your control.
 - **🦆 Pydantic Duck-Typing**: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.
 - **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time.
 
@@ -37,8 +38,8 @@ It bridges the gap between static discrete-event simulations and the live world 
     * **[Ingress and Egress Connectors](architecture/connectors.md)**: Input and output flows, fan-out and tuning.
     * **[Resources and Containers](architecture/resources.md)**: Dynamic SimPy wrappers.
 * **Examples**, every script in the `examples/` folder, in both API styles:
-    * **Standard API (Declarative)**: [Local](examples/declarative/local.md), [Kafka](examples/declarative/kafka.md), [Data Lake](examples/declarative/history.md), [Postgres](examples/declarative/postgres.md), [Redis](examples/declarative/redis.md).
-    * **Low-Level API (Imperative)**: [Local](examples/imperative/local.md), [Kafka](examples/imperative/kafka.md), [Data Lake](examples/imperative/history.md), [Postgres](examples/imperative/postgres.md), [Redis](examples/imperative/redis.md).
+    * **Standard API (Declarative)**: [Local](examples/declarative/local.md), [Kafka](examples/declarative/kafka.md), [Parquet](examples/declarative/parquet.md), [Iceberg](examples/declarative/iceberg.md), [Postgres](examples/declarative/postgres.md), [Redis](examples/declarative/redis.md).
+    * **Low-Level API (Imperative)**: [Local](examples/imperative/local.md), [Kafka](examples/imperative/kafka.md), [Parquet](examples/imperative/parquet.md), [Iceberg](examples/imperative/iceberg.md), [Postgres](examples/imperative/postgres.md), [Redis](examples/imperative/redis.md).
 * **Integration Guides**, getting data in and out:
     * **[Backfill Then Go Live in One Run](guides/backfill-then-live.md)**: History unpaced, then a real-time tail, from one call.
     * **[Complex Routing (Kafka)](guides/complex-routing.md)**: Send records to different topics from one run.

@@ -23,7 +23,7 @@ pip install "dynamic-des[kafka]"
 python examples/declarative/kafka_example.py
 ```
 
-Extras by example: `kafka` for `*/kafka_example.py` and `kafka_dashboard.py`, `postgres` for `*/postgres_example.py`, `redis` for `*/redis_example.py`, `parquet` for `*/history_example.py`, both `kafka` and `parquet` for `declarative/backfill_live_example.py`, and none for `*/local_example.py`.
+Extras by example: `kafka` for `*/kafka_example.py` and `kafka_dashboard.py`, `postgres` for `*/postgres_example.py`, `redis` for `*/redis_example.py`, `parquet` for `*/parquet_example.py`, `iceberg` for `*/iceberg_example.py`, both `kafka` and `parquet` for `declarative/backfill_live_example.py`, and none for `*/local_example.py`.
 
 `kafka_dashboard.py` additionally needs `nicegui`, which is not a dependency of the library because nothing in it imports the package. Run it as `uv run --extra kafka --with nicegui examples/kafka_dashboard.py`, which installs nothing permanently, or `pip install nicegui` first.
 
@@ -39,7 +39,8 @@ Containers come from [odctl](https://github.com/jaehyeon-kim/odctl), installed o
 | `kafka_dashboard.py` | `kafka-lite` | `odctl up kafka-lite` |
 | `*/postgres_example.py` | `postgres` | `odctl up postgres` |
 | `*/redis_example.py` | `valkey` | `odctl up valkey` |
-| `*/history_example.py` | none, or `storage` with `USE_S3=true` | `odctl up storage` |
+| `*/parquet_example.py` | none, or `storage` with `USE_S3=true` | `odctl up storage` |
+| `*/iceberg_example.py` | `catalog` | `odctl up catalog` |
 
 Stop a profile with `odctl down <profile> --volumes`. `odctl list -d` shows every profile and the ports it publishes.
 

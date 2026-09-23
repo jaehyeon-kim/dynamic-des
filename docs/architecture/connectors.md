@@ -35,6 +35,9 @@ Streams telemetry and events in real time to designated Kafka topics.
 ### Storage Egress (`ParquetStorageEgress` / `JsonlStorageEgress`)
 Writes records to compressed, chunked files using PyArrow. Natively supports S3-compatible endpoints, AWS S3, Google Cloud Storage, and local directories.
 
+### Iceberg Egress (`IcebergStorageEgress`)
+Appends records into an Apache Iceberg table through a catalog the caller supplies, so REST, SQL and Glue all work. One flush is one commit, which is why this provider wants a large `batch_size` of its own: every commit writes a manifest, a manifest list and a new `metadata.json`, and query planning degrades as snapshots accumulate.
+
 ### Attaching more than one
 
 Every attached provider receives every record. Each has its own queue, so attaching a stream sink and a lake sink writes the same dataset to both in a single run, rather than needing one run per sink with a matching seed.
