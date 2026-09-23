@@ -1609,7 +1609,7 @@
 
 <h1 id="dynamic-des">Dynamic DES</h1>
 <p><strong>Dynamic DES</strong> is a high-performance, real-time control plane for <a href="https://simpy.readthedocs.io/">SimPy</a>.</p>
-<p>It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via <strong>Kafka</strong>, <strong>Redis</strong>, or <strong>PostgreSQL</strong> without stopping the simulation. It also transforms your models into <strong>synchronized forecasting engines</strong> by fast-forwarding through simulation time to predict future states or backfill Data Lakes with schema-enforced <strong>Parquet</strong> or <strong>JSONL</strong> files directly to <strong>AWS S3, Google Cloud Storage (GCS), Azure Blob, and SeaweedFS</strong> using PyArrow VFS, or commit the same run into an <strong>Apache Iceberg</strong> table through any catalog.</p>
+<p>It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via <strong>Kafka</strong>, <strong>Redis</strong>, or <strong>PostgreSQL</strong> without stopping the simulation. It also transforms your models into <strong>synchronized forecasting engines</strong> by fast-forwarding through simulation time to predict future states or backfill Data Lakes with schema-enforced <strong>Parquet</strong> or <strong>JSONL</strong> files directly to local storage or <strong>S3-compatible storage such as AWS S3 or SeaweedFS</strong> using PyArrow VFS, or commit the same run into an <strong>Apache Iceberg</strong> table through a REST catalog.</p>
 <div align="center">
   <img src="assets/architecture.png" alt="Dynamic DES architecture" width="900" />
 </div>
@@ -1623,7 +1623,7 @@
 <li><strong>🛡️ Enterprise Ready</strong>: Native <code>**kwargs</code> passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.</li>
 <li><strong>📦 Pluggable Serialization</strong>: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded <strong>Avro/Schema Registry</strong> serializers.</li>
 <li><strong>🗄️ Data Lake Ready</strong>: Write chunked Parquet and JSONL datasets directly to object storage via PyArrow VFS, with built-in schema inference and drift prevention.</li>
-<li><strong>🧊 Lakehouse Ready</strong>: Append straight into an Apache Iceberg table through any catalog, with one commit per flush so the snapshot count stays under your control.</li>
+<li><strong>🧊 Lakehouse Ready</strong>: Append straight into an Apache Iceberg table through an Iceberg REST catalog, with one commit per flush so the snapshot count stays under your control.</li>
 <li><strong>🦆 Pydantic Duck-Typing</strong>: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.</li>
 <li><strong>📊 System Observability</strong>: Built-in lag monitoring to track simulation drift from real-world time.</li>
 </ul>

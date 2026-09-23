@@ -1911,9 +1911,9 @@
 <h3 id="kafka-egress-kafkaegress">Kafka Egress (<code>KafkaEgress</code>)</h3>
 <p>Streams telemetry and events in real time to designated Kafka topics.</p>
 <h3 id="storage-egress-parquetstorageegress-jsonlstorageegress">Storage Egress (<code>ParquetStorageEgress</code> / <code>JsonlStorageEgress</code>)</h3>
-<p>Writes records to compressed, chunked files using PyArrow. Natively supports S3-compatible endpoints, AWS S3, Google Cloud Storage, and local directories.</p>
+<p>Writes records to compressed, chunked files using PyArrow. Writes to local directories and S3-compatible storage such as AWS S3 or SeaweedFS.</p>
 <h3 id="iceberg-egress-icebergstorageegress">Iceberg Egress (<code>IcebergStorageEgress</code>)</h3>
-<p>Appends records into an Apache Iceberg table through a catalog the caller supplies, so REST, SQL and Glue all work. One flush is one commit, which is why this provider wants a large <code>batch_size</code> of its own: every commit writes a manifest, a manifest list and a new <code>metadata.json</code>, and query planning degrades as snapshots accumulate.</p>
+<p>Appends records into an Apache Iceberg table through an Iceberg REST catalog the caller supplies. One flush is one commit, which is why this provider wants a large <code>batch_size</code> of its own: every commit writes a manifest, a manifest list and a new <code>metadata.json</code>, and query planning degrades as snapshots accumulate.</p>
 <h3 id="attaching-more-than-one">Attaching more than one</h3>
 <p>Every attached provider receives every record. Each has its own queue, so attaching a stream sink and a lake sink writes the same dataset to both in a single run, rather than needing one run per sink with a matching seed.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">app</span><span class="o">.</span><span class="n">add_egress</span><span class="p">(</span><span class="n">kafka</span><span class="p">)</span><span class="o">.</span><span class="n">add_egress</span><span class="p">(</span><span class="n">parquet</span><span class="p">)</span>
