@@ -2,8 +2,12 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
+      # The draw.io app saves diagrams without a trailing newline, so every edit to
+      # the architecture diagram failed these two hooks in CI.
       - id: trailing-whitespace
+        exclude: \.drawio$
       - id: end-of-file-fixer
+        exclude: \.drawio$
       - id: check-yaml
       - id: check-added-large-files
 
