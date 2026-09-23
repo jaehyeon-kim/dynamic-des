@@ -2,7 +2,7 @@
 
 **Dynamic DES** is a high-performance, real-time control plane for [SimPy](https://simpy.readthedocs.io/).
 
-It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. It also transforms your models into **synchronized forecasting engines** by fast-forwarding through simulation time to predict future states or backfill Data Lakes with schema-enforced **Parquet** or **JSONL** files directly to **AWS S3, Google Cloud Storage (GCS), Azure Blob, and SeaweedFS** using PyArrow VFS, or commit the same run into an **Apache Iceberg** table through any catalog.
+It bridges the gap between static discrete-event simulations and the live world by allowing you to update simulation parameters (arrivals, service times, capacities) and stream telemetry and events via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. It also transforms your models into **synchronized forecasting engines** by fast-forwarding through simulation time to predict future states or backfill Data Lakes with schema-enforced **Parquet** or **JSONL** files directly to local storage or **S3-compatible storage such as AWS S3 or SeaweedFS** using PyArrow VFS, or commit the same run into an **Apache Iceberg** table through a REST catalog.
 
 <div align="center">
   <img src="assets/architecture.png" alt="Dynamic DES architecture" width="900" />
@@ -18,7 +18,7 @@ It bridges the gap between static discrete-event simulations and the live world 
 - **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
 - **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers.
 - **🗄️ Data Lake Ready**: Write chunked Parquet and JSONL datasets directly to object storage via PyArrow VFS, with built-in schema inference and drift prevention.
-- **🧊 Lakehouse Ready**: Append straight into an Apache Iceberg table through any catalog, with one commit per flush so the snapshot count stays under your control.
+- **🧊 Lakehouse Ready**: Append straight into an Apache Iceberg table through an Iceberg REST catalog, with one commit per flush so the snapshot count stays under your control.
 - **🦆 Pydantic Duck-Typing**: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.
 - **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time.
 
