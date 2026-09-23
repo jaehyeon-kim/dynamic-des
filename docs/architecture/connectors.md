@@ -33,10 +33,10 @@ Prints formatted telemetry and event payloads to the system logger.
 Streams telemetry and events in real time to designated Kafka topics.
 
 ### Storage Egress (`ParquetStorageEgress` / `JsonlStorageEgress`)
-Writes records to compressed, chunked files using PyArrow. Natively supports S3-compatible endpoints, AWS S3, Google Cloud Storage, and local directories.
+Writes records to compressed, chunked files using PyArrow. Writes to local directories and S3-compatible storage such as AWS S3 or SeaweedFS.
 
 ### Iceberg Egress (`IcebergStorageEgress`)
-Appends records into an Apache Iceberg table through a catalog the caller supplies, so REST, SQL and Glue all work. One flush is one commit, which is why this provider wants a large `batch_size` of its own: every commit writes a manifest, a manifest list and a new `metadata.json`, and query planning degrades as snapshots accumulate.
+Appends records into an Apache Iceberg table through an Iceberg REST catalog the caller supplies. One flush is one commit, which is why this provider wants a large `batch_size` of its own: every commit writes a manifest, a manifest list and a new `metadata.json`, and query planning degrades as snapshots accumulate.
 
 ### Attaching more than one
 

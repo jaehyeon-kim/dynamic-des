@@ -21,8 +21,8 @@ class IcebergStorageEgress(BaseEgress):
     `batch_size` on `add_egress` so the run produces a handful of snapshots rather
     than hundreds.
 
-    The catalog is supplied by the caller rather than configured here, so REST, SQL
-    and Glue all work without this connector knowing which is in use.
+    The catalog is supplied by the caller rather than configured here. The supported
+    catalog is Iceberg REST, which is what the integration tests run against.
 
     Schemas are inferred from the first batch per table and reused for later ones,
     exactly as the Parquet writer does. Inference reads an ISO timestamp as a string,

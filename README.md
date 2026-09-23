@@ -12,7 +12,7 @@
   <img src="https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/docs/assets/architecture.png" alt="Dynamic DES architecture" width="900" />
 </div>
 
-Dynamic DES bridges the gap between static discrete-event simulations and the live world. It allows you to update simulation parameters (arrivals, service times, capacities) and stream telemetry via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. Beyond live streaming, it transforms static models into **synchronized forecasting engines**, enabling rapid historical data generation and future state prediction. Export compressed, chunked datasets (Parquet, JSONL) directly to local storage, **AWS S3, Google Cloud Storage, Azure Blob, or SeaweedFS** using PyArrow VFS, complete with strict schema drift prevention. Or commit the same run into an **Apache Iceberg** table, so what comes out is queryable rather than a folder someone still has to register.
+Dynamic DES bridges the gap between static discrete-event simulations and the live world. It allows you to update simulation parameters (arrivals, service times, capacities) and stream telemetry via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. Beyond live streaming, it transforms static models into **synchronized forecasting engines**, enabling rapid historical data generation and future state prediction. Export compressed, chunked datasets (Parquet, JSONL) directly to local storage or **S3-compatible storage such as AWS S3 or SeaweedFS** using PyArrow VFS, complete with strict schema drift prevention. Or commit the same run into an **Apache Iceberg** table, so what comes out is queryable rather than a folder someone still has to register.
 
 ## Key Features
 
@@ -22,7 +22,7 @@ Dynamic DES bridges the gap between static discrete-event simulations and the li
 - **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
 - **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers (Confluent & AWS Glue).
 - **🗄️ Data Lake Ingestion**: Native PyArrow VFS integration for fast chunked writing (Parquet/JSONL) directly to object storage, with built-in schema inference and drift enforcement.
-- **🧊 Lakehouse Ingestion**: Append straight into an Apache Iceberg table through any catalog, with one commit per flush so the snapshot count stays under your control.
+- **🧊 Lakehouse Ingestion**: Append straight into an Apache Iceberg table through an Iceberg REST catalog, with one commit per flush so the snapshot count stays under your control.
 - **🦆 Pydantic Duck-Typing**: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.
 - **🌍 Domain Agnostic**: Perfect for factory floors, crypto trading bots, or RPG game state management.
 
