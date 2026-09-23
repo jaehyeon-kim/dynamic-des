@@ -44,6 +44,10 @@ plugins:
 extra:
   version:
     provider: mike
+  # Same property as the blog, so both sit in one view. Filter by /dynamic-des/.
+  analytics:
+    provider: google
+    property: G-076N8WCGWZ
 
 nav:
   - Home: index.md
