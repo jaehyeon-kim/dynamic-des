@@ -20,12 +20,19 @@ def namespace(iceberg_catalog):
 
 
 async def _drain(egress: IcebergStorageEgress, q: queue.Queue) -> None:
-    """Runs the egress until the queue is empty, then cancels it as teardown does."""
+    """Runs the egress until the queue is empty, then cancels it as teardown does.
+
+    The budget is generous because the first commit of a run pays for the namespace,
+    the table and a cold S3 connection. A tighter one failed intermittently while
+    proving nothing about the connector.
+    """
     task = asyncio.create_task(egress.run(q))
-    for _ in range(100):
+    for _ in range(600):
         await asyncio.sleep(0.1)
         if q.empty() and not getattr(egress, "active_tasks", 0):
             break
+    else:
+        pytest.fail("The egress did not drain the queue within 60 seconds.")
     task.cancel()
 
 

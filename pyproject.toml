@@ -83,7 +83,12 @@ parquet = [
 iceberg = [
     # pyiceberg reads and writes through pyarrow, and its own pyarrow extra is what
     # pins a compatible pair. Writing is not possible without it.
-    "pyiceberg[pyarrow]>=0.12.0"
+    #
+    # 0.7.0 is the oldest release the integration tests pass against, so it is the
+    # floor. Everything the connector calls has been there since then. A newer
+    # pin elsewhere still resolves: odctl's airflow image asks for 0.11.1, and on
+    # Python 3.13 or later only 0.11.0 and above are installable anyway.
+    "pyiceberg[pyarrow]>=0.7.0"
 ]
 all = [
     "dynamic-des[kafka,redis,postgres,confluent,glue,parquet,iceberg]"
