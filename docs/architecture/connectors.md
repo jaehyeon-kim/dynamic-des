@@ -66,3 +66,9 @@ The maximum number of events to buffer in memory before triggering a flush.
 ### `flush_interval`
 The maximum number of seconds to wait before flushing the memory buffer, even if `batch_size` has not been reached.
 * **Tuning Guide**: In real-time mode (`factor=1.0`), set this to a low value (e.g. `0.5` or `1.0` seconds) to keep downstream UI dashboards responsive.
+
+### Per-provider cadence
+
+`with_batching` sets the default, and both values can be overridden per sink by passing them on `add_egress`. Each provider buffers separately, so memory is the sum of the buffers. See [Backfill Then Go Live in One Run](../guides/backfill-then-live.md).
+
+The two limits are an OR, so the effective batch is the smaller of `batch_size` and what arrives within `flush_interval`. A high size with a short interval means the size never governs, which is reported once per run.
