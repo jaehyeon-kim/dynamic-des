@@ -116,3 +116,97 @@ async def test_postgres_egress_column_filtering(postgres_container):
     assert len(rows) == 1
     assert rows[0]["order_id"] == 99
     assert rows[0]["total_amount"] == 100.50
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_postgres_egress_upsert_updates_existing_rows(postgres_container):
+    """With upsert_keys, a later record for a key updates the row, and the last one in a flush wins."""
+    dsn = postgres_container
+
+    conn = await asyncpg.connect(dsn)
+    await conn.execute("DROP TABLE IF EXISTS test_order_status")
+    await conn.execute("""
+        CREATE TABLE test_order_status (
+            order_id INT PRIMARY KEY,
+            status TEXT
+        );
+    """)
+    await conn.close()
+
+    egress = PostgresEgress(
+        dsn, table_name="test_order_status", upsert_keys=["order_id"]
+    )
+    q = queue.Queue()
+    q.put([{"value": {"order_id": 1, "status": "processing"}}])
+    q.put(
+        [
+            {"value": {"order_id": 1, "status": "shipped"}},
+            {"value": {"order_id": 2, "status": "processing"}},
+            {"value": {"order_id": 1, "status": "delivered"}},
+        ]
+    )
+
+    task = asyncio.create_task(egress.run(q))
+    await asyncio.sleep(1.0)
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    conn = await asyncpg.connect(dsn)
+    rows = await conn.fetch("SELECT * FROM test_order_status ORDER BY order_id")
+    await conn.close()
+
+    assert [(r["order_id"], r["status"]) for r in rows] == [
+        (1, "delivered"),
+        (2, "processing"),
+    ]
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_postgres_egress_partial_upsert_keeps_other_columns(postgres_container):
+    """A record carrying only the key and status updates the status and leaves the other columns alone."""
+    dsn = postgres_container
+
+    conn = await asyncpg.connect(dsn)
+    await conn.execute("DROP TABLE IF EXISTS test_order_totals")
+    await conn.execute("""
+        CREATE TABLE test_order_totals (
+            order_id INT PRIMARY KEY,
+            status TEXT,
+            total REAL
+        );
+    """)
+    await conn.close()
+
+    egress = PostgresEgress(
+        dsn, table_name="test_order_totals", upsert_keys=["order_id"]
+    )
+    q = queue.Queue()
+    q.put(
+        [
+            {"value": {"order_id": 1, "status": "processing", "total": 10.0}},
+            {"value": {"order_id": 1, "status": "shipped"}},
+            {"value": {"order_id": 2, "status": "processing", "total": 5.0}},
+        ]
+    )
+
+    task = asyncio.create_task(egress.run(q))
+    await asyncio.sleep(1.0)
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    conn = await asyncpg.connect(dsn)
+    rows = await conn.fetch("SELECT * FROM test_order_totals ORDER BY order_id")
+    await conn.close()
+
+    assert [(r["order_id"], r["status"], r["total"]) for r in rows] == [
+        (1, "shipped", 10.0),
+        (2, "processing", 5.0),
+    ]

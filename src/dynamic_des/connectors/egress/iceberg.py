@@ -21,6 +21,16 @@ class IcebergStorageEgress(BaseEgress):
     `batch_size` on `add_egress` so the run produces a handful of snapshots rather
     than hundreds.
 
+    By default every record is appended. Name a table's key columns in
+    `upsert_keys` to write it with PyIceberg's `upsert` instead: a record whose key
+    exists updates that row, and a new key is inserted, so rerunning a seeded
+    simulation over the same window does not duplicate rows. An upsert reads the
+    matching rows before writing, so it is slower than an append, and it never
+    deletes rows. It replaces the whole row, so every record must carry every column: a
+    missing column is written as null. Within one flush, the last record for a key wins. An upsert
+    flush is still one commit, but it can add up to three snapshots: an overwrite
+    and two appends.
+
     The catalog is supplied by the caller rather than configured here. The supported
     catalog is Iceberg REST, which is what the integration tests run against.
 
@@ -38,6 +48,8 @@ class IcebergStorageEgress(BaseEgress):
         schemas (Dict[str, Any]): PyArrow schema per table identifier. Seeded with any
             explicit schemas, then filled in from the tables that get created.
         locations (Dict[str, str]): Explicit storage location per table identifier.
+        upsert_keys (Dict[str, list]): Key columns per table identifier, for the
+            tables written with `upsert` rather than `append`.
 
     Examples:
         Splitting events and telemetry into two tables on a REST catalog:
@@ -88,6 +100,7 @@ class IcebergStorageEgress(BaseEgress):
         table_router: Optional[Callable[[dict], Optional[str]]] = None,
         schemas: Optional[Dict[str, Any]] = None,
         locations: Optional[Dict[str, str]] = None,
+        upsert_keys: Optional[Dict[str, list]] = None,
     ):
         """
         Initializes the IcebergStorageEgress with a catalog and routing settings.
@@ -104,6 +117,9 @@ class IcebergStorageEgress(BaseEgress):
             locations: Optional storage location per table identifier. Pin this when a
                 consumer reads the table by path, because a catalog with
                 `unique-table-location` set otherwise appends a random suffix.
+            upsert_keys: Optional key columns per table identifier. A table named
+                here is written with `upsert` on those columns; any other table is
+                appended to.
 
         Raises:
             ValueError: If neither `default_table` nor `table_router` is given, since
@@ -119,6 +135,9 @@ class IcebergStorageEgress(BaseEgress):
         self.table_router = table_router
         self.schemas: Dict[str, Any] = dict(schemas or {})
         self.locations: Dict[str, str] = dict(locations or {})
+        self.upsert_keys: Dict[str, list] = {
+            identifier: list(keys) for identifier, keys in (upsert_keys or {}).items()
+        }
         # Loaded tables, kept so a batch costs one append rather than a catalog
         # round trip as well. pyiceberg retries the commit if the handle is stale,
         # so another writer changing the table does not lose this one's records.
@@ -182,15 +201,20 @@ class IcebergStorageEgress(BaseEgress):
 
     def _write_batch(self, batch: list, pa: Any):
         """
-        Groups a batch by target table and appends each group in one commit.
+        Groups a batch by target table and writes each group in one commit.
 
-        One append per table per batch is what keeps the snapshot count equal to the
-        flush count. Splitting a batch into several appends would multiply the
-        metadata a reader has to walk through.
+        One write per table per batch is what keeps the commit count equal to the
+        flush count. Splitting a batch into several writes would multiply the
+        metadata a reader has to walk through. A table in `upsert_keys` is upserted,
+        after keeping only the last record per key, because PyIceberg rejects a
+        batch with duplicate keys.
 
         Args:
             batch (list): A list of dictionaries or Pydantic models to be written.
             pa (Any): Injected reference to the `pyarrow` module.
+
+        Raises:
+            ValueError: If a record for an upserted table lacks a key column.
         """
         grouped_batches: Dict[str, list] = {}
 
@@ -204,7 +228,23 @@ class IcebergStorageEgress(BaseEgress):
 
         for identifier, records in grouped_batches.items():
             table = self._resolve_table(identifier, records, pa)
-            table.append(pa.Table.from_pylist(records, schema=self.schemas[identifier]))
+            keys = self.upsert_keys.get(identifier)
+            if keys:
+                missing = sorted({k for r in records for k in keys if r.get(k) is None})
+                if missing:
+                    # A null key never matches, so a rerun would insert the record again.
+                    raise ValueError(
+                        f"Records for {identifier} lack the upsert key column(s) {missing}"
+                    )
+                latest = {tuple(r[k] for k in keys): r for r in records}
+                df = pa.Table.from_pylist(
+                    list(latest.values()), schema=self.schemas[identifier]
+                )
+                table.upsert(df, join_cols=keys)
+            else:
+                table.append(
+                    pa.Table.from_pylist(records, schema=self.schemas[identifier])
+                )
 
     def _resolve_table(self, identifier: str, records: list, pa: Any) -> Any:
         """

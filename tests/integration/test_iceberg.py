@@ -119,3 +119,36 @@ async def test_explicit_schema_and_location_survive_the_round_trip(
     # schema exists to prevent.
     assert pa.types.is_timestamp(arrow.schema.field("event_time").type)
     assert arrow.to_pylist()[0]["key"] == "a"
+
+
+@pytest.mark.asyncio
+@pytest.mark.integration
+async def test_upsert_updates_rows_and_a_rerun_adds_none(iceberg_catalog, namespace):
+    """With upsert_keys a changed key is updated, a new key inserted, and a rerun of the same batch duplicates nothing."""
+    identifier = f"{namespace}.orders"
+    egress = IcebergStorageEgress(
+        catalog=iceberg_catalog,
+        default_table=identifier,
+        upsert_keys={identifier: ["order_id"]},
+    )
+    first = [
+        {"order_id": 1, "status": "processing"},
+        {"order_id": 2, "status": "processing"},
+    ]
+    second = [
+        {"order_id": 1, "status": "shipped"},
+        {"order_id": 3, "status": "processing"},
+        {"order_id": 1, "status": "delivered"},
+    ]
+    q: queue.Queue = queue.Queue()
+    for batch in (first, second, second):
+        q.put(batch)
+
+    await _drain(egress, q)
+
+    rows = iceberg_catalog.load_table(identifier).scan().to_arrow().to_pylist()
+    assert sorted((r["order_id"], r["status"]) for r in rows) == [
+        (1, "delivered"),
+        (2, "processing"),
+        (3, "processing"),
+    ]

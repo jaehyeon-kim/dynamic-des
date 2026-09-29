@@ -17,10 +17,30 @@ class PostgresEgress(BaseEgress):
     This connector handles long-term storage of simulation results or
     continuous generation of relational CDC data, performing bulk inserts
     of batched data into a specified PostgreSQL table using asyncpg.
+
+    By default a record whose key already exists is skipped (`ON CONFLICT DO
+    NOTHING`). Name the key columns in `upsert_keys` to update the existing row
+    instead, which a simulation needs when it changes rows it wrote earlier, such
+    as an order moving from processing to shipped.
+
+    Examples:
+        Updating orders as their status changes:
+
+        ```python
+        egress = PostgresEgress(
+            "postgresql://user:password@localhost:5432/db",
+            table_name="orders",
+            upsert_keys=["order_id"],
+        )
+        ```
     """
 
     def __init__(
-        self, connection_dsn: str, table_name: str = "simulation_data", **kwargs: Any
+        self,
+        connection_dsn: str,
+        table_name: str = "simulation_data",
+        upsert_keys: list[str] | None = None,
+        **kwargs: Any,
     ):
         """
         Initializes the PostgresEgress with connection details.
@@ -28,10 +48,15 @@ class PostgresEgress(BaseEgress):
         Args:
             connection_dsn: PostgreSQL connection string (DSN).
             table_name: Target table for simulation records.
+            upsert_keys: Optional key columns. When given, a record whose key
+                already exists updates that row's other columns, and the columns
+                need a unique index or constraint. When None, such a record is
+                skipped.
             **kwargs: Additional connection pool arguments for asyncpg.
         """
         self.dsn = connection_dsn
         self.table_name = table_name
+        self.upsert_keys = list(upsert_keys) if upsert_keys else None
         self.kwargs = kwargs
         self.pool: asyncpg.Pool | None = None
         self.valid_columns: set[str] = set()
@@ -54,6 +79,71 @@ class PostgresEgress(BaseEgress):
                     logger.warning(
                         f"Table '{self.table_name}' does not exist or has no columns!"
                     )
+                elif self.upsert_keys:
+                    missing = set(self.upsert_keys) - self.valid_columns
+                    if missing:
+                        raise ValueError(
+                            f"Table '{self.table_name}' has no column(s) "
+                            f"{sorted(missing)} to use as upsert keys"
+                        )
+
+    def _column_runs(self, records: list[dict]) -> list[tuple[list[str], list[dict]]]:
+        """
+        Splits a batch into runs of consecutive records that carry the same columns.
+
+        Only columns the table has are kept. A record with none of them is dropped.
+
+        Args:
+            records: The batch's records, in the order they arrived.
+
+        Returns:
+            list[tuple[list[str], list[dict]]]: Each run's columns and its records.
+        """
+        runs: list[tuple[list[str], list[dict]]] = []
+        for record in records:
+            keys = [k for k in record if k in self.valid_columns]
+            if not keys:
+                continue
+            if runs and runs[-1][0] == keys:
+                runs[-1][1].append(record)
+            else:
+                runs.append((keys, [record]))
+        return runs
+
+    def _insert_query(self, keys: list[str]) -> str:
+        """
+        Builds the insert statement for a batch's columns.
+
+        Without `upsert_keys` a conflicting record is skipped, which keeps a
+        restarted simulation from failing on rows it already wrote. With
+        `upsert_keys` it updates the columns the record carries, apart from the
+        keys themselves.
+
+        Args:
+            keys: The batch's columns, in the order of the values.
+
+        Returns:
+            str: The `INSERT` statement, with one `$n` placeholder per column.
+
+        Raises:
+            ValueError: If a key column in `upsert_keys` is missing from the batch.
+        """
+        columns = ", ".join(keys)
+        placeholders = ", ".join(f"${i + 1}" for i in range(len(keys)))
+        query = f"INSERT INTO {self.table_name} ({columns}) VALUES ({placeholders})"
+        if not self.upsert_keys:
+            return f"{query} ON CONFLICT DO NOTHING"
+        missing = [k for k in self.upsert_keys if k not in keys]
+        if missing:
+            raise ValueError(
+                f"Records for {self.table_name} lack the upsert key column(s) {missing}"
+            )
+        conflict = ", ".join(self.upsert_keys)
+        updates = [k for k in keys if k not in self.upsert_keys]
+        if not updates:
+            return f"{query} ON CONFLICT ({conflict}) DO NOTHING"
+        assignments = ", ".join(f"{k} = EXCLUDED.{k}" for k in updates)
+        return f"{query} ON CONFLICT ({conflict}) DO UPDATE SET {assignments}"
 
     async def run(self, egress_queue: queue.Queue) -> None:
         """
@@ -61,6 +151,9 @@ class PostgresEgress(BaseEgress):
 
         Args:
             egress_queue: A thread-safe queue containing batches of simulation data.
+
+        Raises:
+            ValueError: If a column in `upsert_keys` is not in the table.
         """
         await self._init_pool()
 
@@ -101,31 +194,24 @@ class PostgresEgress(BaseEgress):
                 if not clean_batch:
                     continue
 
-                # Filter keys to only those that exist in the database table
-                keys = [k for k in clean_batch[0].keys() if k in self.valid_columns]
-
-                if not keys:
+                # Each run of records with the same columns is one statement, in the
+                # order they arrived. A statement built from one record's columns
+                # would set another record's missing columns to NULL on an upsert.
+                runs = self._column_runs(clean_batch)
+                if not runs:
                     logger.warning(
                         f"No matching columns for table {self.table_name}. Skipping."
                     )
                     continue
 
-                columns = ", ".join(keys)
-                placeholders = ", ".join(f"${i + 1}" for i in range(len(keys)))
+                assert self.pool is not None
+                async with self.pool.acquire() as conn:
+                    for keys, records in runs:
+                        values = [tuple(data.get(k) for k in keys) for data in records]
+                        await conn.executemany(self._insert_query(keys), values)
 
-                # Using ON CONFLICT DO NOTHING to ensure idempotency during simulation restarts
-                query = f"INSERT INTO {self.table_name} ({columns}) VALUES ({placeholders}) ON CONFLICT DO NOTHING"
-
-                # Extract the tuples of values matching the ordered keys
-                values = [tuple(data.get(k) for k in keys) for data in clean_batch]
-
-                # Execute the massive batch insert dynamically
-                if self.valid_columns and values:
-                    assert self.pool is not None
-                    async with self.pool.acquire() as conn:
-                        await conn.executemany(query, values)
-
-                logger.debug(f"Inserted {len(values)} records into {self.table_name}")
+                written = sum(len(records) for _, records in runs)
+                logger.debug(f"Inserted {written} records into {self.table_name}")
 
             except queue.Empty:
                 # Yield to the event loop if the queue is empty
