@@ -53,7 +53,7 @@ Pass `upsert_keys` to upsert a table on its key columns instead of appending, so
 IcebergStorageEgress(catalog=catalog, table_router=router, upsert_keys={"sim.orders": ["order_id"]})
 ```
 
-An upsert reads the matching rows before writing, so it is slower than an append, and it never deletes rows. It replaces the whole row, so every record must carry every column. Within one flush, the last record for a key wins. An upsert flush is still one commit, but it can add up to three snapshots.
+An upsert reads the matching rows before writing, so it is slower than an append, and it never deletes rows. It replaces the whole row, so every record must carry every column. The option needs pyiceberg 0.9.0 or later. Within one flush, the last record for a key wins. An upsert flush is still one commit, but it can add up to three snapshots.
 
 ### Attaching more than one
 
