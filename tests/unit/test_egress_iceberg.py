@@ -33,12 +33,16 @@ class FakeTable:
         self.location = location
         self._schema = FakeSchema(arrow_schema)
         self.appended: list = []
+        self.upserted: list = []
 
     def schema(self):
         return self._schema
 
     def append(self, df):
         self.appended.append(df)
+
+    def upsert(self, df, join_cols=None):
+        self.upserted.append((df, join_cols))
 
 
 class FakeCatalog:
@@ -194,3 +198,69 @@ def test_later_batches_are_cast_to_the_table_schema():
     second = catalog.tables["sim.events"].appended[1]
     assert second.schema == pinned
     assert second.to_pylist() == [{"key": "b", "sim_ts": 2.0}]
+
+
+def test_a_table_without_upsert_keys_is_appended():
+    """Without upsert_keys nothing changes: the batch is appended."""
+    catalog = FakeCatalog()
+    egress = IcebergStorageEgress(catalog=catalog, default_table="sim.orders")
+
+    egress._write_batch([{"order_id": 1, "status": "new"}], pa)
+
+    table = catalog.tables["sim.orders"]
+    assert len(table.appended) == 1 and table.upserted == []
+
+
+def test_a_table_with_upsert_keys_is_upserted_on_those_keys():
+    """A table named in upsert_keys is written with upsert, joined on its keys."""
+    catalog = FakeCatalog()
+    egress = IcebergStorageEgress(
+        catalog=catalog,
+        default_table="sim.orders",
+        upsert_keys={"sim.orders": ["order_id"]},
+    )
+
+    egress._write_batch([{"order_id": 1, "status": "new"}], pa)
+
+    table = catalog.tables["sim.orders"]
+    assert table.appended == []
+    df, join_cols = table.upserted[0]
+    assert join_cols == ["order_id"]
+    assert df.to_pylist() == [{"order_id": 1, "status": "new"}]
+
+
+def test_upsert_keeps_the_last_record_per_key_in_a_flush():
+    """Two changes to one key in one flush leave only the later one."""
+    catalog = FakeCatalog()
+    egress = IcebergStorageEgress(
+        catalog=catalog,
+        default_table="sim.orders",
+        upsert_keys={"sim.orders": ["order_id"]},
+    )
+
+    egress._write_batch(
+        [
+            {"order_id": 1, "status": "new"},
+            {"order_id": 2, "status": "new"},
+            {"order_id": 1, "status": "shipped"},
+        ],
+        pa,
+    )
+
+    df, _ = catalog.tables["sim.orders"].upserted[0]
+    assert sorted(df.to_pylist(), key=lambda r: r["order_id"]) == [
+        {"order_id": 1, "status": "shipped"},
+        {"order_id": 2, "status": "new"},
+    ]
+
+
+def test_upsert_record_without_its_key_raises():
+    """A record with no key cannot be matched, so it is refused rather than duplicated on every rerun."""
+    egress = IcebergStorageEgress(
+        catalog=FakeCatalog(),
+        default_table="sim.orders",
+        upsert_keys={"sim.orders": ["order_id"]},
+    )
+
+    with pytest.raises(ValueError, match="order_id"):
+        egress._write_batch([{"status": "new"}], pa)
