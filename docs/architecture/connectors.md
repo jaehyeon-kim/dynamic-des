@@ -35,8 +35,25 @@ Streams telemetry and events in real time to designated Kafka topics.
 ### Storage Egress (`ParquetStorageEgress` / `JsonlStorageEgress`)
 Writes records to compressed, chunked files using PyArrow. Writes to local directories and S3-compatible storage such as AWS S3 or SeaweedFS.
 
+### PostgreSQL Egress (`PostgresEgress`)
+Inserts records into a PostgreSQL table in batches, through `asyncpg`. By default a record whose key already exists is skipped. Pass `upsert_keys` to update that row instead, for simulations that change rows they wrote earlier, such as an order moving from processing to shipped:
+
+```python
+PostgresEgress(dsn, table_name="orders", upsert_keys=["order_id"])
+```
+
+The key columns need a unique index or constraint. An update sets only the columns the record carries, so a record with just the key and a new status leaves the other columns as they were. Within one flush, the last record for a key wins.
+
 ### Iceberg Egress (`IcebergStorageEgress`)
 Appends records into an Apache Iceberg table through an Iceberg REST catalog the caller supplies. One flush is one commit, which is why this provider wants a large `batch_size` of its own: every commit writes a manifest, a manifest list and a new `metadata.json`, and query planning degrades as snapshots accumulate.
+
+Pass `upsert_keys` to upsert a table on its key columns instead of appending, so rerunning a seeded simulation over the same window does not duplicate rows:
+
+```python
+IcebergStorageEgress(catalog=catalog, table_router=router, upsert_keys={"sim.orders": ["order_id"]})
+```
+
+An upsert reads the matching rows before writing, so it is slower than an append, and it never deletes rows. It replaces the whole row, so every record must carry every column. Within one flush, the last record for a key wins. An upsert flush is still one commit, but it can add up to three snapshots.
 
 ### Attaching more than one
 
