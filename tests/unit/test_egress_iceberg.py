@@ -264,3 +264,16 @@ def test_upsert_record_without_its_key_raises():
 
     with pytest.raises(ValueError, match="order_id"):
         egress._write_batch([{"status": "new"}], pa)
+
+
+def test_upsert_keys_on_a_pyiceberg_without_upsert_fails_at_construction(monkeypatch):
+    """On pyiceberg older than 0.9.0 the option fails before the run, naming the version."""
+    from pyiceberg.table import Table
+
+    monkeypatch.delattr(Table, "upsert")
+    with pytest.raises(ImportError, match="0.9.0"):
+        IcebergStorageEgress(
+            catalog=FakeCatalog(),
+            default_table="sim.orders",
+            upsert_keys={"sim.orders": ["order_id"]},
+        )

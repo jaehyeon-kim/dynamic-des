@@ -124,6 +124,8 @@ class IcebergStorageEgress(BaseEgress):
         Raises:
             ValueError: If neither `default_table` nor `table_router` is given, since
                 the connector would then have nowhere to write.
+            ImportError: If `upsert_keys` is given and the installed pyiceberg is
+                older than 0.9.0, which added `Table.upsert`.
         """
         if default_table is None and table_router is None:
             raise ValueError(
@@ -138,6 +140,16 @@ class IcebergStorageEgress(BaseEgress):
         self.upsert_keys: Dict[str, list] = {
             identifier: list(keys) for identifier, keys in (upsert_keys or {}).items()
         }
+        if self.upsert_keys:
+            from pyiceberg.table import Table
+
+            # Table.upsert arrived in pyiceberg 0.9.0; the package floor is lower
+            # because appending works on older releases.
+            if not hasattr(Table, "upsert"):
+                raise ImportError(
+                    "upsert_keys needs pyiceberg 0.9.0 or later: "
+                    'pip install "pyiceberg>=0.9.0"'
+                )
         # Loaded tables, kept so a batch costs one append rather than a catalog
         # round trip as well. pyiceberg retries the commit if the handle is stale,
         # so another writer changing the table does not lose this one's records.
