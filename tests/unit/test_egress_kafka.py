@@ -15,6 +15,13 @@ from dynamic_des.connectors.egress.kafka import (
 )
 
 
+@pytest.fixture(autouse=True)
+def mock_admin():
+    """Keeps the topic creation at start from reaching for a broker."""
+    with patch("dynamic_des.connectors.egress.kafka.KafkaAdminConnector") as admin:
+        yield admin
+
+
 class DummyModel(BaseModel):
     """A dummy Pydantic model for duck-typing tests."""
 
@@ -430,3 +437,81 @@ async def test_kafka_egress_custom_topic_router(MockProducer):
 
     decoded_payload_1 = orjson.loads(call_1.kwargs["value"])
     assert "stream_type" not in decoded_payload_1
+
+
+async def _run_briefly(egress):
+    task = asyncio.create_task(egress.run(queue.Queue()))
+    await asyncio.sleep(0.05)
+    task.cancel()
+    await asyncio.gather(task, return_exceptions=True)
+
+
+@pytest.mark.asyncio
+@patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
+async def test_topics_are_created_at_start(MockProducer, mock_admin):
+    """Without a router, the event and telemetry topics are created before producing."""
+    MockProducer.return_value = AsyncMock()
+    egress = KafkaEgress(
+        bootstrap_servers="broker:9092",
+        event_topic="ev",
+        telemetry_topic="tm",
+        security_protocol="SASL_PLAINTEXT",
+        sasl_mechanism="PLAIN",
+        linger_ms=5,
+    )
+
+    await _run_briefly(egress)
+
+    # Only settings the admin client knows are passed; linger_ms is producer-only.
+    mock_admin.assert_called_once_with(
+        bootstrap_servers="broker:9092",
+        security_protocol="SASL_PLAINTEXT",
+        sasl_mechanism="PLAIN",
+    )
+    mock_admin.return_value.create_topics.assert_called_once_with(
+        topics_config=[{"name": "ev"}, {"name": "tm"}]
+    )
+
+
+@pytest.mark.asyncio
+@patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
+async def test_one_topic_for_both_streams_is_created_once(MockProducer, mock_admin):
+    """The same name for both streams is one topic."""
+    MockProducer.return_value = AsyncMock()
+    egress = KafkaEgress(
+        bootstrap_servers="b:9092", event_topic="all", telemetry_topic="all"
+    )
+
+    await _run_briefly(egress)
+
+    mock_admin.return_value.create_topics.assert_called_once_with(
+        topics_config=[{"name": "all"}]
+    )
+
+
+@pytest.mark.asyncio
+@patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
+async def test_a_router_leaves_topics_to_the_caller(MockProducer, mock_admin):
+    """Only the router knows its topics, so none are created."""
+    MockProducer.return_value = AsyncMock()
+    egress = KafkaEgress(bootstrap_servers="b:9092", topic_router=lambda d: "x")
+
+    await _run_briefly(egress)
+
+    mock_admin.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
+async def test_a_failed_topic_creation_does_not_stop_the_producer(
+    MockProducer, mock_admin
+):
+    """The producer loop has its own retry, so a creation failure is only logged."""
+    producer = AsyncMock()
+    MockProducer.return_value = producer
+    mock_admin.return_value.create_topics.side_effect = RuntimeError("no broker")
+    egress = KafkaEgress(bootstrap_servers="b:9092")
+
+    await _run_briefly(egress)
+
+    producer.start.assert_called_once()

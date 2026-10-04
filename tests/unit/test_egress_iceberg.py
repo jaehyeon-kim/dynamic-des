@@ -277,3 +277,174 @@ def test_upsert_keys_on_a_pyiceberg_without_upsert_fails_at_construction(monkeyp
             default_table="sim.orders",
             upsert_keys={"sim.orders": ["order_id"]},
         )
+
+
+def test_without_router_events_are_flat_and_telemetry_is_left_out():
+    """With only default_table, the table gets one flat row per event."""
+    catalog = FakeCatalog()
+    egress = IcebergStorageEgress(catalog=catalog, default_table="sim.events")
+    event = {
+        "stream_type": "event",
+        "key": "task-1",
+        "value": {"path_id": "Line_A.service.milling", "status": "finished"},
+    }
+
+    egress._write_batch(
+        [event, {"stream_type": "telemetry", "path_id": "p", "value": 1.0}], pa
+    )
+
+    rows = catalog.tables["sim.events"].appended[0].to_pylist()
+    assert rows == [
+        {
+            "stream_type": "event",
+            "key": "task-1",
+            "path_id": "Line_A.service.milling",
+            "status": "finished",
+        }
+    ]
+    assert "value" in event
+
+
+def test_with_router_records_are_not_flattened():
+    """A router keeps today's behaviour, so the nested value reaches the table."""
+    catalog = FakeCatalog()
+    egress = IcebergStorageEgress(catalog=catalog, table_router=lambda d: "sim.raw")
+
+    egress._write_batch([{"stream_type": "telemetry", "key": "a", "value": 1.0}], pa)
+
+    rows = catalog.tables["sim.raw"].appended[0].to_pylist()
+    assert rows == [{"stream_type": "telemetry", "key": "a", "value": 1.0}]
+
+
+def test_iso_strings_are_converted_for_time_columns():
+    """An ISO string reaches a timestamp or date column as a datetime or date."""
+    from datetime import date, datetime
+
+    catalog = FakeCatalog()
+    pinned = pa.schema(
+        [
+            ("key", pa.string()),
+            ("timestamp", pa.timestamp("us")),
+            ("day", pa.date32()),
+            ("label", pa.string()),
+        ]
+    )
+    egress = IcebergStorageEgress(
+        catalog=catalog, default_table="sim.events", schemas={"sim.events": pinned}
+    )
+    record = {
+        "key": "a",
+        "timestamp": "2026-01-01T12:30:00.500",
+        "day": "2026-01-01",
+        "label": "2026-01-01T00:00:00",
+    }
+
+    egress._write_batch([record], pa)
+
+    [row] = catalog.tables["sim.events"].appended[0].to_pylist()
+    assert row["timestamp"] == datetime(2026, 1, 1, 12, 30, 0, 500000)
+    assert row["day"] == date(2026, 1, 1)
+    # A string column keeps its string.
+    assert row["label"] == "2026-01-01T00:00:00"
+    # The record other sinks hold is unchanged.
+    assert record["timestamp"] == "2026-01-01T12:30:00.500"
+
+
+def test_catalog_properties_are_loaded_on_first_write(monkeypatch):
+    """A mapping is built with PyIceberg's load_catalog, once, when a table is needed."""
+    import pyiceberg.catalog
+
+    fake = FakeCatalog()
+    calls = []
+
+    def fake_load_catalog(name=None, **properties):
+        calls.append((name, properties))
+        return fake
+
+    monkeypatch.setattr(pyiceberg.catalog, "load_catalog", fake_load_catalog)
+    egress = IcebergStorageEgress(
+        catalog={
+            "name": "odctl",
+            "uri": "http://localhost:8181",
+            "s3.path-style-access": True,
+            "s3.port": 8333,
+        },
+        default_table="sim.events",
+    )
+    assert calls == []
+
+    egress._write_batch([{"key": "a"}], pa)
+    egress._write_batch([{"key": "b"}], pa)
+
+    assert calls == [
+        (
+            "odctl",
+            {
+                "uri": "http://localhost:8181",
+                "s3.path-style-access": "true",
+                "s3.port": "8333",
+            },
+        )
+    ]
+    assert egress.catalog is fake
+    assert len(fake.tables["sim.events"].appended) == 2
+
+
+def test_catalog_object_is_used_as_given():
+    """A Catalog object keeps working, with no properties recorded."""
+    catalog = FakeCatalog()
+    egress = IcebergStorageEgress(catalog=catalog, default_table="sim.events")
+
+    assert egress.catalog is catalog and egress.catalog_properties is None
+
+
+def test_schema_mapping_of_type_names_becomes_an_arrow_schema():
+    """A schema written as column to type name creates the table with those types."""
+    catalog = FakeCatalog()
+    egress = IcebergStorageEgress(
+        catalog=catalog,
+        default_table="sim.events",
+        schemas={
+            "sim.events": {
+                "key": "string",
+                "sim_ts": "double",
+                "count": "long",
+                "ok": "boolean",
+                "timestamp": "timestamp",
+            }
+        },
+    )
+
+    egress._write_batch(
+        [
+            {
+                "key": "a",
+                "sim_ts": 1,
+                "count": 2,
+                "ok": True,
+                "timestamp": "2026-01-01T00:00:00.000",
+            }
+        ],
+        pa,
+    )
+
+    _, schema, _ = catalog.create_calls[0]
+    assert schema == pa.schema(
+        [
+            ("key", pa.string()),
+            ("sim_ts", pa.float64()),
+            ("count", pa.int64()),
+            ("ok", pa.bool_()),
+            ("timestamp", pa.timestamp("us")),
+        ]
+    )
+
+
+def test_unknown_type_name_is_refused_at_construction():
+    """A misspelt type fails before the run, naming the column and the choices."""
+    with pytest.raises(ValueError, match="'when' of sim.events.*timestamp"):
+        IcebergStorageEgress(
+            catalog=FakeCatalog(),
+            default_table="sim.events",
+            schemas={"sim.events": {"when": "datetime"}},
+        )
