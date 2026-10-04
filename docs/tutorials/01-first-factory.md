@@ -1,6 +1,6 @@
-# Tutorial 1: Your First Factory (Local)
+# Part 2.1: Your First Factory (Local)
 
-Welcome to the Basics tutorial. In this first step, you will learn the fundamental lifecycle of a digital twin by building a simple factory model that runs locally on your machine.
+Part 2 of the tutorials uses the declarative API. In this first step, you will learn the fundamental lifecycle of a digital twin by building a simple factory model that runs locally on your machine. It is the factory [Part 1](low-level.md) built by hand, and [Part 3](yaml.md) writes it as a YAML blueprint.
 
 ---
 

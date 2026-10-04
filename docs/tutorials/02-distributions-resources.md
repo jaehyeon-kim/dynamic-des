@@ -1,4 +1,4 @@
-# Tutorial 2: Adding Randomness and Rules
+# Part 2.2: Adding Randomness and Rules
 
 In this tutorial, you will expand the factory model by adding stochasticity (random service times) and testing dynamic capacity updates.
 

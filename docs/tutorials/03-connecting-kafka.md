@@ -1,6 +1,6 @@
-# Tutorial 3: Going Distributed (Kafka)
+# Part 2.3: Going Distributed (Kafka)
 
-In this final basics tutorial, you will transition your simulation into a distributed microservice. You will swap local console connectors for Kafka connectors, allowing you to stream telemetry and receive live parameter updates over the network.
+In this final declarative tutorial, you will transition your simulation into a distributed microservice. You will swap local console connectors for Kafka connectors, allowing you to stream telemetry and receive live parameter updates over the network.
 
 ---
 
@@ -59,7 +59,7 @@ app = (
 
 ## 3. Keep the Core Logic Identical
 
-Because the standard API decouples infrastructure from business logic, **you do not need to modify any of the simulation generators or task loops** from Tutorial 2:
+Because the standard API decouples infrastructure from business logic, **you do not need to modify any of the simulation generators or task loops** from Part 2.2:
 
 ```python
 @app.arrival_loop("parts")
