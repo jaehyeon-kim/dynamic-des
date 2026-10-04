@@ -23,6 +23,18 @@ jobs:
       - name: Set up Python
         run: uv python install 3.10
 
+      # A release tagged v0.16.0 must publish version 0.16.0, or PyPI receives a version
+      # nobody released. The tag goes through env, not into the script text.
+      - name: Check the tag matches the package version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION=$(grep -m 1 '^version = ' pyproject.toml | cut -d '"' -f 2)
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "Release tag $TAG does not match v$VERSION in pyproject.toml"
+            exit 1
+          fi
+
       - name: Build Wheel and sdist
         run: uv build
 
