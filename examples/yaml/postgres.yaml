@@ -1,0 +1,41 @@
+# Relational output with table multiplexing, in YAML.
+#
+# The twin of examples/declarative/postgres_example.py. Two PostgresEgress
+# instances are attached, one per table, and each keeps only the records whose
+# __table__ key matches its own table_name. PostgresIngress polls simulation_params
+# for parameter updates. The order generator and the schema setup stay in
+# postgres_logic.py beside this file.
+#
+# Needs a database: odctl up postgres. Runs until interrupted with Ctrl + C.
+# Run it with: dynamic-des run examples/yaml/postgres.yaml
+
+simulation:
+  sim_id: Store
+  factor: 1.0
+
+ingress:
+  - type: Postgres
+    config:
+      connection_dsn: postgresql://user:password@localhost:5432/odctl
+      table_name: simulation_params
+
+egress:
+  - type: Postgres
+    config:
+      connection_dsn: postgresql://user:password@localhost:5432/odctl
+      table_name: orders
+  - type: Postgres
+    config:
+      connection_dsn: postgresql://user:password@localhost:5432/odctl
+      table_name: order_items
+
+arrivals:
+  customer_order: {dist: exponential, rate: 1.0}
+
+processes:
+  # Builds an order and its items on every customer_order arrival.
+  - !python postgres_logic.order_generator
+
+run:
+  before:
+    - !python postgres_logic.init_db

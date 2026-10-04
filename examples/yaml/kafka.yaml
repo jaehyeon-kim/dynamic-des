@@ -1,0 +1,52 @@
+# Kafka digital twin in YAML.
+#
+# The twin of examples/declarative/kafka_example.py. KafkaIngress reads parameter
+# updates from sim-config, and KafkaEgress publishes lifecycle events to sim-events
+# and metrics to sim-telemetry. The task payload and the telemetry loop stay in
+# kafka_logic.py beside this file.
+#
+# Needs a broker: odctl up kafka-lite. Runs until interrupted with Ctrl + C.
+# Run it with: dynamic-des run examples/yaml/kafka.yaml
+
+simulation:
+  sim_id: Line_A
+  factor: 1.0
+  random_seed: 42
+
+ingress:
+  - type: Kafka
+    config:
+      topic: sim-config
+      bootstrap_servers: !python kafka_logic.BOOTSTRAP_SERVERS
+
+egress:
+  - type: Kafka
+    config:
+      event_topic: sim-events
+      telemetry_topic: sim-telemetry
+      bootstrap_servers: !python kafka_logic.BOOTSTRAP_SERVERS
+
+resources:
+  lathe: {current_cap: 1, max_cap: 10}
+
+services:
+  milling: {dist: normal, mean: 3.0, std: 0.5}
+
+arrivals:
+  standard: {dist: exponential, rate: 1.0, spawn: process_part}
+
+tasks:
+  process_part:
+    service: milling
+    resource: lathe
+    # Returns a Pydantic model dumped to JSON, so the event has a declared shape.
+    payload: !python kafka_logic.process_part
+
+telemetry:
+  # avg_wait is derived from the queue, so this loop is Python.
+  - interval: 2.0
+    function: !python kafka_logic.telemetry_monitor
+
+run:
+  before:
+    - !python kafka_logic.create_topics

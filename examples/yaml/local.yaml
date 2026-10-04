@@ -1,0 +1,42 @@
+# Local simulation in YAML, with no Python and no containers.
+#
+# The twin of examples/declarative/local_example.py. Factory_A writes to
+# ConsoleEgress, so events and telemetry are printed to the terminal, and the run
+# ends on its own after 60 simulation seconds.
+#
+# Run it with: dynamic-des run examples/yaml/local.yaml
+
+simulation:
+  sim_id: Factory_A
+  factor: 1.0
+
+egress:
+  - type: Console
+
+resources:
+  lathe: {current_cap: 2, max_cap: 5}
+
+services:
+  milling: {dist: normal, mean: 3.0, std: 0.5}
+
+arrivals:
+  # Each arrival spawns one process_part task.
+  standard: {dist: exponential, rate: 1.0, spawn: process_part}
+
+tasks:
+  process_part:
+    service: milling
+    resource: lathe
+    # The value of the task's finished event. id_field adds the task id as part_id.
+    payload: {event_type: part_produced, quality: A}
+    id_field: part_id
+
+telemetry:
+  # Samples the lathe every 2 simulation seconds.
+  - interval: 2.0
+    publish:
+      utilization: lathe.utilization
+      queue_length: lathe.queue_length
+
+run:
+  until: 60

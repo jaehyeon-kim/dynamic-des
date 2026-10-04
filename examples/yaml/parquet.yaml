@@ -1,0 +1,55 @@
+# Historical data generation in YAML.
+#
+# The twin of examples/declarative/parquet_example.py. With factor 0 the clock is
+# detached from the wall clock, so a week of factory data is written to Parquet as
+# fast as the machine allows. The router, the optional S3 filesystem and the start
+# time stay in parquet_logic.py beside this file.
+#
+# Writes to ./data by default. Set USE_S3=true to write to the odctl storage
+# profile instead (odctl up storage).
+# Run it with: dynamic-des run examples/yaml/parquet.yaml
+
+simulation:
+  sim_id: Line_A
+  factor: 0.0
+  random_seed: 42
+  # A week before now, so the records are stamped as history.
+  logical_start_time: !python parquet_logic.LOGICAL_START_TIME
+
+egress:
+  - type: Parquet
+    config:
+      path_router: !python parquet_logic.router
+      filesystem: !python parquet_logic.filesystem
+
+batching:
+  batch_size: 5000
+  flush_interval: 86400
+
+resources:
+  lathe: {current_cap: 4, max_cap: 10}
+
+services:
+  milling: {dist: normal, mean: 2.0, std: 0.2}
+
+arrivals:
+  standard: {dist: exponential, rate: 2.0, spawn: process_part}
+
+tasks:
+  process_part:
+    service: milling
+    resource: lathe
+    payload: {path_id: Line_A.service.milling, status: finished}
+
+telemetry:
+  - interval: 60.0
+    publish:
+      lathe.capacity: lathe.capacity
+      lathe.in_use: lathe.in_use
+      lathe.queue_length: lathe.queue_length
+      lathe.utilization: lathe.utilization
+
+run:
+  until: 1 week
+  before:
+    - !python parquet_logic.ensure_destination

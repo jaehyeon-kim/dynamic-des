@@ -1,6 +1,6 @@
 # Examples
 
-Runnable scripts for every connector, in both API styles. They live outside the package, so `pip install dynamic-des` does not carry them and the library declares only what it imports.
+Runnable scripts for every connector, in both API styles, and YAML blueprints for the declarative ones. They live outside the package, so `pip install dynamic-des` does not carry them and the library declares only what it imports.
 
 Run one directly:
 
@@ -53,3 +53,13 @@ Kafka and Redis are the two whose profile names are not what you would guess, be
 `imperative/` uses `DynamicRealtimeEnvironment` directly, wiring the registry, resources and connectors by hand. It is the lower-level API the builder is written on.
 
 Most pairs run the same simulation, so reading one against the other shows what the builder does for you. The local pair is the exception and the two differ on purpose: `declarative/local_example.py` runs `Factory_A` for 60 seconds with no ingress, while `imperative/local_example.py` runs `Line_A` for 30 seconds and uses `LocalIngress` to schedule two capacity changes.
+
+## YAML blueprints
+
+`yaml/` holds a YAML twin of every declarative example, run with the `dynamic-des` command:
+
+```bash
+uv run dynamic-des run examples/yaml/local.yaml
+```
+
+`local.yaml` needs no Python. Each of the others has a `<name>_logic.py` beside it with the processes, routers and serializers the YAML references with `!python`. The extras and odctl profiles are the same as for the declarative twin, so `kafka.yaml` needs `--extra kafka` and `odctl up kafka-lite`, and `backfill_live.yaml` needs both `kafka` and `parquet`. Each pair builds the same simulation, which `tests/unit/test_yaml_examples.py` checks.

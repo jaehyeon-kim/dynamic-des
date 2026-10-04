@@ -1,0 +1,44 @@
+# Lakehouse data generation in YAML.
+#
+# The twin of examples/declarative/iceberg_example.py. A day of factory data is
+# generated at factor 0, and each flush of the buffer becomes one Iceberg commit.
+# The catalog, the table router and the pinned schema stay in iceberg_logic.py
+# beside this file.
+#
+# Needs the odctl catalog profile: odctl up catalog. The catalog is contacted when
+# this file is loaded, because iceberg_logic.py builds the catalog client on import.
+# Run it with: dynamic-des run examples/yaml/iceberg.yaml
+
+simulation:
+  sim_id: Line_A
+  factor: 0.0
+  random_seed: 42
+  # A day before now, so the records are stamped as history.
+  logical_start_time: !python iceberg_logic.LOGICAL_START_TIME
+
+egress:
+  - type: Iceberg
+    config:
+      catalog: !python iceberg_logic.catalog
+      table_router: !python iceberg_logic.router
+      schemas: !python iceberg_logic.SCHEMAS
+    # One commit per flush, sized so a day of events lands in a few snapshots.
+    batch_size: 200000
+
+resources:
+  lathe: {current_cap: 4, max_cap: 10}
+
+services:
+  milling: {dist: normal, mean: 2.0, std: 0.2}
+
+arrivals:
+  standard: {dist: exponential, rate: 2.0, spawn: process_part}
+
+tasks:
+  process_part:
+    service: milling
+    resource: lathe
+    payload: {path_id: Line_A.service.milling, status: finished}
+
+run:
+  until: 1 day
