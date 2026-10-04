@@ -1,6 +1,6 @@
 [project]
 name = "dynamic-des"
-version = "0.15.0"
+version = "0.16.0"
 description = "A dynamic, real-time control plane for SimPy-based discrete-event digital twins."
 readme = "README.md"
 authors = [
@@ -43,7 +43,9 @@ dependencies = [
     "simpy>=4.0.0",
     "numpy>=1.26.0",
     "orjson>=3.10.0",
-    "pydantic>=2.0.0"
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0.1",
+    "typer>=0.12.0"
 ]
 
 [project.urls]
@@ -94,7 +96,7 @@ all = [
     "dynamic-des[kafka,redis,postgres,confluent,glue,parquet,iceberg]"
 ]
 [build-system]
-requires = ["uv_build>=0.9.16,<0.12.0"]
+requires = ["uv_build>=0.9.16,<0.13.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
