@@ -5,6 +5,7 @@ script that make the same calls produce the same simulation.
 """
 
 import importlib
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, List, Tuple, Union
 
@@ -66,7 +67,8 @@ def build(path: Union[str, Path]) -> Tuple[SimulationContext, Run]:
     """
     data, source = read_document(path)
     try:
-        blueprint = Blueprint.model_validate(data)
+        # One `now` for the whole file, so relative times agree with each other.
+        blueprint = Blueprint.model_validate(data, context={"now": datetime.now()})
     except ValidationError as exc:
         raise _validation_error(exc, source) from None
 

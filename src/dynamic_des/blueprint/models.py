@@ -8,10 +8,19 @@ file is loaded rather than during the run.
 """
 
 import inspect
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    TypeAdapter,
+    ValidationError,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
 
 from dynamic_des.models.params import CapacityConfig, DistributionConfig
 from dynamic_des.utils import time_to_seconds
@@ -29,6 +38,37 @@ def _seconds(value: Union[float, str]) -> float:
     raise ValueError("expected seconds or a duration such as '10 min'")
 
 
+_DATETIME = TypeAdapter(datetime)
+
+
+def _instant(value: Any, now: datetime) -> Any:
+    """Reads `now`, a signed duration from now such as `-1d`, or an ISO datetime.
+
+    A datetime, from a YAML timestamp or a `!python` reference, is returned as it is.
+    """
+    if not isinstance(value, str):
+        return value
+    text = value.strip()
+    if text.lower() == "now":
+        return now
+    if text[:1] in ("+", "-"):
+        try:
+            offset = time_to_seconds(text[1:])
+        except ValueError:
+            raise ValueError(
+                f"{value!r} is not a duration. Write a sign and a duration, such "
+                f"as -1d, -7d or -10m"
+            ) from None
+        return now + timedelta(seconds=offset if text[0] == "+" else -offset)
+    try:
+        return _DATETIME.validate_python(text)
+    except ValidationError:
+        raise ValueError(
+            f"{value!r} is not a time. Use now, a signed duration such as -1d, or "
+            f"an ISO datetime such as 2026-01-01T00:00:00"
+        ) from None
+
+
 def _generator_function(value: Any) -> Any:
     if not inspect.isgeneratorfunction(value):
         raise ValueError(
@@ -42,13 +82,25 @@ class _Model(BaseModel):
 
 
 class Simulation(_Model):
-    """The `simulation` section: the arguments of `SimulationContext`."""
+    """The `simulation` section: the arguments of `SimulationContext`.
+
+    `logical_start_time` and `go_live_at` take `now`, a signed duration from now such
+    as `-1d` or `-10m`, an ISO datetime, or a `!python` datetime. Both read the same
+    `now`, the moment the file is validated, so `-10m` and `now` are exactly ten
+    minutes apart.
+    """
 
     sim_id: str
     factor: float = 1.0
     random_seed: Optional[int] = None
     logical_start_time: Optional[datetime] = None
     go_live_at: Optional[datetime] = None
+
+    @field_validator("logical_start_time", "go_live_at", mode="before")
+    @classmethod
+    def _parse_instant(cls, value: Any, info: ValidationInfo) -> Any:
+        now = (info.context or {}).get("now") or datetime.now()
+        return _instant(value, now)
 
 
 class Arrival(_Model):

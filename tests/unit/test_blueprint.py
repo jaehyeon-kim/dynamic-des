@@ -609,3 +609,68 @@ def test_python_references_take_environment_variables(tmp_path, logic, monkeypat
     text += "    kwargs: {step: 2}\n"
     app = SimulationContext.from_yaml(write(tmp_path, text))
     assert app._startup_loops[-1][0].func.__name__ == "ticker"
+
+
+# ---------------------------------------------------------------------------
+# Relative times
+# ---------------------------------------------------------------------------
+def _with_times(start, live):
+    return MINIMAL.replace(
+        "  random_seed: 7\n",
+        f"  random_seed: 7\n  logical_start_time: {start}\n  go_live_at: {live}\n",
+    )
+
+
+@pytest.mark.parametrize(
+    "start,live,start_offset,live_offset",
+    [
+        ("-1d", "now", -86400, 0),
+        ("-7d", "-10m", -7 * 86400, -600),
+        ("-10 min", "+30s", -600, 30),
+        ("now", "now", 0, 0),
+    ],
+)
+def test_relative_times_read_one_now(tmp_path, start, live, start_offset, live_offset):
+    from datetime import datetime, timedelta
+
+    before = datetime.now()
+    app = SimulationContext.from_yaml(write(tmp_path, _with_times(start, live)))
+    after = datetime.now()
+
+    assert app.go_live_at - app.logical_start_time == timedelta(
+        seconds=live_offset - start_offset
+    )
+    now = app.logical_start_time - timedelta(seconds=start_offset)
+    assert before <= now <= after
+
+
+def test_absolute_times_are_read_as_datetimes(tmp_path):
+    from datetime import datetime
+
+    text = _with_times("2026-01-01T00:00:00", "'2026-01-02T06:30:00'")
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    assert app.logical_start_time == datetime(2026, 1, 1)
+    assert app.go_live_at == datetime(2026, 1, 2, 6, 30)
+
+
+def test_times_take_python_objects(tmp_path, logic):
+    from datetime import datetime
+
+    (tmp_path / f"{logic}_times.py").write_text(
+        "from datetime import datetime\nSTART = datetime(2026, 3, 1)\n",
+        encoding="utf-8",
+    )
+    text = _with_times(f"!python {logic}_times.START", "now")
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    assert app.logical_start_time == datetime(2026, 3, 1)
+
+
+@pytest.mark.parametrize(
+    "value,fragment", [("-1 fortnight", "not a duration"), ("yesterday", "not a time")]
+)
+def test_a_bad_time_names_the_line(tmp_path, value, fragment):
+    path = write(tmp_path, _with_times(value, "now"))
+    with pytest.raises(
+        BlueprintError, match=rf"{path}:5: simulation.logical_start_time: .*{fragment}"
+    ):
+        SimulationContext.from_yaml(path)
