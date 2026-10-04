@@ -1,4 +1,5 @@
 import queue
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 
@@ -101,6 +102,64 @@ def group_rows(
             row = flat
         grouped.setdefault(target, []).append(row)
     return grouped
+
+
+def parse_iso_time(value: Any, kind: str) -> Any:
+    """
+    Converts an ISO time string into the Python value a time column takes.
+
+    Records carry their logical time as an ISO string, and sinks with typed columns
+    (PyArrow, asyncpg) reject a string for a timestamp or date column. Anything
+    that is not a string, or a string that is not an ISO time, is returned
+    unchanged, so the sink reports it as it would have done before.
+
+    Args:
+        value (Any): The field's value.
+        kind (str): `timestamp` for a column without a time zone, `timestamptz`
+            for one with a time zone, or `date`.
+
+    Returns:
+        Any: A `datetime` or `date`, or `value` itself when it is not converted.
+    """
+    if not isinstance(value, str):
+        return value
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return value
+    if kind == "date":
+        return parsed.date()
+    if kind == "timestamp" and parsed.tzinfo is not None:
+        # A column without a time zone holds UTC wall time.
+        return parsed.astimezone(timezone.utc).replace(tzinfo=None)
+    return parsed
+
+
+def parse_iso_columns(records: List[dict], columns: Dict[str, str]) -> List[dict]:
+    """
+    Applies `parse_iso_time` to the time columns of each record.
+
+    A record that needs a conversion is copied first, because other egress
+    providers hold the same dictionary.
+
+    Args:
+        records (List[dict]): The rows bound for one table.
+        columns (Dict[str, str]): Column name to kind, as `parse_iso_time` takes it.
+
+    Returns:
+        List[dict]: The rows, with ISO strings in those columns converted.
+    """
+    if not columns:
+        return records
+    parsed = []
+    for record in records:
+        if any(isinstance(record.get(name), str) for name in columns):
+            record = dict(record)
+            for name, kind in columns.items():
+                if name in record:
+                    record[name] = parse_iso_time(record[name], kind)
+        parsed.append(record)
+    return parsed
 
 
 class BaseEgress:

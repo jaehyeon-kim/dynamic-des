@@ -202,3 +202,17 @@ def test_parquet_with_router_writes_records_as_the_router_leaves_them(tmp_path: 
     [chunk] = tmp_path.glob("all_*.parquet")
     rows = pq.read_table(chunk).to_pylist()
     assert [r["value"]["status"] for r in rows] == ["finished", "finished"]
+
+
+def test_parse_iso_time_handles_each_kind():
+    """Each column kind gets the Python value its sink accepts."""
+    from datetime import date, datetime
+
+    from dynamic_des.connectors.egress.base import parse_iso_time
+
+    assert parse_iso_time("2026-01-01T10:00:00+02:00", "timestamp") == datetime(
+        2026, 1, 1, 8, 0
+    )
+    assert parse_iso_time("2026-01-01T10:00:00", "date") == date(2026, 1, 1)
+    assert parse_iso_time("not a time", "timestamp") == "not a time"
+    assert parse_iso_time(5, "timestamp") == 5

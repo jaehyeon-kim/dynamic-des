@@ -3,9 +3,33 @@ import logging
 import queue
 from typing import Any, Callable, Dict, Optional
 
-from dynamic_des.connectors.egress.base import BaseEgress, group_rows
+from dynamic_des.connectors.egress.base import (
+    BaseEgress,
+    group_rows,
+    parse_iso_columns,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def _time_columns(schema: Any, pa: Any) -> Dict[str, str]:
+    """
+    Names the timestamp and date columns of an Arrow schema.
+
+    Args:
+        schema (Any): The table's PyArrow schema.
+        pa (Any): Injected reference to the `pyarrow` module.
+
+    Returns:
+        Dict[str, str]: Column name to `timestamp`, `timestamptz` or `date`.
+    """
+    columns: Dict[str, str] = {}
+    for field in schema:
+        if pa.types.is_timestamp(field.type):
+            columns[field.name] = "timestamptz" if field.type.tz else "timestamp"
+        elif pa.types.is_date(field.type):
+            columns[field.name] = "date"
+    return columns
 
 
 class IcebergStorageEgress(BaseEgress):
@@ -40,9 +64,9 @@ class IcebergStorageEgress(BaseEgress):
 
     Schemas are inferred from the first batch per table and reused for later ones,
     exactly as the Parquet writer does. Inference reads an ISO timestamp as a string,
-    so a table whose consumer expects a real timestamp needs an explicit schema. A
-    pinned column is not a conversion: PyArrow rejects an ISO string against a
-    timestamp column, so the router has to hand over a `datetime` for that field.
+    so a table whose consumer expects a real timestamp needs an explicit schema. An
+    ISO string bound for a timestamp or date column of the table is converted to a
+    `datetime` or `date` before the write, because PyArrow rejects the string itself.
 
     Attributes:
         catalog (Any): An instantiated pyiceberg `Catalog`.
@@ -59,8 +83,6 @@ class IcebergStorageEgress(BaseEgress):
         Splitting events and telemetry into two tables on a REST catalog:
 
         ```python
-        from datetime import datetime
-
         import pyarrow as pa
         from pyiceberg.catalog.rest import RestCatalog
 
@@ -71,9 +93,6 @@ class IcebergStorageEgress(BaseEgress):
         def table_router(data: dict) -> str | None:
             if data.get("path_id") == "system.simulation.lag_seconds":
                 return None  # drop
-            # A pinned timestamp column needs a datetime, not the ISO string the
-            # environment writes.
-            data["timestamp"] = datetime.fromisoformat(data["timestamp"])
             if data.get("stream_type") == "telemetry":
                 return "simulation.telemetry"
             return "simulation.events"
@@ -238,6 +257,9 @@ class IcebergStorageEgress(BaseEgress):
 
         for identifier, records in grouped_batches.items():
             table = self._resolve_table(identifier, records, pa)
+            records = parse_iso_columns(
+                records, _time_columns(self.schemas[identifier], pa)
+            )
             keys = self.upsert_keys.get(identifier)
             if keys:
                 missing = sorted({k for r in records for k in keys if r.get(k) is None})

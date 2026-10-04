@@ -129,3 +129,51 @@ def test_records_with_different_columns_are_written_in_separate_runs():
         ["order_id", "status", "total"],
     ]
     assert [len(records) for _, records in runs] == [1, 1, 1]
+
+
+@pytest.mark.asyncio
+@patch(
+    "dynamic_des.connectors.egress.postgres.asyncpg.create_pool", new_callable=AsyncMock
+)
+async def test_iso_strings_are_converted_for_time_columns(mock_create_pool, mock_pool):
+    """asyncpg rejects a string for a timestamp column, so the writer converts it."""
+    from datetime import date, datetime, timezone
+
+    pool, conn = mock_pool
+    mock_create_pool.return_value = pool
+    conn.fetch.return_value = [
+        {"column_name": "order_id", "data_type": "integer"},
+        {"column_name": "timestamp", "data_type": "timestamp without time zone"},
+        {"column_name": "placed_at", "data_type": "timestamp with time zone"},
+        {"column_name": "order_day", "data_type": "date"},
+        {"column_name": "note", "data_type": "text"},
+    ]
+    egress = PostgresEgress("postgresql://u:p@localhost/db", "orders")
+    egress_queue = queue.Queue()
+    egress_queue.put(
+        [
+            {
+                "timestamp": "2026-01-01T12:00:00.000",
+                "value": {
+                    "order_id": 1,
+                    "placed_at": "2026-01-01T12:00:00+00:00",
+                    "order_day": "2026-01-01",
+                    "note": "2026-01-01",
+                },
+            }
+        ]
+    )
+    task = asyncio.create_task(egress.run(egress_queue))
+    await asyncio.sleep(0.1)
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+
+    query, values = conn.executemany.call_args[0]
+    row = dict(zip(query.split("(")[1].split(")")[0].split(", "), values[0]))
+    assert row["timestamp"] == datetime(2026, 1, 1, 12, 0)
+    assert row["placed_at"] == datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    assert row["order_day"] == date(2026, 1, 1)
+    assert row["note"] == "2026-01-01"

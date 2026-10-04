@@ -5,9 +5,17 @@ from typing import Any
 
 import asyncpg
 
-from dynamic_des.connectors.egress.base import BaseEgress
+from dynamic_des.connectors.egress.base import BaseEgress, parse_iso_columns
 
 logger = logging.getLogger(__name__)
+
+# information_schema data types whose columns take a Python datetime or date.
+# asyncpg rejects an ISO string for these, so such strings are converted first.
+_TIME_TYPES = {
+    "timestamp without time zone": "timestamp",
+    "timestamp with time zone": "timestamptz",
+    "date": "date",
+}
 
 
 class PostgresEgress(BaseEgress):
@@ -22,6 +30,9 @@ class PostgresEgress(BaseEgress):
     NOTHING`). Name the key columns in `upsert_keys` to update the existing row
     instead, which a simulation needs when it changes rows it wrote earlier, such
     as an order moving from processing to shipped.
+
+    An ISO time string bound for a timestamp or date column is converted to a
+    `datetime` or `date` first, because asyncpg rejects the string itself.
 
     Examples:
         Updating orders as their status changes:
@@ -60,6 +71,7 @@ class PostgresEgress(BaseEgress):
         self.kwargs = kwargs
         self.pool: asyncpg.Pool | None = None
         self.valid_columns: set[str] = set()
+        self.time_columns: dict[str, str] = {}
 
     async def _init_pool(self) -> None:
         if self.pool is None:
@@ -71,10 +83,16 @@ class PostgresEgress(BaseEgress):
             assert self.pool is not None
             async with self.pool.acquire() as conn:
                 rows = await conn.fetch(
-                    "SELECT column_name FROM information_schema.columns WHERE table_name = $1",
+                    "SELECT column_name, data_type FROM information_schema.columns "
+                    "WHERE table_name = $1",
                     self.table_name,
                 )
                 self.valid_columns = {row["column_name"] for row in rows}
+                self.time_columns = {
+                    row["column_name"]: _TIME_TYPES[row.get("data_type")]
+                    for row in rows
+                    if row.get("data_type") in _TIME_TYPES
+                }
                 if not self.valid_columns:
                     logger.warning(
                         f"Table '{self.table_name}' does not exist or has no columns!"
@@ -193,6 +211,10 @@ class PostgresEgress(BaseEgress):
 
                 if not clean_batch:
                     continue
+
+                # The records carry times as ISO strings, which asyncpg rejects for
+                # a timestamp or date column.
+                clean_batch = parse_iso_columns(clean_batch, self.time_columns)
 
                 # Each run of records with the same columns is one statement, in the
                 # order they arrived. A statement built from one record's columns

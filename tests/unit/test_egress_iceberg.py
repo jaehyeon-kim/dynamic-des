@@ -314,3 +314,37 @@ def test_with_router_records_are_not_flattened():
 
     rows = catalog.tables["sim.raw"].appended[0].to_pylist()
     assert rows == [{"stream_type": "telemetry", "key": "a", "value": 1.0}]
+
+
+def test_iso_strings_are_converted_for_time_columns():
+    """An ISO string reaches a timestamp or date column as a datetime or date."""
+    from datetime import date, datetime
+
+    catalog = FakeCatalog()
+    pinned = pa.schema(
+        [
+            ("key", pa.string()),
+            ("timestamp", pa.timestamp("us")),
+            ("day", pa.date32()),
+            ("label", pa.string()),
+        ]
+    )
+    egress = IcebergStorageEgress(
+        catalog=catalog, default_table="sim.events", schemas={"sim.events": pinned}
+    )
+    record = {
+        "key": "a",
+        "timestamp": "2026-01-01T12:30:00.500",
+        "day": "2026-01-01",
+        "label": "2026-01-01T00:00:00",
+    }
+
+    egress._write_batch([record], pa)
+
+    [row] = catalog.tables["sim.events"].appended[0].to_pylist()
+    assert row["timestamp"] == datetime(2026, 1, 1, 12, 30, 0, 500000)
+    assert row["day"] == date(2026, 1, 1)
+    # A string column keeps its string.
+    assert row["label"] == "2026-01-01T00:00:00"
+    # The record other sinks hold is unchanged.
+    assert record["timestamp"] == "2026-01-01T12:30:00.500"
