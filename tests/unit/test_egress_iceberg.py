@@ -277,3 +277,40 @@ def test_upsert_keys_on_a_pyiceberg_without_upsert_fails_at_construction(monkeyp
             default_table="sim.orders",
             upsert_keys={"sim.orders": ["order_id"]},
         )
+
+
+def test_without_router_events_are_flat_and_telemetry_is_left_out():
+    """With only default_table, the table gets one flat row per event."""
+    catalog = FakeCatalog()
+    egress = IcebergStorageEgress(catalog=catalog, default_table="sim.events")
+    event = {
+        "stream_type": "event",
+        "key": "task-1",
+        "value": {"path_id": "Line_A.service.milling", "status": "finished"},
+    }
+
+    egress._write_batch(
+        [event, {"stream_type": "telemetry", "path_id": "p", "value": 1.0}], pa
+    )
+
+    rows = catalog.tables["sim.events"].appended[0].to_pylist()
+    assert rows == [
+        {
+            "stream_type": "event",
+            "key": "task-1",
+            "path_id": "Line_A.service.milling",
+            "status": "finished",
+        }
+    ]
+    assert "value" in event
+
+
+def test_with_router_records_are_not_flattened():
+    """A router keeps today's behaviour, so the nested value reaches the table."""
+    catalog = FakeCatalog()
+    egress = IcebergStorageEgress(catalog=catalog, table_router=lambda d: "sim.raw")
+
+    egress._write_batch([{"stream_type": "telemetry", "key": "a", "value": 1.0}], pa)
+
+    rows = catalog.tables["sim.raw"].appended[0].to_pylist()
+    assert rows == [{"stream_type": "telemetry", "key": "a", "value": 1.0}]

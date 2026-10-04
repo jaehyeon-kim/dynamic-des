@@ -3,7 +3,7 @@ import logging
 import queue
 from typing import Any, Callable, Dict, Optional
 
-from dynamic_des.connectors.egress.base import BaseEgress, extract_dict
+from dynamic_des.connectors.egress.base import BaseEgress, group_rows
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,10 @@ class IcebergStorageEgress(BaseEgress):
     query planning degrades as the snapshot count grows. Give this provider a large
     `batch_size` on `add_egress` so the run produces a handful of snapshots rather
     than hundreds.
+
+    Without a `table_router`, events are written to `default_table` as flat rows:
+    each event's `value` mapping becomes columns, and telemetry is left out. With a
+    router, records are written as the router leaves them.
 
     By default every record is appended. Name a table's key columns in
     `upsert_keys` to write it with PyIceberg's `upsert` instead: a record whose key
@@ -109,6 +113,8 @@ class IcebergStorageEgress(BaseEgress):
             catalog: An instantiated pyiceberg `Catalog`, already configured with its
                 URI, warehouse and credentials.
             default_table: The target `namespace.table` used when no router is given.
+                Only events are written there, with their `value` mapping unpacked
+                into columns.
             table_router: A function taking a dict payload and returning a
                 `namespace.table` identifier, or None to drop the record.
             schemas: Optional PyArrow schema per table identifier. A table named here
@@ -228,15 +234,7 @@ class IcebergStorageEgress(BaseEgress):
         Raises:
             ValueError: If a record for an upserted table lacks a key column.
         """
-        grouped_batches: Dict[str, list] = {}
-
-        for data in batch:
-            identifier = (
-                self.table_router(data) if self.table_router else self.default_table
-            )
-            if not identifier:
-                continue
-            grouped_batches.setdefault(identifier, []).append(extract_dict(data))
+        grouped_batches = group_rows(batch, self.table_router, self.default_table)
 
         for identifier, records in grouped_batches.items():
             table = self._resolve_table(identifier, records, pa)

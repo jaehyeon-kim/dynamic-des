@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, Optional
 
 import orjson
 
-from dynamic_des.connectors.egress.base import BaseEgress, extract_dict
+from dynamic_des.connectors.egress.base import BaseEgress, group_rows
 
 logger = logging.getLogger(__name__)
 
@@ -39,10 +39,12 @@ class JsonlStorageEgress(BaseEgress):
     It implements an enterprise-grade chunking strategy, generating a uniquely
     named file for every batch to prevent file locking and ensure crash resilience.
 
-    By default, all data is appended to the `default_path`. If a `path_router`
-    callable is provided, destination logic is delegated to that function, allowing
-    for advanced multiplexing (e.g., splitting logs vs. errors) or dynamically
-    dropping specific records by returning `None`.
+    By default, events are appended to the `default_path` as flat rows: each
+    event's `value` mapping is unpacked into top-level fields, and telemetry is left
+    out. If a `path_router` callable is provided, destination logic is delegated to
+    that function, allowing for advanced multiplexing (e.g., splitting logs vs.
+    errors) or dynamically dropping specific records by returning `None`. Records
+    are then written as the router leaves them.
 
     Attributes:
         default_path (Optional[str]): The fallback destination path if no router is provided.
@@ -78,7 +80,9 @@ class JsonlStorageEgress(BaseEgress):
         Initializes the JsonlStorageEgress with routing and VFS settings.
 
         Args:
-            default_path: The target file path prefix (e.g., "data/logs.jsonl").
+            default_path: The target file path prefix (e.g., "data/logs.jsonl"),
+                used when no router is given. Only events are written there, with
+                their `value` mapping unpacked into top-level fields.
             filesystem: An instantiated PyArrow FileSystem (e.g., `fs.S3FileSystem()`).
                 If None, defaults to `fs.LocalFileSystem()`.
             path_router: A function taking a dict payload and returning a string path,
@@ -152,18 +156,7 @@ class JsonlStorageEgress(BaseEgress):
             logger.error("Filesystem not initialized. Batch dropped.")
             return
 
-        grouped_batches: dict[str, list[dict]] = {}
-
-        for data in batch:
-            target_path = (
-                self.path_router(data) if self.path_router else self.default_path
-            )
-            if not target_path or not self.filesystem:
-                continue
-
-            if target_path not in grouped_batches:
-                grouped_batches[target_path] = []
-            grouped_batches[target_path].append(extract_dict(data))
+        grouped_batches = group_rows(batch, self.path_router, self.default_path)
 
         for target_path, records in grouped_batches.items():
             chunk_path = _generate_chunk_filename(target_path)
@@ -187,6 +180,10 @@ class ParquetStorageEgress(BaseEgress):
     part-file for every flush of the buffer. Schemas are inferred from the
     first batch of data and strictly enforced on subsequent batches to prevent
     schema drift across chunks.
+
+    Without a `path_router`, events are written to `default_path` as flat rows:
+    each event's `value` mapping becomes columns, and telemetry is left out. With a
+    router, records are written as the router leaves them.
 
     Attributes:
         default_path (Optional[str]): The fallback destination path.
@@ -225,7 +222,9 @@ class ParquetStorageEgress(BaseEgress):
         Initializes the ParquetStorageEgress with routing and VFS settings.
 
         Args:
-            default_path: The target file path prefix (e.g., "data/events.parquet").
+            default_path: The target file path prefix (e.g., "data/events.parquet"),
+                used when no router is given. Only events are written there, with
+                their `value` mapping unpacked into columns.
             filesystem: An instantiated PyArrow FileSystem (e.g., `fs.S3FileSystem()`).
                 If None, defaults to `fs.LocalFileSystem()`.
             path_router: A function taking a dict payload and returning a string path,
@@ -305,18 +304,7 @@ class ParquetStorageEgress(BaseEgress):
             pa (Any): Injected reference to the `pyarrow` module.
             pq (Any): Injected reference to the `pyarrow.parquet` module.
         """
-        grouped_batches: dict[str, list[dict]] = {}
-
-        for data in batch:
-            target_path = (
-                self.path_router(data) if self.path_router else self.default_path
-            )
-            if not target_path:
-                continue
-
-            if target_path not in grouped_batches:
-                grouped_batches[target_path] = []
-            grouped_batches[target_path].append(extract_dict(data))
+        grouped_batches = group_rows(batch, self.path_router, self.default_path)
 
         for target_path, records in grouped_batches.items():
             if not self.filesystem:

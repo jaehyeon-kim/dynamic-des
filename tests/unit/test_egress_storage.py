@@ -137,3 +137,68 @@ def test_parquet_storage_schema_drift(tmp_path: Path):
     # 3. Verify the actual casted data
     val_list = table.column("value").to_pylist()
     assert sorted(val_list) == sorted([98.6, 104.2, 99.0, 105.0])
+
+
+EVENT = {
+    "stream_type": "event",
+    "sim_ts": 1.0,
+    "timestamp": "2026-01-01T00:00:01.000",
+    "key": "task-1",
+    "value": {"path_id": "Line_A.service.milling", "status": "finished"},
+}
+TELEMETRY = {
+    "stream_type": "telemetry",
+    "sim_ts": 1.0,
+    "timestamp": "2026-01-01T00:00:01.000",
+    "path_id": "Line_A.lathe.utilization",
+    "value": 0.5,
+}
+
+
+def test_parquet_without_router_writes_flat_events_only(tmp_path: Path):
+    """Without a router, telemetry is left out and the event payload becomes columns."""
+    egress = ParquetStorageEgress(default_path=str(tmp_path / "events.parquet"))
+    egress.filesystem = fs.LocalFileSystem()
+
+    egress._write_batch([EVENT, TELEMETRY], pa, pq)
+
+    [chunk] = tmp_path.glob("events_*.parquet")
+    rows = pq.read_table(chunk).to_pylist()
+    assert rows == [
+        {
+            "stream_type": "event",
+            "sim_ts": 1.0,
+            "timestamp": "2026-01-01T00:00:01.000",
+            "key": "task-1",
+            "path_id": "Line_A.service.milling",
+            "status": "finished",
+        }
+    ]
+    # Other sinks receive the same record, so it must not change.
+    assert EVENT["value"] == {"path_id": "Line_A.service.milling", "status": "finished"}
+
+
+def test_jsonl_without_router_writes_flat_events_only(tmp_path: Path):
+    """The JSONL writer applies the same default as the Parquet writer."""
+    egress = JsonlStorageEgress(default_path=str(tmp_path / "events.jsonl"))
+    egress.filesystem = fs.LocalFileSystem()
+
+    egress._write_batch([EVENT, TELEMETRY])
+
+    [chunk] = tmp_path.glob("events_*.jsonl")
+    rows = [json.loads(line) for line in chunk.read_text().splitlines()]
+    assert len(rows) == 1
+    assert rows[0]["status"] == "finished" and "value" not in rows[0]
+
+
+def test_parquet_with_router_writes_records_as_the_router_leaves_them(tmp_path: Path):
+    """A router keeps today's behaviour: nothing is flattened or left out for it."""
+    target = str(tmp_path / "all.parquet")
+    egress = ParquetStorageEgress(path_router=lambda data: target)
+    egress.filesystem = fs.LocalFileSystem()
+
+    egress._write_batch([EVENT, dict(EVENT, key="task-2")], pa, pq)
+
+    [chunk] = tmp_path.glob("all_*.parquet")
+    rows = pq.read_table(chunk).to_pylist()
+    assert [r["value"]["status"] for r in rows] == ["finished", "finished"]
