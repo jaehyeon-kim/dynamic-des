@@ -1,6 +1,6 @@
 # In-Memory Store (Redis, YAML)
 
-This example builds the same simulation as the [declarative Redis example](../declarative/redis.md) from a YAML blueprint. `RedisEgress` writes every record to the `events` stream, and `RedisIngress` subscribes to the `simulation_params` channel. The part generator stays in `redis_logic.py` as a process.
+This example builds the same simulation as the [declarative Redis example](../declarative/redis.md) from a YAML blueprint. `RedisEgress` writes part records to the `part_events` stream, which each record's `__stream__` key names, and `RedisIngress` subscribes to the `simulation_params` channel. The part generator stays in `redis_logic.py` as a process.
 
 ---
 
@@ -47,13 +47,13 @@ odctl down valkey --volumes
 
 ## What It Does
 
-The run writes part events to the `events` stream until you stop it. In a second terminal, raise the arrival rate while it runs:
+The run writes part events to the `part_events` stream, and the lag telemetry to `events`, until you stop it. In a second terminal, raise the arrival rate while it runs:
 
 ```bash
 docker exec -it valkey valkey-cli --user user --pass password PUBLISH simulation_params '{"param_path": "Factory.arrival.part_arrival.rate", "param_value": 10.0}'
 ```
 
-`RedisIngress` does not log the message it receives, so the sign that the update landed is that `XLEN events` climbs faster.
+`RedisIngress` does not log the message it receives, so the sign that the update landed is that `XLEN part_events` climbs about five times faster.
 
 ## Full Source Code
 
@@ -64,9 +64,9 @@ Files live in the [`examples/yaml/` folder](https://github.com/jaehyeon-kim/dyna
 ```yaml title="examples/yaml/redis.yaml"
 # Redis Streams output with live parameter updates, in YAML.
 #
-# The twin of examples/declarative/redis_example.py. Factory writes every record to
-# the events Redis Stream through RedisEgress, while RedisIngress subscribes to the
-# simulation_params channel. The part generator stays in redis_logic.py beside
+# The twin of examples/declarative/redis_example.py. Factory writes part records to
+# the part_events Redis Stream through RedisEgress, named by each record's
+# __stream__ key, while RedisIngress subscribes to the simulation_params channel. The part generator stays in redis_logic.py beside
 # this file.
 #
 # Needs Valkey: odctl up valkey. Runs until interrupted with Ctrl + C.

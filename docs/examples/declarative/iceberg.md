@@ -4,7 +4,7 @@
 
 This example demonstrates how to run a simulation in **fast-forward mode** using the declarative **Standard API (`SimulationContext`)** and commit the output straight into an Apache Iceberg table using the `IcebergStorageEgress` connector.
 
-Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new `metadata.json`, so query planning degrades as snapshots accumulate. That is why this example gives the provider a large `batch_size` of its own: a day of events lands in four snapshots rather than eighty-five.
+Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new `metadata.json`, so query planning degrades as snapshots accumulate. That is why this example gives the provider a large `batch_size` of its own: a day of events lands in four snapshots.
 
 ---
 
@@ -120,9 +120,9 @@ def create_table_router(events_table: str):
 # ==========================================
 # 1. CATALOG CONFIGURATION
 # ==========================================
-# Building the catalog client is safe at import: it opens no connection until a
-# request is made. Creating the namespace is not, so the connector does that on its
-# first batch, inside the run.
+# RestCatalog fetches the catalog configuration as it is constructed, so building
+# the client below contacts the catalog when this module is imported. Creating the
+# namespace waits longer: the connector does that on its first batch, inside the run.
 def build_catalog():
     """Connects to the Iceberg REST catalog from the odctl `catalog` profile."""
     from pyiceberg.catalog.rest import RestCatalog
@@ -163,8 +163,7 @@ app = (
             table_router=router,
             schemas={EVENTS_TABLE: EVENTS_SCHEMA},
         ),
-        # One commit per flush. Sized so a day of events lands in a few snapshots
-        # rather than the eighty-five a 50,000 record buffer produces.
+        # One commit per flush. Sized so a day of events lands in a few snapshots.
         batch_size=200_000,
     )
     .add_resource("lathe", current_cap=4, max_cap=10)

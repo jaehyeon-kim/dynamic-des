@@ -77,9 +77,9 @@ def create_table_router(events_table: str):
 # ==========================================
 # 1. CATALOG CONFIGURATION
 # ==========================================
-# Building the catalog client is safe at import: it opens no connection until a
-# request is made. Creating the namespace is not, so the connector does that on its
-# first batch, inside the run.
+# RestCatalog fetches the catalog configuration as it is constructed, so building
+# the client below contacts the catalog when this module is imported. Creating the
+# namespace waits longer: the connector does that on its first batch, inside the run.
 def build_catalog():
     """Connects to the Iceberg REST catalog from the odctl `catalog` profile."""
     from pyiceberg.catalog.rest import RestCatalog
@@ -120,8 +120,7 @@ app = (
             table_router=router,
             schemas={EVENTS_TABLE: EVENTS_SCHEMA},
         ),
-        # One commit per flush. Sized so a day of events lands in a few snapshots
-        # rather than the eighty-five a 50,000 record buffer produces.
+        # One commit per flush. Sized so a day of events lands in a few snapshots.
         batch_size=200_000,
     )
     .add_resource("lathe", current_cap=4, max_cap=10)

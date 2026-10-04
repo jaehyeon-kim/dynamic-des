@@ -139,9 +139,9 @@ Connectors are listed under `ingress` and `egress`. `type` is a short name, and 
 ```yaml title="examples/yaml/redis.yaml"
 # Redis Streams output with live parameter updates, in YAML.
 #
-# The twin of examples/declarative/redis_example.py. Factory writes every record to
-# the events Redis Stream through RedisEgress, while RedisIngress subscribes to the
-# simulation_params channel. The part generator stays in redis_logic.py beside
+# The twin of examples/declarative/redis_example.py. Factory writes part records to
+# the part_events Redis Stream through RedisEgress, named by each record's
+# __stream__ key, while RedisIngress subscribes to the simulation_params channel. The part generator stays in redis_logic.py beside
 # this file.
 #
 # Needs Valkey: odctl up valkey. Runs until interrupted with Ctrl + C.

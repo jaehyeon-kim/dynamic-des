@@ -31,8 +31,8 @@ egress:
       bootstrap_servers: !python backfill_live_logic.BOOTSTRAP_SERVERS
     when: !python backfill_live_logic.is_live
 
-# Only batch_size governs this run, as in the Python twin: the interval flush starts
-# only once the run goes live.
+# Only batch_size governs the history, as in the Python twin. The interval flush
+# starts at go-live, so the live tail also flushes every 10 seconds.
 batching:
   batch_size: 2000
   flush_interval: 10.0

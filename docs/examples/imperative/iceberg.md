@@ -4,7 +4,7 @@
 
 This example demonstrates how to run a simulation in **fast-forward mode** using the low-level **Imperative API (`DynamicRealtimeEnvironment`)** and commit the output straight into an Apache Iceberg table using the `IcebergStorageEgress` connector.
 
-Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new `metadata.json`, so query planning degrades as snapshots accumulate. That is why this example gives the provider a large `batch_size` of its own: a day of events lands in four snapshots rather than eighty-five.
+Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new `metadata.json`, so query planning degrades as snapshots accumulate. That is why this example gives the provider a large `batch_size` of its own: a day of events lands in four snapshots.
 
 ---
 

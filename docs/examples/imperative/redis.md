@@ -45,7 +45,7 @@ python redis_example.py
 # Connect to the Valkey container and publish the parameter update
 docker exec -it valkey valkey-cli --user user --pass password PUBLISH simulation_params '{"param_path": "Factory.arrival.part_arrival.rate", "param_value": 10.0}'
 ```
-`RedisIngress` does not log the message it receives, so the sign that the update landed is the throughput. The arrival rate goes from 2.0 to 10.0 per second, and `XLEN events` climbs roughly three to four times faster than before. It is not the full factor of five because the same stream also carries simulation lag telemetry at a steady rate.
+`RedisIngress` does not log the message it receives, so the sign that the update landed is the throughput. The arrival rate goes from 2.0 to 10.0 per second, and `XLEN part_events` climbs about five times faster than before.
 
 ```bash
 # Clean up the infrastructure when finished
@@ -62,8 +62,9 @@ Scripts live in the [`examples/` folder](https://github.com/jaehyeon-kim/dynamic
 """Redis Streams output with live parameter updates, imperative API.
 
 The low-level twin of `declarative/redis_example.py`, wiring the environment and
-connectors by hand. `RedisEgress` writes to the `events` stream and `RedisIngress`
-subscribes to the `simulation_params` channel.
+connectors by hand. `RedisEgress` writes part records to the `part_events` stream,
+named by each record's `__stream__` key, and `RedisIngress` subscribes to the
+`simulation_params` channel.
 
 Needs Valkey: `odctl up valkey`. Runs until interrupted with Ctrl + C.
 """

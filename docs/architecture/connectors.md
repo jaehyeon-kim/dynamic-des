@@ -18,7 +18,13 @@ ingress = LocalIngress(schedule=[(10.0, "Line_A.resources.lathe.current_cap", 3)
 ```
 
 ### Kafka Ingress (`KafkaIngress`)
-Spawns a consumer in the background thread that listens to a Kafka control topic. External admin tools can write a command payload to the topic (e.g. updating the speed of a conveyor belt), and the connector automatically applies the change to the Registry in real time.
+Spawns a consumer in the background thread that listens to a Kafka control topic. External admin tools can write a command payload to the topic (e.g. updating the speed of a conveyor belt), and the connector automatically applies the change to the Registry in real time. Each message is a JSON object with `path_id` and `value`, such as `{"path_id": "Line_A.resources.lathe.current_cap", "value": 3}`.
+
+### Redis Ingress (`RedisIngress`)
+Subscribes to a Redis Pub/Sub channel. Each message is a JSON object with `param_path` and `param_value`, such as `{"param_path": "Factory.arrival.part_arrival.rate", "param_value": 10.0}`.
+
+### PostgreSQL Ingress (`PostgresIngress`)
+Polls a table of parameter updates, every 2 seconds by default (`poll_interval`). At start it replays the latest applied value of each path, so a restarted simulation resumes from the last settings. It then applies every row whose `is_applied` is FALSE and marks it TRUE, so the table keeps the history of every change. The connector creates the table if it is missing.
 
 ### Scenarios versus `LocalIngress`
 A [YAML blueprint](yaml.md) can carry a `scenario`: a list of registry changes, each with the simulation time it applies at, such as `{at: 10, path: Line_A.resources.lathe.current_cap, value: 3}`. [Script an experiment](../guides/yaml-blueprints.md#2-script-an-experiment) shows a complete file.
@@ -31,6 +37,21 @@ A scenario and an ingress connector can be used together. Both write to the same
 
 ## 2. Egress Connectors (Outputs)
 
+### Record shape
+Every egress provider, router and `when` predicate receives records of two shapes. Telemetry, from `context.publish` or `publish_telemetry`:
+
+```json
+{"stream_type": "telemetry", "sim_ts": 12.0, "timestamp": "2026-01-01T00:00:12.000", "path_id": "Line_A.lathe.in_use", "value": 2}
+```
+
+Events, from `@app.task` or `publish_event`:
+
+```json
+{"stream_type": "event", "sim_ts": 12.5, "timestamp": "2026-01-01T00:00:12.500", "key": "task-7", "value": {"path_id": "Line_A.service.milling", "status": "started"}}
+```
+
+`sim_ts` is simulation seconds. `timestamp` is `logical_start_time` plus `sim_ts`, as an ISO string with milliseconds and no time zone. `context.publish` prefixes the metric name with the `sim_id`. Every run with an egress also publishes `system.simulation.lag_seconds` once per simulation second: how far the simulation clock is behind the wall clock. A router that writes only events has to drop it.
+
 Egress connectors consume the simulation's event stream, serialize payloads, and dispatch them to downstream consumers.
 
 ### Console Egress (`ConsoleEgress`)
@@ -40,10 +61,13 @@ Prints formatted telemetry and event payloads to the system logger.
 Streams telemetry and events in real time to designated Kafka topics.
 
 ### Storage Egress (`ParquetStorageEgress` / `JsonlStorageEgress`)
-Writes records to compressed, chunked files using PyArrow. Writes to local directories and S3-compatible storage such as AWS S3 or SeaweedFS.
+Writes records to chunked files using PyArrow: compressed Parquet, or JSON Lines. Writes to local directories and S3-compatible storage such as AWS S3 or SeaweedFS.
+
+### Redis Egress (`RedisEgress`)
+Appends each record to a Redis Stream with `XADD`, as one `payload` field holding the record as JSON. A `__stream__` key inside the record's value picks the stream, and records without one go to `stream_name`.
 
 ### PostgreSQL Egress (`PostgresEgress`)
-Inserts records into a PostgreSQL table in batches, through `asyncpg`. By default a record whose key already exists is skipped. Pass `upsert_keys` to update that row instead, for simulations that change rows they wrote earlier, such as an order moving from processing to shipped:
+Inserts records into a PostgreSQL table in batches, through `asyncpg`. Only records whose value is a dictionary are written. The record's `sim_ts`, `timestamp`, and its `key` (as `event_id`) or `path_id` are merged into the value, and keys with no matching column are dropped. A `__table__` key in the value sends the record only to the instance whose `table_name` matches, which is how one stream fills several tables. By default a record whose key already exists is skipped. Pass `upsert_keys` to update that row instead, for simulations that change rows they wrote earlier, such as an order moving from processing to shipped:
 
 ```python
 PostgresEgress(dsn, table_name="orders", upsert_keys=["order_id"])
@@ -91,7 +115,7 @@ The maximum number of events to buffer in memory before triggering a flush.
 * **Tuning Guide**: In fast-forward batch mode (`factor=0.0`), set this to a high value (e.g. `5000` or `10000`) to maximize write throughput and produce highly compressed Parquet chunks.
 
 ### `flush_interval`
-The maximum number of seconds to wait before flushing the memory buffer, even if `batch_size` has not been reached.
+The maximum number of simulation seconds to wait before flushing the memory buffer, even if `batch_size` has not been reached. At `factor=0` the timer is not started, because simulation time is detached from the wall clock, until a `go_live_at` switches the run to real time.
 * **Tuning Guide**: In real-time mode (`factor=1.0`), set this to a low value (e.g. `0.5` or `1.0` seconds) to keep downstream UI dashboards responsive.
 
 ### Per-provider cadence

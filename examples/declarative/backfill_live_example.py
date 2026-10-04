@@ -97,9 +97,9 @@ app = (
         ),
         when=is_live,
     )
-    # Only batch_size governs this run. The interval flush is a simulation process,
+    # Only batch_size governs the history. The interval flush is a simulation process,
     # started only when factor is non-zero as the egress is set up, and this run starts
-    # at 0.0. Records therefore leave the buffer when it fills to 2000, or at teardown.
+    # at 0.0. It starts at go-live, so the live tail also flushes every 10 seconds.
     .with_batching(batch_size=2000, flush_interval=10.0)
     .add_resource("lathe", current_cap=4, max_cap=10)
     .add_service("milling", dist="normal", mean=2.0, std=0.2)

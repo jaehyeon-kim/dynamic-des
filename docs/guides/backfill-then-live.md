@@ -71,7 +71,7 @@ Two details in that script are easy to get wrong.
 
 **Predicates compare strings, not datetimes.** A record carries its logical time as an ISO string, so `record["timestamp"] >= GO_LIVE_AT` raises a `TypeError`. Format the instant once with `isoformat(timespec="milliseconds")` and compare against that. Every timestamp is produced by the same formatter, so ordering by text is ordering by time.
 
-**`flush_interval` has no effect in this run, so `batch_size` decides everything.** The interval flush is a simulation process, and it is only started if `factor` is non-zero when the egress is set up. This run starts at `factor=0.0`, so records leave the buffer only when it fills to `batch_size`, or at teardown. That sets the number of Parquet part files, and it also decides how often Kafka sees anything. Give each sink its own `batch_size` to separate those two jobs:
+**`flush_interval` has no effect before `go_live_at`, so `batch_size` decides the history.** The interval flush is a simulation process, and it is only started if `factor` is non-zero when the egress is set up. This run starts at `factor=0.0`, so until go-live records leave the buffer only when it fills to `batch_size`. That sets the number of Parquet part files. From go-live the interval flush starts, so the live tail also flushes every `flush_interval`, and that decides how often Kafka sees anything. Give each sink its own `batch_size` and `flush_interval` to separate those two jobs:
 
 ```python
 app.add_egress(parquet, when=is_history, batch_size=200_000)
@@ -83,8 +83,6 @@ app.add_egress(kafka, when=is_live, batch_size=500, flush_interval=1.0)
 ## Running it
 
 The script publishes to Kafka, so start a broker first with `odctl up kafka-lite`. See [Getting Started](../getting-started.md) for the one-time odctl install. Tear it down with `odctl down kafka-lite --volumes`.
-
-odctl is a separate CLI, installed once with `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
 
 ```bash
 uv run --extra kafka --extra parquet examples/declarative/backfill_live_example.py
@@ -100,7 +98,7 @@ Pacing is driven by the logical clock, not by how long the process has been runn
 
 At the switch the mapping from simulated time to wall-clock time is re-anchored: the go-live instant is treated as now, and simulated seconds run from there. Without that, the first paced event would sleep off the whole backfill in real seconds, and a week of history would become a week of waiting.
 
-The factor switched to is always `1.0`. `go_live_at` names a moment, not a speed, and going live means real time. Scheduling an arbitrary change part way through a run is a separate feature, covered by [issue #15](https://github.com/jaehyeon-kim/dynamic-des/issues/15) on timed parameter mutations.
+The factor switched to is always `1.0`. `go_live_at` names a moment, not a speed, and going live means real time. No other change of pacing can be scheduled. A [YAML scenario](yaml-blueprints.md#2-script-an-experiment), from [issue #15](https://github.com/jaehyeon-kim/dynamic-des/issues/15), schedules changes to registry values at set simulation times, but not to the pacing.
 
 Three cases are worth stating explicitly.
 
@@ -108,7 +106,7 @@ Three cases are worth stating explicitly.
 * **`go_live_at` in the past but after `logical_start_time`**: the normal backfill case, and also what you get if the history takes a while to generate. The logical clock keeps whatever offset from the wall clock it had at the switch, and holds it for the rest of the run. Simulated seconds pass at one per real second, but the timestamps stay behind the wall clock by that offset.
 * **A run that ends before `go_live_at`**: nothing happens, the run stays unpaced and ends as it would have. `go_live_at` schedules no event of its own, so it never holds a finished simulation open.
 
-`go_live_at` is read against the same clock as `logical_start_time`, so both must be naive datetimes or both timezone-aware. Mixing them raises a `ValueError` at construction rather than failing later.
+`go_live_at` is read against the same clock as `logical_start_time`, so both must be naive datetimes or both timezone-aware. Mixing them raises a `ValueError` when the environment is built, rather than failing later: at construction for `DynamicRealtimeEnvironment`, and at `run()` for `SimulationContext`.
 
 ---
 

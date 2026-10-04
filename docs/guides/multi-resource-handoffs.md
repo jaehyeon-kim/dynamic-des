@@ -32,8 +32,8 @@ logging.basicConfig(level=logging.INFO)
 
 app = (
     SimulationContext(sim_id="Line_A", factor=1.0)
-    .add_resource("crane", current_cap=1)
-    .add_resource("mill", current_cap=1)
+    .add_resource("crane", current_cap=1, max_cap=1)
+    .add_resource("mill", current_cap=1, max_cap=1)
     .add_arrival("standard", dist="exponential", rate=1.0)
     .add_egress(ConsoleEgress())
 )
@@ -46,19 +46,21 @@ def handoff_worker(context: SimulationContext, part_id: int):
     task_key = f"task-{part_id}"
     context.env.publish_event(task_key, {"status": "queued"})
 
-    # Lock the Crane for transport
-    with crane.request() as crane_req:
-        yield crane_req
-        context.env.publish_event(task_key, {"status": "crane_loaded"})
-        yield context.env.timeout(1.0)  # Transport delay
+    # Lock the Crane for transport. It is released by hand below rather than by a
+    # `with` block, because the handoff ends in the middle of the Mill's block.
+    crane_req = crane.request()
+    yield crane_req
+    context.env.publish_event(task_key, {"status": "crane_loaded"})
+    yield context.env.timeout(1.0)  # Transport delay
 
-        # Request the Mill while still holding the Crane!
-        with mill.request() as mill_req:
-            yield mill_req
-            context.env.publish_event(task_key, {"status": "mill_entered"})
+    # Request the Mill while still holding the Crane!
+    with mill.request() as mill_req:
+        yield mill_req
+        context.env.publish_event(task_key, {"status": "mill_entered"})
 
-            # The Crane is automatically released here as we exit the outer block,
-            # but the Mill remains locked!
+        # The part is in the Mill, so the Crane is free for the next part,
+        # while the Mill stays locked until this block ends.
+        crane.release()
 
         # Perform milling operation
         yield context.env.timeout(4.0)

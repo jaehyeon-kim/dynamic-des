@@ -24,7 +24,7 @@ The three are layers, not alternatives. A blueprint is built through the Standar
 ---
 
 ## 1. Standard API (Declarative)
-The Standard API uses the `SimulationContext` builder to configure the twin's resources, distributions, ingress/ingress parameters, and I/O connectors.
+The Standard API uses the `SimulationContext` builder to configure the twin's resources, distributions, ingress/egress parameters, and I/O connectors.
 
 All execution logic is declared using clean Python decorators:
 
@@ -33,7 +33,7 @@ from dynamic_des import SimulationContext, ConsoleEgress
 
 app = (
     SimulationContext(sim_id="Line_A", factor=1.0)
-    .add_resource("lathe", current_cap=2)
+    .add_resource("lathe", current_cap=2, max_cap=5)
     .add_arrival("standard", dist="exponential", rate=1.0)
     .add_service("milling", dist="normal", mean=3.0, std=0.5)
     .add_egress(ConsoleEgress())
@@ -67,9 +67,23 @@ This is ideal when you need to bypass standard telemetry rules or dynamically co
 
 ```python
 import numpy as np
-from dynamic_des import DynamicRealtimeEnvironment, DynamicResource, Sampler, ConsoleEgress
+from dynamic_des import (
+    CapacityConfig,
+    ConsoleEgress,
+    DynamicRealtimeEnvironment,
+    DynamicResource,
+    Sampler,
+    SimParameter,
+)
 
 env = DynamicRealtimeEnvironment(factor=1.0)
+# A resource reads its capacity from the registry, so register it first
+env.registry.register_sim_parameter(
+    SimParameter(
+        sim_id="Line_A",
+        resources={"lathe": CapacityConfig(current_cap=1, max_cap=1)},
+    )
+)
 egress = ConsoleEgress()
 env.setup_egress([egress])
 

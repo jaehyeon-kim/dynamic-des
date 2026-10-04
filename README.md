@@ -18,7 +18,9 @@ Dynamic DES bridges the gap between static discrete-event simulations and the li
 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
 - **🧾 YAML Blueprints**: Declare parameters, connectors and timed experiments in a YAML file and run it with `dynamic-des run`, with logic kept in Python and referenced through `!python`.
-- **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.rate`) that trigger instant logic changes.
+- **⏩ Backfill Then Go Live**: One run generates backdated history unpaced, then switches to real time at `go_live_at`, with one seed and one seam.
+- **🔀 Several Sinks per Run**: Attach a stream sink and a lake sink to one run, each with its own `when` predicate, `batch_size` and `flush_interval` on `add_egress`.
+- **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.standard.rate`) that trigger instant logic changes.
 - **🚀 High Throughput**: Optimized to handle high throughput using `orjson` and local batching.
 - **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
 - **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers (Confluent & AWS Glue).
@@ -136,10 +138,10 @@ Examples that need a broker, a database or an object store get their container f
 | kafka-lite | `odctl up kafka-lite` | `declarative/kafka_example.py`, `imperative/kafka_example.py`, `declarative/backfill_live_example.py`, `kafka_dashboard.py` |
 | postgres | `odctl up postgres` | `declarative/postgres_example.py`, `imperative/postgres_example.py` |
 | valkey | `odctl up valkey` | `declarative/redis_example.py`, `imperative/redis_example.py` |
-| storage | `odctl up storage` | `declarative/parquet_example.py` with `USE_S3=true` |
+| storage | `odctl up storage` | `*/parquet_example.py` with `USE_S3=true` |
 | catalog | `odctl up catalog` | `declarative/iceberg_example.py`, `imperative/iceberg_example.py` |
 
-Paths in that table are relative to the `examples/` folder. `declarative/local_example.py` needs no container, and `declarative/parquet_example.py` needs one only when `USE_S3=true`.
+Paths in that table are relative to the `examples/` folder. `declarative/local_example.py` needs no container, and `*/parquet_example.py` needs one only when `USE_S3=true`. The YAML blueprints in `examples/yaml/` need the same profile as their declarative twin.
 
 Guide: [Backfill then live](https://jaehyeon.me/dynamic-des/latest/guides/backfill-then-live/).
 
@@ -209,7 +211,7 @@ app.run(until=25.0)
 
 1.  **Declarative Builder**: `SimulationContext` chains the setup, defining parameters, connectors, and configuration in one clean block.
 2.  **Live Ingress**: The `LocalIngress` schedules registry mutations independently from the simulation logic.
-3.  **Automatic Task Lifecycle**: The `@app.task` decorator automatically handles queued/started/finished telemetry emissions, resource locking, and random duration sampling.
+3.  **Automatic Task Lifecycle**: The `@app.task` decorator automatically handles queued/started/finished event emissions, resource locking, and random duration sampling.
 4.  **Telemetry Egress**: The `@app.telemetry_loop` captures continuous stats and streams them to the designated egress (`ConsoleEgress`).
 
 ### The same idea in YAML
@@ -225,7 +227,7 @@ From Python, `SimulationContext.from_yaml("local.yaml")` returns the built conte
 
 ### Data Egress JSON Schemas
 
-To ensure strict data contracts with external consumers (like Kafka, Redis, or PostgreSQL), `dynamic-des` uses Pydantic to validate all outbound payloads. Users can expect two distinct JSON structures depending on the stream type:
+To ensure strict data contracts with external consumers (like Kafka, Redis, or PostgreSQL), `dynamic-des` publishes records in the shape of its `TelemetryPayload` and `EventPayload` models. Users can expect two distinct JSON structures depending on the stream type:
 
 #### Telemetry Stream
 
@@ -237,7 +239,7 @@ Used for scalar metrics like resource utilization, queue lengths, or simulation 
   "path_id": "Line_A.resources.lathe.utilization",
   "value": 85.5,
   "sim_ts": 120.5,
-  "timestamp": "2023-10-25T14:30:00.000Z"
+  "timestamp": "2023-10-25T14:30:00.000"
 }
 ```
 
@@ -251,11 +253,10 @@ Used for discrete task lifecycle events (e.g., a part arriving, entering a queue
   "key": "task-001",
   "value": {
     "status": "finished",
-    "duration": 45.2,
-    "path_id": "Line_A.service.lathe"
+    "path_id": "Line_A.service.milling"
   },
   "sim_ts": 125.0,
-  "timestamp": "2023-10-25T14:30:04.500Z"
+  "timestamp": "2023-10-25T14:30:04.500"
 }
 ```
 

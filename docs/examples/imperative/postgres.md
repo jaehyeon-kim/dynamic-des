@@ -45,7 +45,7 @@ env.publish_event("item-1", item)
 
 ## 3. Dynamic Parameter Updates (Ingress)
 
-This example also attaches a `PostgresIngress` listening to a `simulation_params` table. While the simulation is running, you can dynamically update parameters (like speeding up the order arrival rate) simply by executing an `INSERT` statement in your database! The simulation will instantly fetch the new configuration.
+This example also attaches a `PostgresIngress` listening to a `simulation_params` table. While the simulation is running, you can dynamically update parameters (like speeding up the order arrival rate) simply by executing an `INSERT` statement in your database! The simulation fetches the new configuration within its poll interval, 2 seconds by default.
 
 ## 4. Quick Start
 

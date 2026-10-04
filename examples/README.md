@@ -25,7 +25,7 @@ python examples/declarative/kafka_example.py
 
 Extras by example: `kafka` for `*/kafka_example.py` and `kafka_dashboard.py`, `postgres` for `*/postgres_example.py`, `redis` for `*/redis_example.py`, `parquet` for `*/parquet_example.py`, `iceberg` for `*/iceberg_example.py`, both `kafka` and `parquet` for `declarative/backfill_live_example.py`, and none for `*/local_example.py`.
 
-`kafka_dashboard.py` additionally needs `nicegui`, which is not a dependency of the library because nothing in it imports the package. Run it as `uv run --extra kafka --with nicegui examples/kafka_dashboard.py`, which installs nothing permanently, or `pip install nicegui` first.
+`kafka_dashboard.py` additionally needs `nicegui`, which is not a dependency of the library because nothing in the package imports it. Run it as `uv run --extra kafka --with nicegui examples/kafka_dashboard.py`, which installs nothing permanently, or `pip install nicegui` first.
 
 ## What to start
 

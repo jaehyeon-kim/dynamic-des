@@ -28,7 +28,7 @@ app = (
 
 ## 2. Setting Up Dynamic Rules
 
-We can simulate an external control system (like an operator logging a machine online) by scheduling a capacity change using `LocalIngress`.
+We can simulate an external control system (like an operator logging a machine online) by scheduling a capacity change using `LocalIngress`. Its delays are wall-clock seconds from the start of the run, which match simulation seconds at `factor=1.0`.
 
 Let's configure the ingress schedule to:
 * Start with 1 lathe.
@@ -71,5 +71,5 @@ if __name__ == "__main__":
 When you execute the script, you will notice:
 * **Stochastic timings**: Each task takes a slightly different amount of time to complete.
 * **Queuing**: In the first 10 seconds, parts pile up because the arrival rate (0.5 parts/sec) exceeds the machine capacity/duration.
-* **Capacity Increase**: At t=10s, capacity increases to 3, causing the queue to clear instantly.
-* **Seeded determinism**: Because you pinned `random_seed=42`, re-running this script will produce the exact same timestamps and random samples every time.
+* **Capacity Increase**: At t=10s, capacity increases to 3, causing the queue to drain.
+* **Seeded determinism**: Because you pinned `random_seed=42`, re-running this script will produce the same random samples and the same `sim_ts` values every time. The `timestamp` field follows the clock the run started at, so it differs between runs unless you pass `logical_start_time`.

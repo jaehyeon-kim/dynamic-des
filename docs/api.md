@@ -39,6 +39,7 @@
         - setup_egress
         - publish_telemetry
         - publish_event
+        - teardown
 
 ## Registry & Parameters
 
@@ -87,6 +88,12 @@
       heading_level: 3
       members:
         - sample
+
+<!-- prettier-ignore -->
+::: dynamic_des.utils.time_to_seconds
+    options:
+      heading_level: 3
+      show_root_heading: true
 
 ## Resources
 
@@ -165,6 +172,11 @@
 ## Deserializers
 
 <!-- prettier-ignore -->
+::: dynamic_des.connectors.ingress.kafka.MessageDeserializer
+    options:
+      heading_level: 3
+
+<!-- prettier-ignore -->
 ::: dynamic_des.connectors.ingress.kafka.JsonDeserializer
     options:
       heading_level: 3
@@ -224,6 +236,11 @@
       heading_level: 3
 
 ## Serializers
+
+<!-- prettier-ignore -->
+::: dynamic_des.connectors.egress.kafka.MessageSerializer
+    options:
+      heading_level: 3
 
 <!-- prettier-ignore -->
 ::: dynamic_des.connectors.egress.kafka.JsonSerializer

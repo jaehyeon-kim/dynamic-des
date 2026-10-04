@@ -47,7 +47,7 @@ odctl down catalog --volumes
 
 ## What It Does
 
-The run appends a day of lifecycle events to the `simulation.events` table and ends on its own. `batch_size: 200000` on the egress makes each flush one commit, so the day lands in a few snapshots rather than dozens.
+The run appends a day of lifecycle events to the `simulation.events` table and ends on its own. `batch_size: 200000` on the egress makes each flush one commit, so the day lands in a few snapshots.
 
 The catalog is contacted when the blueprint is loaded, not when the run starts. `iceberg_logic.py` builds the `RestCatalog` client at import, and pyiceberg fetches the catalog configuration as the client is constructed, so without `odctl up catalog` the load stops with a `ConnectionError`, reported against the line of the first `!python iceberg_logic` reference.
 

@@ -58,8 +58,8 @@ Scripts live in the [`examples/` folder](https://github.com/jaehyeon-kim/dynamic
 """Kafka Digital Twin, imperative API.
 
 The low-level twin of `declarative/kafka_example.py`, wiring the environment, registry
-and connectors by hand. It also creates its topics first with `KafkaAdminConnector`,
-which the declarative version leaves to the broker.
+and connectors by hand. Like the declarative version, it creates its topics first with
+`KafkaAdminConnector`.
 
 Needs a broker: `odctl up kafka-lite`. Runs until interrupted with Ctrl + C.
 """

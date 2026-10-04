@@ -10,24 +10,28 @@ Standard Usage Example:
 
     app = (
         SimulationContext(sim_id="Factory_A", factor=1.0)
-        .add_resource("machine", current_cap=1)
+        .add_resource("machine", current_cap=1, max_cap=1)
         .add_arrival("parts", dist="exponential", rate=2.0)
+        .add_service("machining", dist="normal", mean=1.0)
         .add_egress(ConsoleEgress())
     )
 
     @app.arrival_loop("parts")
     def parts_generator(context):
+        part_id = 0
         while True:
             yield context.wait_for_arrival("parts")
-            context.spawn(process_part(context))
+            context.spawn(process_part(part_id))
+            part_id += 1
 
-    @app.task
-    def process_part(context):
-        with context.request("machine") as req:
-            yield req
-            yield context.env.timeout(1.0)
+    @app.task(service_id="machining", resource_id="machine")
+    def process_part(part_id):
+        return {"part_id": part_id}
 
     app.run(until=10.0)
+
+A YAML blueprint builds the same kind of context: `SimulationContext.from_yaml(path)`,
+or `dynamic-des run <file>.yaml` from a shell.
 """
 
 import logging

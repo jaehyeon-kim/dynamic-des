@@ -11,7 +11,7 @@ First, make sure you install the `kafka` optional dependencies:
 pip install "dynamic-des[kafka]"
 ```
 
-Bring up a local Kafka cluster with [odctl](https://github.com/jaehyeon-kim/odctl), installed separately with `uv tool install odctl` or `pip install odctl`:
+Bring up a local Kafka cluster with [odctl](https://github.com/jaehyeon-kim/odctl):
 ```bash
 odctl up kafka-lite
 ```
@@ -39,7 +39,7 @@ sim_id = "Factory_A"
 app = (
     SimulationContext(sim_id=sim_id, factor=1.0, random_seed=42)
     .add_resource("lathe", current_cap=1, max_cap=5)
-    .add_arrival("standard", dist="exponential", rate=0.5)
+    .add_arrival("parts", dist="exponential", rate=0.5)
     .add_service("milling", dist="normal", mean=3.0, std=0.5)
     # 1. Add Kafka Ingress to listen to dynamic capacity updates
     .add_ingress(KafkaIngress(
@@ -62,17 +62,17 @@ app = (
 Because the standard API decouples infrastructure from business logic, **you do not need to modify any of the simulation generators or task loops** from Tutorial 2:
 
 ```python
-@app.arrival_loop("standard")
-def arrival_process(context: SimulationContext):
-    task_id = 0
+@app.arrival_loop("parts")
+def parts_generator(context: SimulationContext):
+    part_id = 0
     while True:
-        yield context.wait_for_arrival("standard")
-        context.spawn(work_task(task_id))
-        task_id += 1
+        yield context.wait_for_arrival("parts")
+        context.spawn(process_part(part_id))
+        part_id += 1
 
 @app.task(service_id="milling", resource_id="lathe")
-def work_task(task_id: int):
-    return {"part_id": task_id}
+def process_part(part_id: int):
+    return {"part_id": part_id}
 ```
 
 ---

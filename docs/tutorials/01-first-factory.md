@@ -26,14 +26,16 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s [%(asctime)s] %(me
 We will use the **Standard API (`SimulationContext`)** builder to wire up the simulation:
 * We define a unique namespace prefix (`sim_id="Factory_A"`).
 * We register a resource representing a single machine (`lathe`) with a capacity of 1.
-* We configure a static arrival stream named `parts` where a new part arrives every 2 seconds.
+* We configure a static arrival stream named `parts` where a new part arrives on average every 2 seconds.
+* We register a service named `machining` that takes 1.5 seconds per part. With no `std`, a normal distribution returns its mean every time.
 * We direct all simulation events to print directly to the console (`ConsoleEgress`).
 
 ```python
 app = (
     SimulationContext(sim_id="Factory_A", factor=1.0)
-    .add_resource("lathe", current_cap=1)
-    .add_arrival("parts", dist="exponential", rate=0.5) # 1 part every 2 seconds
+    .add_resource("lathe", current_cap=1, max_cap=1)
+    .add_arrival("parts", dist="exponential", rate=0.5) # 1 part every 2 seconds on average
+    .add_service("machining", dist="normal", mean=1.5)
     .add_egress(ConsoleEgress())
 )
 ```
@@ -59,13 +61,12 @@ def parts_generator(context: SimulationContext):
         part_id += 1
 ```
 
-Next, define the **task process** decorated with `@app.task`. The decorator automatically requests the resource on start and releases it on finish, emitting telemetry events:
+Next, define the **task process** decorated with `@app.task`. The decorator automatically requests the resource on start, waits a processing time sampled from the `machining` service, and releases it on finish, emitting lifecycle events. The dictionary the function returns is the value of the finished event:
 
 ```python
-@app.task(service_id=None, resource_id="lathe")
+@app.task(service_id="machining", resource_id="lathe")
 def process_part(part_id: int):
     # Enforces automatic lock-wait-release lifecycle
-    yield context.env.timeout(1.5) # Simulates a 1.5-second processing delay
     return {"part_id": part_id}
 ```
 
