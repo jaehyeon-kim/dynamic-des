@@ -5,7 +5,9 @@ from typing import Any, Callable, Dict, Optional, Protocol
 
 import orjson
 from aiokafka import AIOKafkaProducer
+from kafka.admin import KafkaAdminClient
 
+from dynamic_des.connectors.admin.kafka import KafkaAdminConnector
 from dynamic_des.connectors.egress.base import BaseEgress, extract_dict
 
 logger = logging.getLogger(__name__)
@@ -199,6 +201,11 @@ class KafkaEgress(BaseEgress):
     is delegated to that function instead, allowing for advanced multiplexing
     (e.g., splitting ML vs. UI events).
 
+    Without a `topic_router`, the event and telemetry topics are created at start
+    when they do not exist, with one partition and a replication factor of one.
+    With a router the topics are left to the caller, because only the router knows
+    which ones it uses.
+
     Note:
         By default `stream_type` is treated as routing metadata and is left out of
         the published message, because the topic already identifies the stream.
@@ -293,6 +300,31 @@ class KafkaEgress(BaseEgress):
             **kwargs,
         }
 
+    def _create_topics(self) -> None:
+        """
+        Creates the event and telemetry topics if they do not exist yet.
+
+        Uses `KafkaAdminConnector`, which ignores a topic that already exists. The
+        producer settings the admin client also understands, such as the security
+        settings, are passed on to it. A failure is logged rather than raised,
+        because the producer loop that follows retries the connection itself.
+        """
+        # bootstrap_servers and client_id are set by KafkaAdminConnector itself.
+        admin_settings = {
+            key: value
+            for key, value in self.producer_config.items()
+            if key in KafkaAdminClient.DEFAULT_CONFIG
+            and key not in ("bootstrap_servers", "client_id")
+        }
+        topics = list(dict.fromkeys([self.event_topic, self.telemetry_topic]))
+        try:
+            KafkaAdminConnector(
+                bootstrap_servers=self.producer_config["bootstrap_servers"],
+                **admin_settings,
+            ).create_topics(topics_config=[{"name": name} for name in topics])
+        except Exception as e:
+            logger.warning(f"Could not create the topics {topics}: {e}")
+
     async def run(self, egress_queue: queue.Queue) -> None:
         """
         The main execution loop that consumes the egress queue and publishes to Kafka.
@@ -311,6 +343,9 @@ class KafkaEgress(BaseEgress):
             The loop exits gracefully upon receiving an `asyncio.CancelledError`,
             ensuring the Kafka producer is stopped correctly.
         """
+        if self.topic_router is None:
+            await asyncio.to_thread(self._create_topics)
+
         backoff = 1.0
         max_backoff = 60.0
 
