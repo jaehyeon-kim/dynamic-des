@@ -251,6 +251,19 @@ def test_filesystem_defaults_and_objects():
     assert _build_filesystem(given, fs) is given
 
 
+def test_empty_filesystem_values_are_left_out():
+    """Values an unset environment variable leaves empty fall back to the defaults."""
+    from dynamic_des.connectors.egress.storage import _build_filesystem
+
+    empty = {"type": "", "endpoint_override": "", "access_key": None}
+    assert isinstance(_build_filesystem(empty, fs), fs.LocalFileSystem)
+    ParquetStorageEgress(default_path="x.parquet", filesystem=empty)
+
+    built = _build_filesystem({"type": "s3", "endpoint_override": ""}, fs)
+    assert isinstance(built, fs.S3FileSystem)
+    assert built.__reduce__()[1][0]["endpoint_override"] == ""
+
+
 def test_unknown_filesystem_type_is_refused_at_construction():
     """A misspelt type fails when the egress is built, not on the first write."""
     with pytest.raises(ValueError, match="'gs'"):

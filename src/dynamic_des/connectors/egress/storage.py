@@ -47,7 +47,7 @@ def _check_filesystem(filesystem: Any) -> None:
         ValueError: If a mapping names a type other than `local` or `s3`.
     """
     if isinstance(filesystem, Mapping):
-        kind = str(filesystem.get("type", "local")).lower()
+        kind = str(filesystem.get("type") or "local").lower()
         if kind not in _FILESYSTEM_TYPES:
             raise ValueError(
                 f"Unknown filesystem type '{kind}'; the supported types are "
@@ -66,7 +66,10 @@ def _build_filesystem(filesystem: Any, fs: Any) -> Any:
             class's constructor, so an S3 mapping takes `S3FileSystem` arguments
             such as `endpoint_override`, `access_key`, `secret_key`, `region` and
             `scheme`. An `endpoint_override` that starts with `http://` or
-            `https://` also sets `scheme`, unless `scheme` is given.
+            `https://` also sets `scheme`, unless `scheme` is given. A key whose
+            value is empty or null is left out, so a setting that an unset
+            environment variable leaves empty takes the class default, and one
+            mapping can serve both the local disk and S3.
         fs (Any): Injected reference to the `pyarrow.fs` module.
 
     Returns:
@@ -77,7 +80,9 @@ def _build_filesystem(filesystem: Any, fs: Any) -> Any:
     if not isinstance(filesystem, Mapping):
         return filesystem
     _check_filesystem(filesystem)
-    options = dict(filesystem)
+    options = {
+        key: value for key, value in filesystem.items() if value not in (None, "")
+    }
     kind = str(options.pop("type", "local")).lower()
     endpoint = options.get("endpoint_override")
     if kind == "s3" and isinstance(endpoint, str) and "://" in endpoint:
