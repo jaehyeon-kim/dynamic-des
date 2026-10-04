@@ -547,3 +547,65 @@ def test_compile_parameters_matches_what_run_registers(tmp_path):
         app.env.registry.get_config("Line_A.resources.lathe")
         is (params.resources["lathe"])
     )
+
+
+# ---------------------------------------------------------------------------
+# Environment variables
+# ---------------------------------------------------------------------------
+ENV_BLUEPRINT = """\
+simulation:
+  sim_id: ${SIM_ID}
+  factor: ${FACTOR:-0}
+  random_seed: 7
+variables:
+  host: ${DB_HOST:-localhost}
+  url: "postgres://${DB_HOST:-localhost}:${DB_PORT:-5432}/sim"
+  port: ${DB_PORT:-5432}
+  quoted_port: "${DB_PORT:-5432}"
+  literal: $${NOT_A_VARIABLE}
+run:
+  until: ${UNTIL:-1 min}
+"""
+
+
+def test_environment_variables_are_substituted(tmp_path, monkeypatch):
+    monkeypatch.setenv("SIM_ID", "Line_B")
+    monkeypatch.setenv("DB_HOST", "db.internal")
+    monkeypatch.delenv("FACTOR", raising=False)
+    monkeypatch.delenv("DB_PORT", raising=False)
+    monkeypatch.delenv("UNTIL", raising=False)
+    monkeypatch.delenv("NOT_A_VARIABLE", raising=False)
+    app = SimulationContext.from_yaml(write(tmp_path, ENV_BLUEPRINT))
+
+    assert (app.sim_id, app.factor, app._default_until) == ("Line_B", 0, 60.0)
+    variables = app._variables_config
+    assert variables["host"] == "db.internal"
+    assert variables["url"] == "postgres://db.internal:5432/sim"
+    # An unquoted value is typed after substitution; a quoted one stays a string.
+    assert variables["port"] == 5432
+    assert variables["quoted_port"] == "5432"
+    assert variables["literal"] == "${NOT_A_VARIABLE}"
+
+
+def test_an_empty_variable_takes_the_default(tmp_path, monkeypatch):
+    monkeypatch.setenv("SIM_ID", "Line_B")
+    monkeypatch.setenv("DB_PORT", "")
+    app = SimulationContext.from_yaml(write(tmp_path, ENV_BLUEPRINT))
+    assert app._variables_config["port"] == 5432
+
+
+def test_an_unset_variable_without_a_default_names_the_line(tmp_path, monkeypatch):
+    monkeypatch.delenv("SIM_ID", raising=False)
+    path = write(tmp_path, ENV_BLUEPRINT)
+    with pytest.raises(
+        BlueprintError, match=rf"{path}:2: environment variable SIM_ID is not set"
+    ):
+        SimulationContext.from_yaml(path)
+
+
+def test_python_references_take_environment_variables(tmp_path, logic, monkeypatch):
+    monkeypatch.setenv("LOGIC", logic)
+    text = MINIMAL + "processes:\n  - function: !python ${LOGIC}.ticker\n"
+    text += "    kwargs: {step: 2}\n"
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    assert app._startup_loops[-1][0].func.__name__ == "ticker"

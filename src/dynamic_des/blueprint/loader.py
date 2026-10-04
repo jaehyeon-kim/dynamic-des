@@ -1,5 +1,11 @@
 """Reads a blueprint file and remembers the line every key came from.
 
+`${VAR}` and `${VAR:-default}` in a string are replaced with the environment
+variable, so one file can serve several environments. The default applies when the
+variable is unset or empty, as in a shell. `$${` writes a literal `${`. An unquoted
+value is then read as YAML reads it, so `port: ${PG_PORT:-5432}` gives the number
+5432. A quoted value stays a string.
+
 `!python module.attribute` imports the module and returns the attribute, so a
 blueprint can reference a process, a router or any other Python object. Loading a
 blueprint therefore runs the imports it names. Every other node is constructed by
@@ -7,6 +13,8 @@ blueprint therefore runs the imports it names. Every other node is constructed b
 """
 
 import importlib
+import os
+import re
 import sys
 from pathlib import Path
 from typing import Any, Dict, Iterable, Tuple, Union
@@ -21,11 +29,70 @@ class BlueprintError(ValueError):
 
 
 class BlueprintLoader(yaml.SafeLoader):
-    """SafeLoader for blueprint files, with one extra tag: `!python`.
+    """SafeLoader for blueprint files, with `${VAR}` substitution and one extra tag.
 
-    The tag is registered on this subclass only, so `yaml.safe_load` elsewhere in the
-    process is unaffected.
+    The `!python` tag and the substitution are registered on this subclass only, so
+    `yaml.safe_load` elsewhere in the process is unaffected.
     """
+
+
+_VARIABLE = re.compile(r"\$\$\{|\$\{([A-Za-z_][A-Za-z0-9_]*)(?::-([^}]*))?\}")
+
+
+def substitute(text: str) -> str:
+    """Replaces `${VAR}` and `${VAR:-default}` with the environment variable.
+
+    `${VAR:-default}` uses the default when the variable is unset or empty. `$${` is
+    a literal `${`.
+
+    Raises:
+        ValueError: If a variable without a default is unset.
+    """
+
+    def replace(match: "re.Match[str]") -> str:
+        if match.group(0) == "$${":
+            return "${"
+        name, default = match.group(1), match.group(2)
+        value = os.environ.get(name)
+        if value:
+            return value
+        if default is not None:
+            return default
+        if value is not None:
+            return value
+        raise ValueError(
+            f"environment variable {name} is not set. Set it, or give a default "
+            f"with ${{{name}:-default}}"
+        )
+
+    return _VARIABLE.sub(replace, text)
+
+
+def _substitute_at(loader: yaml.SafeLoader, node: yaml.Node, text: str) -> str:
+    """`substitute`, with a failure reported at the line of `node`."""
+    try:
+        return substitute(text)
+    except ValueError as exc:
+        raise BlueprintError(
+            f"{loader.name}:{node.start_mark.line + 1}: {exc}"
+        ) from None
+
+
+def _construct_str(loader: yaml.SafeLoader, node: yaml.ScalarNode) -> Any:
+    text = loader.construct_scalar(node)
+    if "${" not in text:
+        return text
+    text = _substitute_at(loader, node, text)
+    # An unquoted value is typed after substitution, as if the text had been written
+    # in the file. A quoted value is a string, as the quotes say.
+    if node.style is not None:
+        return text
+    tag = loader.resolve(yaml.ScalarNode, text, (True, False))
+    if tag == "tag:yaml.org,2002:str":
+        return text
+    return loader.construct_object(
+        yaml.ScalarNode(tag, text, node.start_mark, node.end_mark)
+    )
 
 
 def resolve(reference: str) -> Any:
@@ -79,7 +146,7 @@ def _construct_python(loader: yaml.SafeLoader, node: yaml.Node) -> Any:
             f"{loader.name}:{line}: !python takes a dotted path such as "
             f"module.attribute"
         )
-    reference = loader.construct_scalar(node)
+    reference = _substitute_at(loader, node, str(loader.construct_scalar(node)))
     try:
         return resolve(str(reference))
     except ValueError as exc:
@@ -87,6 +154,7 @@ def _construct_python(loader: yaml.SafeLoader, node: yaml.Node) -> Any:
 
 
 BlueprintLoader.add_constructor("!python", _construct_python)
+BlueprintLoader.add_constructor("tag:yaml.org,2002:str", _construct_str)
 
 
 class SourceMap:
