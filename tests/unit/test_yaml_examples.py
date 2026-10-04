@@ -134,7 +134,8 @@ def test_local():
 
     finished = _finished(records)
     assert finished
-    assert finished[0] == {"event_type": "part_produced", "quality": "A", "part_id": 0}
+    # local.yaml has no seed and two lathes, so a later part can finish first
+    assert {"event_type": "part_produced", "quality": "A", "part_id": 0} in finished
     assert {"Factory_A.utilization", "Factory_A.queue_length"} <= _telemetry_paths(
         records
     )
