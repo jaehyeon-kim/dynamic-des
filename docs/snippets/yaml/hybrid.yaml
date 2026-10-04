@@ -1,0 +1,38 @@
+# The workshop with its logic in Python. YAML keeps the blueprint and the
+# experiment; workshop_logic.py beside this file holds what YAML cannot express.
+simulation:
+  sim_id: Workshop
+  factor: 0
+  random_seed: 1
+
+egress:
+  - type: Console
+    # Only events reach the terminal; telemetry is dropped.
+    when: !python workshop_logic.events_only
+
+resources:
+  drill: {current_cap: 1, max_cap: 3}
+
+services:
+  drilling: {dist: normal, mean: 4.0, std: 1.0}
+
+arrivals:
+  parts: {dist: exponential, rate: 0.2, spawn: drill_part}
+
+tasks:
+  drill_part:
+    service: drilling
+    resource: drill
+    # Called as grade_part(task_id, context) for every finished part.
+    payload: !python workshop_logic.grade_part
+
+processes:
+  # Called as maintenance(context, resource="drill", every=50, duration=5).
+  - function: !python workshop_logic.maintenance
+    kwargs: {resource: drill, every: 50, duration: 5}
+
+scenario:
+  - {at: 1 min, path: Workshop.arrival.parts.rate, value: 0.4}
+
+run:
+  until: 3 min

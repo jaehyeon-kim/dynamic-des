@@ -49,6 +49,10 @@ extra:
     provider: google
     property: G-076N8WCGWZ
 
+# Files the documentation shows and the tests build. They are not pages.
+exclude_docs: |
+  snippets/
+
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
@@ -86,6 +90,7 @@ nav:
           - In-Memory Store (Redis): examples/yaml/redis.md
           - Backfill Then Go Live: examples/yaml/backfill-live.md
   - Integration Guides:
+      - YAML Blueprints, from First File to Hybrid: guides/yaml-blueprints.md
       - Backfill Then Go Live in One Run: guides/backfill-then-live.md
       - Complex Routing (Kafka): guides/complex-routing.md
       - Advanced Serialization (Avro and Pydantic): guides/avro-and-pydantic.md

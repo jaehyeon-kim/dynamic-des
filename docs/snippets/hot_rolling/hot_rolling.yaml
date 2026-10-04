@@ -1,0 +1,79 @@
+# The OML hot rolling digital twin as a blueprint. The parameters and the Kafka
+# wiring that generator.py builds in Python are declared here. The processes stay
+# in sim_logic.py, and hot_rolling_adapter.py beside this file adapts them.
+#
+# Place this file and the adapter in sim_control/, then run from there:
+#   dynamic-des run hot_rolling.yaml
+simulation:
+  sim_id: HotRolling
+  factor: 1.0
+  random_seed: 42
+
+ingress:
+  # Control commands from the dashboard.
+  - type: Kafka
+    config:
+      bootstrap_servers: !python src.config.KAFKA_BROKER
+      topic: !python src.config.TOPIC_CONTROL_INGRESS
+
+egress:
+  # One producer; the router picks one of four topics for every record.
+  - type: Kafka
+    config:
+      bootstrap_servers: !python src.config.KAFKA_BROKER
+      topic_router: !python routing.custom_topic_router
+
+arrivals:
+  structural: {dist: exponential, rate: 0.2}
+  microalloyed: {dist: exponential, rate: 0.15}
+  high_alloy: {dist: exponential, rate: 0.1}
+
+services:
+  pass_roughing: {dist: normal, mean: 2.0, std: 0.2}
+  pass_intermediate: {dist: normal, mean: 4.5, std: 0.5}
+  pass_finishing: {dist: normal, mean: 8.0, std: 1.2}
+
+resources:
+  mill_structural: {current_cap: 4, max_cap: 10}
+  mill_microalloyed: {current_cap: 4, max_cap: 10}
+  mill_high_alloy: {current_cap: 4, max_cap: 10}
+
+containers:
+  wear_structural: {current_cap: 0.001, max_cap: 100.0}
+  wear_microalloyed: {current_cap: 0.001, max_cap: 100.0}
+  wear_high_alloy: {current_cap: 0.001, max_cap: 100.0}
+
+variables:
+  velocity_structural: {type: abrupt, value: 0.0}
+  velocity_microalloyed: {type: abrupt, value: 0.0}
+  velocity_high_alloy: {type: abrupt, value: 0.0}
+
+processes:
+  # Started in the order generator.py starts them.
+  - function: !python hot_rolling_adapter.drift
+    kwargs: {product_lines: [structural, microalloyed, high_alloy]}
+  - function: !python hot_rolling_adapter.monitor
+    kwargs: {product_lines: [structural, microalloyed, high_alloy]}
+  - function: !python hot_rolling_adapter.primer
+    kwargs: {product: structural}
+  - function: !python hot_rolling_adapter.arrivals
+    kwargs: {product: structural}
+  - function: !python hot_rolling_adapter.primer
+    kwargs: {product: microalloyed}
+  - function: !python hot_rolling_adapter.arrivals
+    kwargs: {product: microalloyed}
+  - function: !python hot_rolling_adapter.primer
+    kwargs: {product: high_alloy}
+  - function: !python hot_rolling_adapter.arrivals
+    kwargs: {product: high_alloy}
+
+# A reproducible drift experiment, which the dashboard otherwise drives by hand:
+# gradual wear on the structural line from 10 minutes.
+scenario:
+  - at: 10 min
+    path: HotRolling.variables.velocity_structural
+    value: {type: gradual, value: 0.5, freq: 1}
+
+run:
+  before:
+    - !python hot_rolling_adapter.create_topics
