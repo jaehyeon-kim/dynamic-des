@@ -29,7 +29,7 @@ Extras by example: `kafka` for `*/kafka_example.py` and `kafka_dashboard.py`, `p
 
 ## What to start
 
-Containers come from [odctl](https://github.com/jaehyeon-kim/odctl), installed once with `uv tool install "odctl>=0.5.1"`. The floor matters: earlier versions created the Valkey user without a channel grant, so subscribing failed.
+Containers come from [odctl](https://github.com/jaehyeon-kim/odctl), installed once with `uv tool install "odctl==0.5.1"`. Earlier versions created the Valkey user without a channel grant, so subscribing failed.
 
 | Example | Profile | Start |
 |---|---|---|
