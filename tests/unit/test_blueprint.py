@@ -758,3 +758,28 @@ def test_a_task_needs_service_and_resource_together(tmp_path, drop):
         BlueprintError, match=rf"{path}:12: tasks.part: .*give both service and"
     ):
         SimulationContext.from_yaml(path)
+
+
+def test_telemetry_publishes_capacity_and_in_use(tmp_path):
+    text = MINIMAL + textwrap.dedent("""\
+        telemetry:
+          - interval: 1
+            publish:
+              cap: lathe.capacity
+              busy: lathe.in_use
+              util: lathe.utilization
+              queue: lathe.queue_length
+        """)
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    capture = _Capture()
+    app.add_egress(capture)
+    app.run(until=20)
+
+    samples = {}
+    for r in capture.records:
+        if r["stream_type"] == "telemetry" and r["path_id"].startswith("Line_A."):
+            samples.setdefault(r["sim_ts"], {})[r["path_id"][7:]] = r["value"]
+    assert len(samples) == 20
+    assert all(s["cap"] == 2 for s in samples.values())
+    assert all(s["busy"] / s["cap"] * 100 == s["util"] for s in samples.values())
+    assert any(s["busy"] > 0 for s in samples.values())
