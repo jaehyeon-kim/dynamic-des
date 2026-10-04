@@ -15,7 +15,7 @@ It bridges the gap between static discrete-event simulations and the live world 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
 - **🔗 Builder Pattern**: Construct digital twins declaratively with `SimulationContext` and decorators like `@app.task`.
 - **🧾 YAML Blueprints**: Declare parameters, connectors and timed experiments in a YAML file and run it with `dynamic-des run`, with logic kept in Python and referenced through `!python`.
-- **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.rate`) that trigger instant logic changes.
+- **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.standard.rate`) that trigger instant logic changes.
 - **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
 - **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers.
 - **🗄️ Data Lake Ready**: Write chunked Parquet and JSONL datasets directly to object storage via PyArrow VFS, with built-in schema inference and drift prevention.
@@ -27,7 +27,7 @@ It bridges the gap between static discrete-event simulations and the live world 
 
 ## Documentation Layout
 
-* **[Getting Started](getting-started.md)**: Install, clone the examples, and start the containers they need.
+* **[Getting Started](getting-started.md)**: Install, download the examples, and start the containers they need.
 * **Basics (Tutorials)**:
     * **[1. Your First Factory (Local)](tutorials/01-first-factory.md)**: Define a local factory lifecycle.
     * **[2. Adding Randomness and Rules](tutorials/02-distributions-resources.md)**: Add stochastic distributions and ingress scheduled capacity updates.
@@ -39,10 +39,6 @@ It bridges the gap between static discrete-event simulations and the live world 
     * **[Realtime Environment](architecture/environment.md)**: Temporal clocks and async background threads.
     * **[Ingress and Egress Connectors](architecture/connectors.md)**: Input and output flows, fan-out and tuning.
     * **[Resources and Containers](architecture/resources.md)**: Dynamic SimPy wrappers.
-* **Examples**, every script in the `examples/` folder, in both API styles and as YAML blueprints:
-    * **Standard API (Declarative)**: [Local](examples/declarative/local.md), [Kafka](examples/declarative/kafka.md), [Parquet](examples/declarative/parquet.md), [Iceberg](examples/declarative/iceberg.md), [Postgres](examples/declarative/postgres.md), [Redis](examples/declarative/redis.md).
-    * **Low-Level API (Imperative)**: [Local](examples/imperative/local.md), [Kafka](examples/imperative/kafka.md), [Parquet](examples/imperative/parquet.md), [Iceberg](examples/imperative/iceberg.md), [Postgres](examples/imperative/postgres.md), [Redis](examples/imperative/redis.md).
-    * **YAML Blueprints**: [Local](examples/yaml/local.md), [Kafka](examples/yaml/kafka.md), [Parquet](examples/yaml/parquet.md), [Iceberg](examples/yaml/iceberg.md), [Postgres](examples/yaml/postgres.md), [Redis](examples/yaml/redis.md), [Backfill Then Go Live](examples/yaml/backfill-live.md).
 * **Integration Guides**, getting data in and out:
     * **[YAML Blueprints, from First File to Hybrid](guides/yaml-blueprints.md)**: A first blueprint, a scenario, connectors, `!python` and lifting an existing twin.
     * **[Backfill Then Go Live in One Run](guides/backfill-then-live.md)**: History unpaced, then a real-time tail, from one call.
@@ -53,4 +49,8 @@ It bridges the gap between static discrete-event simulations and the live world 
     * **[Multi-Resource Handoffs](guides/multi-resource-handoffs.md)**: One task holding several resources.
     * **[Preemptive Machine Breakdowns](guides/preemptive-breakdowns.md)**: Interrupting work already in progress.
     * **[Absolute Edge Cases (Dynamic Topology)](guides/dynamic-topology.md)**: Changing the model while it runs.
+* **Examples**, every script in the `examples/` folder, in both API styles and as YAML blueprints:
+    * **Standard API (Declarative)**: [Local](examples/declarative/local.md), [Kafka](examples/declarative/kafka.md), [Parquet](examples/declarative/parquet.md), [Iceberg](examples/declarative/iceberg.md), [Postgres](examples/declarative/postgres.md), [Redis](examples/declarative/redis.md).
+    * **Low-Level API (Imperative)**: [Local](examples/imperative/local.md), [Kafka](examples/imperative/kafka.md), [Parquet](examples/imperative/parquet.md), [Iceberg](examples/imperative/iceberg.md), [Postgres](examples/imperative/postgres.md), [Redis](examples/imperative/redis.md).
+    * **YAML Blueprints**: [Local](examples/yaml/local.md), [Kafka](examples/yaml/kafka.md), [Parquet](examples/yaml/parquet.md), [Iceberg](examples/yaml/iceberg.md), [Postgres](examples/yaml/postgres.md), [Redis](examples/yaml/redis.md), [Backfill Then Go Live](examples/yaml/backfill-live.md).
 * **[API Reference](api.md)**: Technical reference for all public classes.

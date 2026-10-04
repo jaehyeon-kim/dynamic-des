@@ -67,6 +67,16 @@ nav:
       - Realtime Environment: architecture/environment.md
       - Ingress and Egress Connectors: architecture/connectors.md
       - Resources and Containers: architecture/resources.md
+  - Integration Guides:
+      - YAML Blueprints, from First File to Hybrid: guides/yaml-blueprints.md
+      - Backfill Then Go Live in One Run: guides/backfill-then-live.md
+      - Complex Routing (Kafka): guides/complex-routing.md
+      - Advanced Serialization (Avro and Pydantic): guides/avro-and-pydantic.md
+      - Connecting to Secure Kafka: guides/kafka-security.md
+  - Modelling Patterns:
+      - Multi-Resource Handoffs (Hybrid Pattern): guides/multi-resource-handoffs.md
+      - Preemptive Machine Breakdowns (Hybrid Pattern): guides/preemptive-breakdowns.md
+      - Absolute Edge Cases (Dynamic Topology): guides/dynamic-topology.md
   - Examples:
       - Standard API (Declarative):
           - Local Simulation: examples/declarative/local.md
@@ -90,16 +100,6 @@ nav:
           - Relational DB (Postgres): examples/yaml/postgres.md
           - In-Memory Store (Redis): examples/yaml/redis.md
           - Backfill Then Go Live: examples/yaml/backfill-live.md
-  - Integration Guides:
-      - YAML Blueprints, from First File to Hybrid: guides/yaml-blueprints.md
-      - Backfill Then Go Live in One Run: guides/backfill-then-live.md
-      - Complex Routing (Kafka): guides/complex-routing.md
-      - Advanced Serialization (Avro and Pydantic): guides/avro-and-pydantic.md
-      - Connecting to Secure Kafka: guides/kafka-security.md
-  - Modelling Patterns:
-      - Multi-Resource Handoffs (Hybrid Pattern): guides/multi-resource-handoffs.md
-      - Preemptive Machine Breakdowns (Hybrid Pattern): guides/preemptive-breakdowns.md
-      - Absolute Edge Cases (Dynamic Topology): guides/dynamic-topology.md
   - API Reference: api.md
 
 markdown_extensions:
