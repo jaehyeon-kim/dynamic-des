@@ -1,0 +1,52 @@
+# Kafka digital twin in YAML.
+#
+# The YAML version of examples/declarative/kafka_example.py. KafkaIngress reads
+# parameter updates from sim-config, and KafkaEgress publishes lifecycle events to
+# sim-events and lathe metrics to sim-telemetry. KafkaEgress creates its two topics
+# when the run starts.
+#
+# Needs a broker: odctl up kafka-lite. Runs until interrupted with Ctrl + C.
+# KAFKA_BOOTSTRAP_SERVERS overrides the broker address.
+# Run it with: ddes run examples/yaml/kafka.yaml
+
+simulation:
+  sim_id: Line_A
+  factor: 1.0
+  random_seed: 42
+
+ingress:
+  - type: Kafka
+    config:
+      topic: sim-config
+      bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
+
+egress:
+  - type: Kafka
+    config:
+      event_topic: sim-events
+      telemetry_topic: sim-telemetry
+      bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
+
+resources:
+  lathe: {current_cap: 1, max_cap: 10}
+
+services:
+  milling: {dist: normal, mean: 3.0, std: 0.5}
+
+arrivals:
+  standard: {dist: exponential, rate: 1.0, spawn: process_part}
+
+tasks:
+  process_part:
+    service: milling
+    resource: lathe
+    payload: {path_id: Line_A.service.milling, status: finished}
+
+telemetry:
+  # Samples the lathe every 2 simulation seconds.
+  - interval: 2.0
+    publish:
+      lathe.capacity: lathe.capacity
+      lathe.in_use: lathe.in_use
+      lathe.queue_length: lathe.queue_length
+      lathe.utilization: lathe.utilization

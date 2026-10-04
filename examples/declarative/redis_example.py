@@ -1,7 +1,7 @@
 """Redis Streams output with live parameter updates, declarative API.
 
-`Factory` writes every record to the `events` Redis Stream through `RedisEgress`, while
-`RedisIngress` subscribes to the `simulation_params` channel, so publishing a message to
+`Factory` writes part records to the `part_events` Redis Stream through `RedisEgress`,
+named by each record's `__stream__` key, while `RedisIngress` subscribes to the `simulation_params` channel, so publishing a message to
 that channel changes the arrival rate of a running simulation.
 
 Needs Valkey: `odctl up valkey`. Runs until interrupted with Ctrl + C.

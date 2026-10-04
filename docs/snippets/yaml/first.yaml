@@ -1,0 +1,28 @@
+# A first blueprint: one machine, one kind of part, printed to the terminal.
+simulation:
+  sim_id: Workshop
+  # 0 runs as fast as the machine allows, so the run ends at once.
+  factor: 0
+  random_seed: 1
+
+egress:
+  - type: Console
+
+resources:
+  drill: {current_cap: 1, max_cap: 3}
+
+services:
+  drilling: {dist: normal, mean: 4.0, std: 1.0}
+
+arrivals:
+  parts: {dist: exponential, rate: 0.2, spawn: drill_part}
+
+tasks:
+  drill_part:
+    service: drilling
+    resource: drill
+    payload: {status: finished}
+    id_field: part_id
+
+run:
+  until: 60

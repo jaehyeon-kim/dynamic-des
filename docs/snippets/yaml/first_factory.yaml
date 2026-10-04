@@ -1,0 +1,30 @@
+# Part 3 of the tutorials: the first factory as a blueprint.
+# Run it with: ddes run first_factory.yaml
+simulation:
+  sim_id: Factory_A
+  factor: 1.0
+
+egress:
+  - type: Console
+
+resources:
+  lathe: {current_cap: 1, max_cap: 1}
+
+services:
+  # With no std, a normal distribution returns its mean every time.
+  machining: {dist: normal, mean: 1.5}
+
+arrivals:
+  # One part every 2 seconds on average. Each arrival spawns one process_part.
+  parts: {dist: exponential, rate: 0.5, spawn: process_part}
+
+tasks:
+  process_part:
+    service: machining
+    resource: lathe
+    # The finished event's value. id_field adds the task id as part_id.
+    payload: {}
+    id_field: part_id
+
+run:
+  until: 10

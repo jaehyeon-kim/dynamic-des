@@ -1,0 +1,41 @@
+# The first blueprint with a scripted experiment: a second drill comes online at
+# 30 s, parts arrive twice as fast from 1 min, and the extra drill is removed at
+# 2 min. Every change lands at exactly that simulation time, on every run.
+simulation:
+  sim_id: Workshop
+  factor: 0
+  random_seed: 1
+
+egress:
+  - type: Console
+
+resources:
+  drill: {current_cap: 1, max_cap: 3}
+
+services:
+  drilling: {dist: normal, mean: 4.0, std: 1.0}
+
+arrivals:
+  parts: {dist: exponential, rate: 0.2, spawn: drill_part}
+
+tasks:
+  drill_part:
+    service: drilling
+    resource: drill
+    payload: {status: finished}
+    id_field: part_id
+
+telemetry:
+  # Shows each change as it lands.
+  - interval: 10
+    publish:
+      drill.capacity: drill.capacity
+      drill.queue_length: drill.queue_length
+
+scenario:
+  - {at: 30, path: Workshop.resources.drill.current_cap, value: 2}
+  - {at: 1 min, path: Workshop.arrival.parts.rate, value: 0.4}
+  - {at: 2 min, path: Workshop.resources.drill.current_cap, value: 1}
+
+run:
+  until: 3 min

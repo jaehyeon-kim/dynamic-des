@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict
+from typing import Any, Callable, Dict, Optional
 
 from simpy import Environment, Store
 
@@ -186,7 +186,9 @@ class SimulationRegistry:
         for name, cap_config in param.containers.items():
             path = f"{prefix}.containers.{name}"
             self._configs[path] = cap_config
-            self._register_cap(path, cap_config)
+            # A container level is continuous, so an integer starting value must not
+            # make later updates integers through the type cast in update()
+            self._register_cap(path, cap_config, cast=float)
 
         # Register Stores
         for name, cap_config in param.stores.items():
@@ -214,11 +216,16 @@ class SimulationRegistry:
                 self.env, f"{path_prefix}.std", dist_config.std
             )
 
-    def _register_cap(self, path_prefix: str, cap_config: Any):
-        """Internal: Flattens a CapacityConfig."""
+    def _register_cap(
+        self, path_prefix: str, cap_config: Any, cast: Optional[Callable] = None
+    ):
+        """Internal: Flattens a CapacityConfig, converting both values with `cast` if given."""
+        current_cap, max_cap = cap_config.current_cap, cap_config.max_cap
+        if cast is not None:
+            current_cap, max_cap = cast(current_cap), cast(max_cap)
         self._values[f"{path_prefix}.current_cap"] = DynamicValue(
-            self.env, f"{path_prefix}.current_cap", cap_config.current_cap
+            self.env, f"{path_prefix}.current_cap", current_cap
         )
         self._values[f"{path_prefix}.max_cap"] = DynamicValue(
-            self.env, f"{path_prefix}.max_cap", cap_config.max_cap
+            self.env, f"{path_prefix}.max_cap", max_cap
         )

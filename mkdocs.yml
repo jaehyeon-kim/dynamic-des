@@ -1,5 +1,5 @@
 site_name: Dynamic DES
-site_description: Real-time SimPy control plane for event-driven digital twins.
+site_description: Real-time SimPy simulations that take parameter changes while they run and write their events and telemetry to streams, databases, files and Iceberg tables.
 repo_url: https://github.com/jaehyeon-kim/dynamic-des
 repo_name: dynamic-des
 
@@ -49,43 +49,55 @@ extra:
     provider: google
     property: G-076N8WCGWZ
 
+# Files the documentation shows and the tests build. They are not pages.
+exclude_docs: |
+  snippets/
+
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
-  - Basics (Tutorials):
-      - 1. Your First Factory (Local): tutorials/01-first-factory.md
-      - 2. Adding Randomness and Rules: tutorials/02-distributions-resources.md
-      - 3. Going Distributed (Kafka): tutorials/03-connecting-kafka.md
+  - Tutorials:
+      - "Part 1: Low-level API": tutorials/low-level.md
+      - "Part 2: Declarative API": tutorials/declarative.md
+      - "Part 3: YAML": tutorials/yaml.md
   - Core Architecture:
-      - Standard vs. Low-Level Paradigms: architecture/paradigms.md
-      - Simulation Context: architecture/context.md
-      - Realtime Environment: architecture/environment.md
-      - Ingress and Egress Connectors: architecture/connectors.md
-      - Resources and Containers: architecture/resources.md
-  - Examples:
-      - Standard API (Declarative):
-          - Local Simulation: examples/declarative/local.md
-          - Kafka Digital Twin and UI: examples/declarative/kafka.md
-          - Fast-Forward to Parquet: examples/declarative/parquet.md
-          - Fast-Forward to Iceberg: examples/declarative/iceberg.md
-          - Relational DB (Postgres): examples/declarative/postgres.md
-          - In-Memory Store (Redis): examples/declarative/redis.md
-      - Low-Level API (Imperative):
-          - Local Simulation: examples/imperative/local.md
-          - Kafka Digital Twin and UI: examples/imperative/kafka.md
-          - Fast-Forward to Parquet: examples/imperative/parquet.md
-          - Fast-Forward to Iceberg: examples/imperative/iceberg.md
-          - Relational DB (Postgres): examples/imperative/postgres.md
-          - In-Memory Store (Redis): examples/imperative/redis.md
-  - Integration Guides:
-      - Backfill Then Go Live in One Run: guides/backfill-then-live.md
-      - Complex Routing (Kafka): guides/complex-routing.md
-      - Advanced Serialization (Avro and Pydantic): guides/avro-and-pydantic.md
-      - Connecting to Secure Kafka: guides/kafka-security.md
-  - Modelling Patterns:
+      - Overview: architecture/overview.md
+      - Writing a Simulation:
+          - Low-level API: architecture/low-level.md
+          - Declarative API: architecture/context.md
+          - YAML Blueprints: architecture/yaml.md
+      - Runtime:
+          - Realtime Environment: architecture/environment.md
+          - Registry and Live Parameters: architecture/registry.md
+          - Time: architecture/time.md
+          - Resources and Containers: architecture/resources.md
+          - Connectors: architecture/connectors.md
+          - Records and Telemetry: architecture/records.md
+          - Batching and Delivery: architecture/batching.md
+  - Guides:
+      - Connectors:
+          - Complex Routing (Kafka): guides/complex-routing.md
+          - Advanced Serialization (Avro and Pydantic): guides/avro-and-pydantic.md
+          - Connecting to Secure Kafka: guides/kafka-security.md
+      - Features:
+          - Backfill Then Go Live in One Run: guides/backfill-then-live.md
+          - Change Parameters While a Simulation Runs: guides/live-parameters.md
+      - YAML:
+          - YAML Blueprints, from First File to Connectors: guides/yaml-blueprints.md
+  - Advanced:
+      - "Advanced YAML: Custom Logic with !python": guides/yaml-advanced.md
       - Multi-Resource Handoffs (Hybrid Pattern): guides/multi-resource-handoffs.md
       - Preemptive Machine Breakdowns (Hybrid Pattern): guides/preemptive-breakdowns.md
       - Absolute Edge Cases (Dynamic Topology): guides/dynamic-topology.md
+  - Examples:
+      - Local Simulation: examples/local.md
+      - Kafka Digital Twin: examples/kafka.md
+      - Fast-Forward to Parquet: examples/parquet.md
+      - Fast-Forward to Iceberg: examples/iceberg.md
+      - Relational DB (Postgres): examples/postgres.md
+      - In-Memory Store (Redis): examples/redis.md
+      - Backfill Then Go Live: examples/backfill-live.md
+      - Orders with Line Items (Advanced YAML): examples/advanced-postgres-orders.md
   - API Reference: api.md
 
 markdown_extensions:
@@ -96,3 +108,5 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true

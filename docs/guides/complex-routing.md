@@ -6,13 +6,11 @@ Dynamic DES supports this via **Topic Routing (Multiplexing)**. Instead of hardc
 
 The snippets below publish to Kafka, so start a broker first with `odctl up kafka-lite`. See [Getting Started](../getting-started.md) for the one-time odctl install. Tear it down with `odctl down kafka-lite --volumes`.
 
-odctl is a separate CLI, installed once with `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
-
 ---
 
 ## Writing a Custom Router
 
-A topic router is a standard Python function that receives a dictionary representing the serialized event payload, and returns the target topic name as a string (or `None` to drop the message entirely).
+A topic router is a standard Python function that receives a dictionary representing the serialized event payload, and returns the target topic name as a string. `KafkaEgress` sends every record it receives, so the router must always return a topic. To drop records, give the provider a `when` predicate on `add_egress`, which filters them before they reach the router.
 
 ```text
                ┌───────────────────────┐
@@ -21,14 +19,14 @@ A topic router is a standard Python function that receives a dictionary represen
                            │ Data Dictionary
                            v
                ┌───────────────────────┐
-               │  ml_topic_router(d)   │
+               │ custom_kafka_router(d)│
                └─┬─────────┬─────────┬─┘
                  │         │         │
-      "logs"     v         │         v  "system-alarms"
+"factory-events" v         │         v  "system-alarms"
   ┌──────────────┐         │         ┌──────────────┐
   │ Kafka Topic  │         │         │ Kafka Topic  │
   └──────────────┘         v         └──────────────┘
-                    "sim-telemetry"
+                  "factory-telemetry"
                     ┌──────────────┐
                     │ Kafka Topic  │
                     └──────────────┘
@@ -39,7 +37,7 @@ Here is a concrete example routing different events based on payload metadata:
 ```python
 from typing import Dict, Any
 
-def custom_kafka_router(data: Dict[str, Any]) -> str | None:
+def custom_kafka_router(data: Dict[str, Any]) -> str:
     """
     Routes messages based on event importance and metadata.
     """
@@ -57,11 +55,8 @@ def custom_kafka_router(data: Dict[str, Any]) -> str | None:
         if value.get("status") == "machine_failed" or value.get("level") == "ERROR":
             return "system-alarms"
 
-        # Route standard lifecycle logs to general events topic
-        return "factory-events"
-
-    # Drop any other unrecognized streams
-    return None
+    # Route standard lifecycle logs, and anything unrecognized, to the events topic
+    return "factory-events"
 ```
 
 ---
@@ -75,7 +70,7 @@ from dynamic_des import SimulationContext, KafkaEgress
 
 app = (
     SimulationContext(sim_id="Factory_A", factor=1.0)
-    .add_resource("lathe", current_cap=1)
+    .add_resource("lathe", current_cap=1, max_cap=1)
     .add_egress(KafkaEgress(
         bootstrap_servers="localhost:9092",
         topic_router=custom_kafka_router

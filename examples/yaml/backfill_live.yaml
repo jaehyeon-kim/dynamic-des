@@ -1,0 +1,64 @@
+# Backfill then go live in one run, in YAML.
+#
+# The YAML version of examples/declarative/backfill_live_example.py. Until
+# go_live_at the clock is detached from the wall clock, so ten minutes of backdated
+# history are written to Parquet as fast as the machine allows. From go_live_at the
+# run is paced at one simulated second per real second, and the same events go to
+# Kafka for one minute.
+#
+# Needs a broker: odctl up kafka-lite.
+# Run it with: ddes run examples/yaml/backfill_live.yaml
+
+simulation:
+  sim_id: Line_A
+  # Unpaced to begin with, so the history costs no real time.
+  factor: 0.0
+  random_seed: 42
+  logical_start_time: -10m
+  # From here the same run is paced at one simulated second per real second.
+  go_live_at: now
+
+egress:
+  - type: Parquet
+    config:
+      default_path: data/backfill/events.parquet
+    # Records stamped before go_live_at.
+    when: history
+  - type: Kafka
+    config:
+      event_topic: sim-events
+      telemetry_topic: sim-telemetry
+      bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
+    # Records stamped at or after go_live_at.
+    when: live
+
+# Only batch_size governs the history. The interval flush starts at go-live, so the
+# live tail also flushes every 10 seconds.
+batching:
+  batch_size: 2000
+  flush_interval: 10.0
+
+resources:
+  lathe: {current_cap: 4, max_cap: 10}
+
+services:
+  milling: {dist: normal, mean: 2.0, std: 0.2}
+
+arrivals:
+  standard: {dist: exponential, rate: 0.5, spawn: process_part}
+
+tasks:
+  process_part:
+    service: milling
+    resource: lathe
+    payload: {path_id: Line_A.service.milling, status: finished}
+
+telemetry:
+  - interval: 30.0
+    publish:
+      lathe.in_use: lathe.in_use
+      lathe.queue_length: lathe.queue_length
+
+run:
+  # Ten minutes of history, then one minute of live tail.
+  until: 11m

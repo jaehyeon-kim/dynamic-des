@@ -27,7 +27,9 @@ async def test_redis_egress():
         from unittest.mock import MagicMock
 
         mock_client = AsyncMock()
-        mock_pipe = AsyncMock()
+        # xadd is synchronous on a redis-py pipeline; only execute is awaited
+        mock_pipe = MagicMock()
+        mock_pipe.execute = AsyncMock()
         mock_client.pipeline = MagicMock(return_value=mock_pipe)
         mock_from_url.return_value = mock_client
 
@@ -59,7 +61,8 @@ async def test_stream_key_is_read_from_the_nested_payload():
     default stream and the documented routing silently did nothing."""
     egress = RedisEgress("redis://localhost:6379", stream_name="default_events")
     egress.client = AsyncMock()
-    pipe = AsyncMock()
+    pipe = MagicMock()
+    pipe.execute = AsyncMock()
     egress.client.pipeline = MagicMock(return_value=pipe)
 
     q: queue.Queue = queue.Queue()

@@ -1,4 +1,4 @@
-# Ingress and Egress Connectors
+# Connectors
 
 Connectors are the integration gateways of Dynamic DES. They handle the communication flow between the internal simulation registry/event queue and external systems.
 
@@ -6,25 +6,31 @@ Connectors are the integration gateways of Dynamic DES. They handle the communic
 
 ## 1. Ingress Connectors (Inputs)
 
-Ingress connectors listen to external sources and dynamically apply modifications to the simulation registry during runtime.
+Ingress connectors listen to external sources and dynamically apply modifications to the simulation registry during runtime. [Registry and Live Parameters](registry.md) explains how an update reaches the simulation.
 
 ### Local Ingress (`LocalIngress`)
-Applies scheduled overrides at predetermined simulation timestamps. This is ideal for local testing, debugging, and executing deterministic test scenarios.
+Applies scheduled overrides after set delays in wall-clock seconds from the start of the run. It waits with `asyncio.sleep`, so the delays do not follow simulation time: at `factor=0` the run can finish before the first change, and at any other factor the simulation time of each change varies a little from run to run. For changes at exact simulation times, use a [YAML scenario](registry.md#scenarios-versus-localingress).
 ```python
 from dynamic_des import LocalIngress
 
-# At t=10.0s, set machine lathe capacity to 3
+# 10 wall-clock seconds after the start, set machine lathe capacity to 3
 ingress = LocalIngress(schedule=[(10.0, "Line_A.resources.lathe.current_cap", 3)])
 ```
 
 ### Kafka Ingress (`KafkaIngress`)
-Spawns a consumer in the background thread that listens to a Kafka control topic. External admin tools can write a command payload to the topic (e.g. updating the speed of a conveyor belt), and the connector automatically applies the change to the Registry in real time.
+Spawns a consumer in the background thread that listens to a Kafka control topic. External admin tools can write a command payload to the topic (e.g. updating the speed of a conveyor belt), and the connector automatically applies the change to the Registry in real time. Each message is a JSON object with `path_id` and `value`, such as `{"path_id": "Line_A.resources.lathe.current_cap", "value": 3}`.
+
+### Redis Ingress (`RedisIngress`)
+Subscribes to a Redis Pub/Sub channel. Each message is a JSON object with `param_path` and `param_value`, such as `{"param_path": "Factory.arrival.part_arrival.rate", "param_value": 10.0}`.
+
+### PostgreSQL Ingress (`PostgresIngress`)
+Polls a table of parameter updates, every 2 seconds by default (`poll_interval`). At start it replays the latest applied value of each path, so a restarted simulation resumes from the last settings. It then applies every row whose `is_applied` is FALSE and marks it TRUE, so the table keeps the history of every change. The connector creates the table if it is missing.
 
 ---
 
 ## 2. Egress Connectors (Outputs)
 
-Egress connectors consume the simulation's event stream, serialize payloads, and dispatch them to downstream consumers.
+Egress connectors consume the simulation's event stream, serialize payloads, and dispatch them to downstream consumers. [Records and Telemetry](records.md) shows the records every egress receives, and [Batching and Delivery](batching.md) explains how they reach each one.
 
 ### Console Egress (`ConsoleEgress`)
 Prints formatted telemetry and event payloads to the system logger.
@@ -33,10 +39,13 @@ Prints formatted telemetry and event payloads to the system logger.
 Streams telemetry and events in real time to designated Kafka topics.
 
 ### Storage Egress (`ParquetStorageEgress` / `JsonlStorageEgress`)
-Writes records to compressed, chunked files using PyArrow. Writes to local directories and S3-compatible storage such as AWS S3 or SeaweedFS.
+Writes records to chunked files using PyArrow: compressed Parquet, or JSON Lines. Writes to local directories and S3-compatible storage such as AWS S3 or SeaweedFS.
+
+### Redis Egress (`RedisEgress`)
+Appends each record to a Redis Stream with `XADD`, as one `payload` field holding the record as JSON. A `__stream__` key inside the record's value picks the stream, and records without one go to `stream_name`.
 
 ### PostgreSQL Egress (`PostgresEgress`)
-Inserts records into a PostgreSQL table in batches, through `asyncpg`. By default a record whose key already exists is skipped. Pass `upsert_keys` to update that row instead, for simulations that change rows they wrote earlier, such as an order moving from processing to shipped:
+Inserts records into a PostgreSQL table in batches, through `asyncpg`. Only records whose value is a dictionary are written. The record's `sim_ts`, `timestamp`, and its `key` (as `event_id`) or `path_id` are merged into the value, and keys with no matching column are dropped. A `__table__` key in the value sends the record only to the instance whose `table_name` matches, which is how one stream fills several tables. By default a record whose key already exists is skipped. Pass `upsert_keys` to update that row instead, for simulations that change rows they wrote earlier, such as an order moving from processing to shipped:
 
 ```python
 PostgresEgress(dsn, table_name="orders", upsert_keys=["order_id"])
@@ -54,41 +63,3 @@ IcebergStorageEgress(catalog=catalog, table_router=router, upsert_keys={"sim.ord
 ```
 
 An upsert reads the matching rows before writing, so it is slower than an append, and it never deletes rows. It replaces the whole row, so every record must carry every column. The option needs pyiceberg 0.9.0 or later. Within one flush, the last record for a key wins. An upsert flush is still one commit, but it can add up to three snapshots.
-
-### Attaching more than one
-
-Every attached provider receives every record. Each has its own queue, so attaching a stream sink and a lake sink writes the same dataset to both in a single run, rather than needing one run per sink with a matching seed.
-
-```python
-app.add_egress(kafka).add_egress(parquet)
-```
-
-Pass `when` to route records instead of duplicating them. The predicate takes one record and returns True to send it to that provider, which reads the same way as the `path_router` that `ParquetStorageEgress` already accepts:
-
-```python
-app.add_egress(kafka,   when=lambda r: r["timestamp"] >= hot_from)  # hot tail
-app.add_egress(parquet, when=lambda r: r["timestamp"] <  hot_from)  # cold history
-app.add_egress(audit)                                               # no predicate: everything
-```
-
-A provider with no predicate receives everything, so the two can be mixed. Records matching no predicate are simply not written anywhere, which is how you drop them.
-
----
-
-## Tuning I/O Efficiency
-
-Both the environment and the connectors support tuning for optimal throughput and network usage:
-
-### `batch_size`
-The maximum number of events to buffer in memory before triggering a flush.
-* **Tuning Guide**: In fast-forward batch mode (`factor=0.0`), set this to a high value (e.g. `5000` or `10000`) to maximize write throughput and produce highly compressed Parquet chunks.
-
-### `flush_interval`
-The maximum number of seconds to wait before flushing the memory buffer, even if `batch_size` has not been reached.
-* **Tuning Guide**: In real-time mode (`factor=1.0`), set this to a low value (e.g. `0.5` or `1.0` seconds) to keep downstream UI dashboards responsive.
-
-### Per-provider cadence
-
-`with_batching` sets the default, and both values can be overridden per sink by passing them on `add_egress`. Each provider buffers separately, so memory is the sum of the buffers. See [Backfill Then Go Live in One Run](../guides/backfill-then-live.md).
-
-The two limits are an OR, so the effective batch is the smaller of `batch_size` and what arrives within `flush_interval`. A high size with a short interval means the size never governs, which is reported once per run.

@@ -6,11 +6,9 @@ Dynamic DES provides a **Pluggable Serialization Strategy**, allowing you to sea
 
 The snippets below publish to Kafka, so start a broker first with `odctl up kafka-lite`. See [Getting Started](../getting-started.md) for the one-time odctl install. Tear it down with `odctl down kafka-lite --volumes`.
 
-odctl is a separate CLI, installed once with `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
-
 ## Pydantic Duck-Typing
 
-You do not need to convert your data to dictionaries manually. `KafkaEgress` uses duck-typing to automatically detect and extract data from Pydantic V1 and V2 models.
+You do not need to convert your data to dictionaries manually. `publish_event` converts Pydantic V2 models to JSON-ready dictionaries before any egress sees them. Pydantic V1 models, including `pydantic.v1`, are not supported and raise a serialization error.
 
 You can yield raw, strongly-typed models directly from your simulation logic:
 
@@ -78,21 +76,31 @@ Dynamic DES officially recommends using the `dataclasses-avroschema` library for
 
 ### Define your model using AvroBaseModel
 
+`KafkaEgress` serializes the whole record, not only its `value`: `key`, `sim_ts`, `timestamp` and `value`, without `stream_type`. The schema therefore describes that envelope, with your payload as the `value` field.
+
 ```python
 from pydantic import Field
 from dataclasses_avroschema.pydantic import AvroBaseModel
 
 class MLPrediction(AvroBaseModel):
-    """My high-velocity ML payload"""
+    """My high-velocity ML payload, published as the event value"""
+    event_type: str = "prediction"
     task_id: str = Field(...)
     confidence: float = Field(...)
+
+class PredictionRecord(AvroBaseModel):
+    """The record KafkaEgress serializes for an event"""
+    key: str
+    sim_ts: float
+    timestamp: str
+    value: MLPrediction
 
     class Meta:
         namespace = "com.dynamic_des.ml"
         schema_name = "PredictionEvent"
 
 # Automatically generate the Avro schema string!
-schema_string = MLPrediction.avro_schema()
+schema_string = PredictionRecord.avro_schema()
 ```
 
 ### Plug it into the Egress Connector
@@ -108,7 +116,7 @@ from dynamic_des import KafkaEgress
 # 1. Initialize with the auto-generated schema
 confluent_serializer = ConfluentAvroSerializer(
     registry_url="http://127.0.0.1:8081",
-    schema_str=MLPrediction.avro_schema() # Always up to date!
+    schema_str=PredictionRecord.avro_schema() # Always up to date!
 )
 
 # 2. Map it to your topic router!

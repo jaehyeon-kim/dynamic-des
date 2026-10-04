@@ -121,9 +121,13 @@ class DynamicResource(BaseDynamicResource):
             if not ticket.item.triggered:
                 ticket.item.succeed()
 
-    def _handle_capacity_change(self, new_target: int):
+    def _handle_capacity_change(self, new_target: float):
         # Safely bind the new target to physical limits [0, max_cap]
-        new_target = max(0, min(new_target, self.pool.capacity))
+        max_cap = int(self._max_cap_val.value)
+        if max_cap > self.pool.capacity:
+            # The token pool must hold up to max_cap tokens
+            self.pool._capacity = max_cap
+        new_target = max(0, min(int(new_target), max_cap))
 
         diff = new_target - self._capacity
         if diff > 0:

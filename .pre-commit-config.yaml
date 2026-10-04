@@ -9,6 +9,9 @@ repos:
       - id: end-of-file-fixer
         exclude: \.drawio$
       - id: check-yaml
+        # The YAML examples use the !python tag, which a safe load rejects. --unsafe
+        # checks syntax only, without constructing the tags.
+        args: [--unsafe]
       - id: check-added-large-files
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -25,7 +28,7 @@ repos:
     rev: v1.19.1
     hooks:
       - id: mypy
-        additional_dependencies: [types-orjson, types-redis]
+        additional_dependencies: [types-orjson, "redis>=5.0.1", types-PyYAML]
         args: [--ignore-missing-imports]
         # The examples are scripts run by path, not an importable package, so they
         # carry no __init__.py. mypy then sees examples/declarative/parquet_example.py

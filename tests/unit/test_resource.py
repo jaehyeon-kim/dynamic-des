@@ -145,3 +145,28 @@ def test_dynamic_capacity_decrease_while_busy(env, registry, sample_params):
 
     env.run(until=12)
     assert res.pool.level == 1
+
+
+def test_max_cap_increase_allows_larger_capacity(env, registry, sample_params):
+    """Verify raising max_cap lets current_cap grow past the original limit."""
+    registry.register_sim_parameter(sample_params)
+    res = DynamicResource(env, "Line_A", "lathe")  # current 2, max 5
+
+    registry.update("Line_A.resources.lathe.max_cap", 8)
+    registry.update("Line_A.resources.lathe.current_cap", 7)
+    env.run(until=env.now + 0.1)
+
+    assert res.capacity == 7
+    assert res.pool.level == 7
+
+
+def test_max_cap_decrease_lowers_capacity(env, registry, sample_params):
+    """Verify lowering max_cap below current_cap shrinks the pool at once."""
+    registry.register_sim_parameter(sample_params)
+    res = DynamicResource(env, "Line_A", "lathe")  # current 2, max 5
+
+    registry.update("Line_A.resources.lathe.max_cap", 1)
+    env.run(until=env.now + 0.1)
+
+    assert res.capacity == 1
+    assert res.pool.level == 1

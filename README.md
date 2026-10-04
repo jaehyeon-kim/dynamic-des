@@ -6,24 +6,31 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/dynamic-des.svg)](https://pypi.org/project/dynamic-des/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Real-time SimPy control plane for event-driven digital twins.**
+**Real-time SimPy simulations that take parameter changes while they run and write their events and telemetry to streams, databases, files and Iceberg tables.**
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/docs/assets/architecture.png" alt="Dynamic DES architecture" width="900" />
 </div>
 
-Dynamic DES bridges the gap between static discrete-event simulations and the live world. It allows you to update simulation parameters (arrivals, service times, capacities) and stream telemetry via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. Beyond live streaming, it transforms static models into **synchronized forecasting engines**, enabling rapid historical data generation and future state prediction. Export compressed, chunked datasets (Parquet, JSONL) directly to local storage or **S3-compatible storage such as AWS S3 or SeaweedFS** using PyArrow VFS, complete with strict schema drift prevention. Or commit the same run into an **Apache Iceberg** table, so what comes out is queryable rather than a folder someone still has to register.
+Dynamic DES runs [SimPy](https://simpy.readthedocs.io/) discrete-event simulations in step with the system clock, or as fast as the machine allows. A running simulation takes parameter changes (arrival rates, service times, capacities) from **Kafka**, **Redis**, **PostgreSQL** or a timed scenario, without stopping. Its task events and telemetry go to the sinks you attach: **Kafka**, **Redis**, **PostgreSQL**, **Parquet** or **JSONL** files on local disk or **S3-compatible storage** such as AWS S3 or SeaweedFS, or an **Apache Iceberg** table through a REST catalog.
+
+A simulation can be written three ways: with the low-level `DynamicRealtimeEnvironment`, with the declarative `SimulationContext` builder, or as a plain **YAML blueprint** run with the `ddes` command. One run can generate backdated history at full speed and then continue in real time, so the same model can fill a data lake and then feed a live system.
 
 ## Key Features
 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
-- **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.rate`) that trigger instant logic changes.
+- **🧭 Three Ways to Write a Simulation**: The low-level `DynamicRealtimeEnvironment`, the declarative `SimulationContext` builder, or a YAML blueprint. All three build the same parameters and run on the same environment.
+- **🧾 YAML Blueprints**: Declare parameters, connectors, tasks, telemetry and timed experiments in a plain YAML file and run it with `ddes run`. Logic that YAML cannot express stays in Python and is referenced through `!python`.
+- **⏩ Backfill Then Go Live**: One run generates backdated history unpaced, then switches to real time at `go_live_at`, with one seed and one seam.
+- **🔀 Several Sinks per Run**: Attach a stream sink and a lake sink to one run, each with its own `when` predicate, `batch_size` and `flush_interval` on `add_egress`.
+- **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.standard.rate`) that trigger instant logic changes.
 - **🚀 High Throughput**: Optimized to handle high throughput using `orjson` and local batching.
 - **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
 - **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers (Confluent & AWS Glue).
 - **🗄️ Data Lake Ingestion**: Native PyArrow VFS integration for fast chunked writing (Parquet/JSONL) directly to object storage, with built-in schema inference and drift enforcement.
 - **🧊 Lakehouse Ingestion**: Append straight into an Apache Iceberg table through an Iceberg REST catalog, with one commit per flush so the snapshot count stays under your control.
 - **🦆 Pydantic Duck-Typing**: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.
+- **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time.
 - **🌍 Domain Agnostic**: Perfect for factory floors, crypto trading bots, or RPG game state management.
 
 ## Installation
@@ -135,10 +142,10 @@ Examples that need a broker, a database or an object store get their container f
 | kafka-lite | `odctl up kafka-lite` | `declarative/kafka_example.py`, `imperative/kafka_example.py`, `declarative/backfill_live_example.py`, `kafka_dashboard.py` |
 | postgres | `odctl up postgres` | `declarative/postgres_example.py`, `imperative/postgres_example.py` |
 | valkey | `odctl up valkey` | `declarative/redis_example.py`, `imperative/redis_example.py` |
-| storage | `odctl up storage` | `declarative/parquet_example.py` with `USE_S3=true` |
+| storage | `odctl up storage` | `*/parquet_example.py` with `USE_S3=true` |
 | catalog | `odctl up catalog` | `declarative/iceberg_example.py`, `imperative/iceberg_example.py` |
 
-Paths in that table are relative to the `examples/` folder. `declarative/local_example.py` needs no container, and `declarative/parquet_example.py` needs one only when `USE_S3=true`.
+Paths in that table are relative to the `examples/` folder. `declarative/local_example.py` needs no container, and `*/parquet_example.py` needs one only when `USE_S3=true`. The YAML blueprints in `examples/yaml/` need the same profile as their declarative twin.
 
 Guide: [Backfill then live](https://jaehyeon.me/dynamic-des/latest/guides/backfill-then-live/).
 
@@ -149,7 +156,11 @@ The control dashboard lets you update simulation parameters live and watch the t
   <img src="https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/docs/assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
 </div>
 
-## Building Your Own Simulation (Local Example)
+## Three Ways to Write a Simulation
+
+A simulation can be written with the low-level API, with the declarative API, or as a YAML blueprint. All three build the same `SimParameter` and run on the same `DynamicRealtimeEnvironment`, so the registry paths, the records and the connectors are the same whichever way you choose. [Ways to write a simulation](https://jaehyeon.me/dynamic-des/latest/architecture/overview/) compares them, and the tutorials build one factory in each: [Part 1: Low-level API](https://jaehyeon.me/dynamic-des/latest/tutorials/low-level/), [Part 2: Declarative API](https://jaehyeon.me/dynamic-des/latest/tutorials/declarative/) and [Part 3: YAML](https://jaehyeon.me/dynamic-des/latest/tutorials/yaml/).
+
+### Declarative API
 
 The following snippet demonstrates a simple example using the declarative **Standard API (`SimulationContext`)**. It initializes a production line, schedules dynamic capacity updates, and streams telemetry to the console.
 
@@ -204,18 +215,82 @@ print("Simulation started. Watch capacity change at t=10s and t=20s...")
 app.run(until=25.0)
 ```
 
-### What this does
+#### What this does
 
 1.  **Declarative Builder**: `SimulationContext` chains the setup, defining parameters, connectors, and configuration in one clean block.
 2.  **Live Ingress**: The `LocalIngress` schedules registry mutations independently from the simulation logic.
-3.  **Automatic Task Lifecycle**: The `@app.task` decorator automatically handles queued/started/finished telemetry emissions, resource locking, and random duration sampling.
+3.  **Automatic Task Lifecycle**: The `@app.task` decorator automatically handles queued/started/finished event emissions, resource locking, and random duration sampling.
 4.  **Telemetry Egress**: The `@app.telemetry_loop` captures continuous stats and streams them to the designated egress (`ConsoleEgress`).
 
-### Data Egress JSON Schemas
+### Low-level API
 
-To ensure strict data contracts with external consumers (like Kafka, Redis, or PostgreSQL), `dynamic-des` uses Pydantic to validate all outbound payloads. Users can expect two distinct JSON structures depending on the stream type:
+The low-level API is `DynamicRealtimeEnvironment` used directly. A script registers a `SimParameter` with the registry, attaches connectors with `setup_ingress` and `setup_egress`, creates each `DynamicResource`, and starts plain SimPy processes with `env.process`. Use it when you need what the builder does not do, such as resources created mid-run. Every example in [`examples/imperative/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/imperative) is written this way. See the [Low-level API page](https://jaehyeon.me/dynamic-des/latest/architecture/low-level/).
 
-#### Telemetry Stream
+### YAML
+
+A simulation can also be a plain YAML blueprint: parameters, connectors, simple tasks, telemetry and a scenario of changes at set simulation times, with no Python. This is the local example as a blueprint:
+
+```yaml title="examples/yaml/local.yaml"
+# Local simulation in YAML, with no Python and no containers.
+#
+# The twin of examples/declarative/local_example.py. Factory_A writes to
+# ConsoleEgress, so events and telemetry are printed to the terminal, and the run
+# ends on its own after 60 simulation seconds.
+#
+# Run it with: ddes run examples/yaml/local.yaml
+
+simulation:
+  sim_id: Factory_A
+  factor: 1.0
+
+egress:
+  - type: Console
+
+resources:
+  lathe: {current_cap: 2, max_cap: 5}
+
+services:
+  milling: {dist: normal, mean: 3.0, std: 0.5}
+
+arrivals:
+  # Each arrival spawns one process_part task.
+  standard: {dist: exponential, rate: 1.0, spawn: process_part}
+
+tasks:
+  process_part:
+    service: milling
+    resource: lathe
+    # The value of the task's finished event. id_field adds the task id as part_id.
+    payload: {event_type: part_produced, quality: A}
+    id_field: part_id
+
+telemetry:
+  # Samples the lathe every 2 simulation seconds.
+  - interval: 2.0
+    publish:
+      utilization: lathe.utilization
+      queue_length: lathe.queue_length
+
+run:
+  until: 60
+```
+
+The package installs a `ddes` command to run one:
+
+```bash
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/local.yaml
+ddes run local.yaml
+```
+
+`ddes run local.yaml --until 10` overrides `run.until`. From Python, `SimulationContext.from_yaml("local.yaml")` returns the built context.
+
+Every declarative example has a YAML twin in [`examples/yaml/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/yaml): `local.yaml`, `kafka.yaml`, `parquet.yaml`, `iceberg.yaml`, `postgres.yaml`, `redis.yaml` and `backfill_live.yaml`. They are plain YAML. `advanced/postgres_orders.yaml` keeps its order generator in Python, in `postgres_orders_logic.py` beside it, and references it with `!python`. See the [YAML Blueprints reference](https://jaehyeon.me/dynamic-des/latest/architecture/yaml/) and the [guide from a first file to connectors](https://jaehyeon.me/dynamic-des/latest/guides/yaml-blueprints/).
+
+## Data Egress JSON Schemas
+
+To ensure strict data contracts with external consumers (like Kafka, Redis, or PostgreSQL), `dynamic-des` publishes records in the shape of its `TelemetryPayload` and `EventPayload` models. Users can expect two distinct JSON structures depending on the stream type:
+
+### Telemetry Stream
 
 Used for scalar metrics like resource utilization, queue lengths, or simulation lag.
 
@@ -225,11 +300,11 @@ Used for scalar metrics like resource utilization, queue lengths, or simulation 
   "path_id": "Line_A.resources.lathe.utilization",
   "value": 85.5,
   "sim_ts": 120.5,
-  "timestamp": "2023-10-25T14:30:00.000Z"
+  "timestamp": "2023-10-25T14:30:00.000"
 }
 ```
 
-#### Event Stream
+### Event Stream
 
 Used for discrete task lifecycle events (e.g., a part arriving, entering a queue, or finishing processing).
 
@@ -239,17 +314,16 @@ Used for discrete task lifecycle events (e.g., a part arriving, entering a queue
   "key": "task-001",
   "value": {
     "status": "finished",
-    "duration": 45.2,
-    "path_id": "Line_A.service.lathe"
+    "path_id": "Line_A.service.milling"
   },
   "sim_ts": 125.0,
-  "timestamp": "2023-10-25T14:30:04.500Z"
+  "timestamp": "2023-10-25T14:30:04.500"
 }
 ```
 
-### More Examples
+## More Examples
 
-For more examples, including implementations using **Kafka** providers, please explore the [examples](./examples/) folder, which has its own README naming what to install and which odctl profile each one needs.
+The [examples](./examples/) folder has the examples written three ways, in `imperative/`, `declarative/` and `yaml/`. Backfill then live has no `imperative/` version, and `yaml/advanced/` has one YAML-only example. Its README names what to install and which odctl profile each one needs.
 
 ## Core Concepts
 
@@ -259,7 +333,7 @@ For more examples, including implementations using **Kafka** providers, please e
 
 Instead of resources polling Kafka directly, the architecture is split into three layers:
 
-1.  **Connectors (Ingress/Egress)**: Background threads handle heavy I/O (Kafka, Redis).
+1.  **Connectors (Ingress/Egress)**: Background threads handle the I/O: Kafka, Redis and PostgreSQL in both directions, and Parquet, JSONL and Iceberg for egress.
 2.  **Registry (Switchboard)**: A centralized state manager that flattens data into dot-notation paths.
 3.  **Resources (SimPy Objects)**: Passive observers that "wake up" only when the Registry signals a change.
 
@@ -282,6 +356,11 @@ To handle high throughput, the `EgressMixIn` uses:
 For full documentation, architecture details, and API reference, visit:
 [https://jaehyeon.me/dynamic-des/](https://jaehyeon.me/dynamic-des/).
 
+- **Tutorials**: [Part 1: Low-level API](https://jaehyeon.me/dynamic-des/latest/tutorials/low-level/), [Part 2: Declarative API](https://jaehyeon.me/dynamic-des/latest/tutorials/declarative/), [Part 3: YAML](https://jaehyeon.me/dynamic-des/latest/tutorials/yaml/).
+- **Core Architecture**: [Overview](https://jaehyeon.me/dynamic-des/latest/architecture/overview/), [Low-level API](https://jaehyeon.me/dynamic-des/latest/architecture/low-level/), [Declarative API](https://jaehyeon.me/dynamic-des/latest/architecture/context/), [YAML Blueprints](https://jaehyeon.me/dynamic-des/latest/architecture/yaml/), and the runtime: [Realtime Environment](https://jaehyeon.me/dynamic-des/latest/architecture/environment/), [Registry and Live Parameters](https://jaehyeon.me/dynamic-des/latest/architecture/registry/), [Time](https://jaehyeon.me/dynamic-des/latest/architecture/time/), [Resources and Containers](https://jaehyeon.me/dynamic-des/latest/architecture/resources/), [Connectors](https://jaehyeon.me/dynamic-des/latest/architecture/connectors/), [Records and Telemetry](https://jaehyeon.me/dynamic-des/latest/architecture/records/), [Batching and Delivery](https://jaehyeon.me/dynamic-des/latest/architecture/batching/).
+- **Guides**: [Backfill Then Go Live](https://jaehyeon.me/dynamic-des/latest/guides/backfill-then-live/), [Change Parameters While a Simulation Runs](https://jaehyeon.me/dynamic-des/latest/guides/live-parameters/), [YAML Blueprints](https://jaehyeon.me/dynamic-des/latest/guides/yaml-blueprints/), and the connector guides.
+- **Examples**: one page per example, with the declarative, low-level and YAML versions in tabs, starting with the [local example](https://jaehyeon.me/dynamic-des/latest/examples/local/).
+
 ## Related reading
 
 Blog posts that use this library:
@@ -289,9 +368,12 @@ Blog posts that use this library:
 - [Building a Real-Time Industrial Digital Twin with Apache Flink and Online Machine Learning](https://jaehyeon.me/blog/2026-04-21-digital-twin-online-machine-learning/): a Flink and Kotlin pipeline that detects concept drift in a hot strip mill and corrects for roller wear.
 - [Why Digital Twins Are Rewiring Industry 4.0](https://jaehyeon.me/blog/2026-04-23-digital-twin-industry-4-0/): the architectural layers that separate traditional simulations, operational twins and event-driven hybrid pipelines.
 - [Building an Event-Driven Hybrid Digital Twin with dynamic-des](https://jaehyeon.me/blog/2026-04-28-digital-twin-dynamic-des/): the Switchboard pattern, mutable resources and dynamic topic routing behind this library.
-- [One Simulation, Two Pipelines: Batch Training and Live Inference with Dynamic DES v0.8.1](https://jaehyeon.me/blog/2026-05-25-dynamic-des-parquet-support/): one SimPy codebase that writes batch Parquet for training and streams live Kafka events for inference.
-- [Dynamic DES v0.11.1: A Declarative API with Postgres and Redis Connectors](https://jaehyeon.me/blog/2026-07-17-dynamic-des-declarative-connectors/): what the declarative `SimulationContext` API changed, and the Postgres and Redis connectors it added.
+- [One Simulation, Two Pipelines: Batch Training and Live Inference with Dynamic DES](https://jaehyeon.me/blog/2026-05-25-dynamic-des-parquet-support/): one SimPy codebase that writes batch Parquet for training and streams live Kafka events for inference.
+- [Dynamic DES: A Declarative API with Postgres and Redis Connectors](https://jaehyeon.me/blog/2026-07-17-dynamic-des-declarative-connectors/): what the declarative `SimulationContext` API changed, and the Postgres and Redis connectors it added.
 - [Building an Agentic Analytics System over an Iceberg Lakehouse](https://jaehyeon.me/blog/2026-07-18-agentic-analytics-system/): a local analytics stack that uses this library to generate the lakehouse data an agent queries.
+- [Change Data Capture on a Simulated Online Shop with Debezium and Kafka Connect](https://jaehyeon.me/blog/2026-10-01-ecommerce-cdc-debezium-kafka-connect/): a simulated shop writes to PostgreSQL, and Debezium streams every change to Kafka and S3.
+- [Keeping Game Leaderboards Up to Date in Real Time with Kafka and Flink SQL](https://jaehyeon.me/blog/2026-10-02-game-leaderboard-flink-sql/): a simulated mobile game sends scores to Kafka, and Flink SQL keeps top 10 leaderboards in PostgreSQL.
+- [Defining Data-Streaming Simulations in YAML, Without Writing Python](https://jaehyeon.me/blog/2026-10-06-simulations-in-yaml-dynamic-des/): YAML blueprints, the `ddes` command and the three ways to write a simulation.
 
 ## License
 

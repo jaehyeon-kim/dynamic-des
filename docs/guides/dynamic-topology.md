@@ -63,9 +63,13 @@ def supervisor(env):
         if env.now >= 12.0 and "molder" not in resources:
             print("--- Supervisor: Registering new resource 'molder' ---")
 
-            # 1. Update the schema config in the registry
-            env.registry.update_value("Line_A.resources.molder.max_cap", 5)
-            env.registry.update_value("Line_A.resources.molder.current_cap", 2)
+            # 1. Register the new resource's capacity paths in the registry
+            env.registry.register_sim_parameter(
+                SimParameter(
+                    sim_id="Line_A",
+                    resources={"molder": CapacityConfig(current_cap=2, max_cap=5)},
+                )
+            )
 
             # 2. Instantiate and register the new SimPy DynamicResource object
             resources["molder"] = DynamicResource(env, "Line_A", "molder")

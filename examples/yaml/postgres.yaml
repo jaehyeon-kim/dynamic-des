@@ -1,0 +1,43 @@
+# Relational output in YAML.
+#
+# The YAML version of examples/declarative/postgres_example.py, with one table.
+# Each customer_order spawns place_order, a task with no service or resource, which
+# publishes its payload at once. PostgresEgress creates the orders table at start
+# and writes one row per order. PostgresIngress creates simulation_params and polls
+# it for parameter updates.
+#
+# Needs a database: odctl up postgres. Runs until interrupted with Ctrl + C.
+# Run it with: ddes run examples/yaml/postgres.yaml
+
+simulation:
+  sim_id: Store
+  factor: 1.0
+
+ingress:
+  - type: Postgres
+    config:
+      connection_dsn: postgresql://user:password@localhost:5432/odctl
+      table_name: simulation_params
+
+egress:
+  - type: Postgres
+    config:
+      connection_dsn: postgresql://user:password@localhost:5432/odctl
+      tables:
+        orders:
+          columns:
+            order_id: INT
+            customer_id: INT
+            total_amount: REAL
+            status: TEXT
+            timestamp: TIMESTAMP
+          primary_key: order_id
+
+arrivals:
+  customer_order: {dist: exponential, rate: 1.0, spawn: place_order}
+
+tasks:
+  place_order:
+    # id_field adds the task id as order_id. timestamp comes from the record.
+    payload: {customer_id: 42, total_amount: 59.97, status: pending}
+    id_field: order_id

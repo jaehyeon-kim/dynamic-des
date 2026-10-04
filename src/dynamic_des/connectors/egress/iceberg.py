@@ -1,11 +1,93 @@
 import asyncio
 import logging
 import queue
+from collections.abc import Mapping
 from typing import Any, Callable, Dict, Optional
 
-from dynamic_des.connectors.egress.base import BaseEgress, extract_dict
+from dynamic_des.connectors.egress.base import (
+    BaseEgress,
+    group_rows,
+    parse_iso_columns,
+)
 
 logger = logging.getLogger(__name__)
+
+
+# Iceberg's primitive type names, as accepted in a `schemas` mapping, and the
+# PyArrow type each one is created with.
+_TYPE_NAMES = {
+    "string": ("string", ()),
+    "int": ("int32", ()),
+    "long": ("int64", ()),
+    "float": ("float32", ()),
+    "double": ("float64", ()),
+    "boolean": ("bool_", ()),
+    "timestamp": ("timestamp", ("us",)),
+    "timestamptz": ("timestamp", ("us", "UTC")),
+    "date": ("date32", ()),
+    "binary": ("binary", ()),
+}
+
+
+def _arrow_schema(identifier: str, schema: Any) -> Any:
+    """
+    Returns a PyArrow schema for a `schemas` entry.
+
+    Args:
+        identifier (str): The table the entry is for, named in errors.
+        schema (Any): A PyArrow schema, which is returned as it is, or a mapping of
+            column name to an Iceberg type name such as `string` or `timestamp`.
+
+    Returns:
+        Any: The PyArrow schema.
+
+    Raises:
+        ValueError: If a type name is not one of the supported names.
+    """
+    if not isinstance(schema, Mapping):
+        return schema
+    import pyarrow as pa
+
+    fields = []
+    for column, type_name in schema.items():
+        spec = _TYPE_NAMES.get(str(type_name).lower())
+        if spec is None:
+            raise ValueError(
+                f"Column '{column}' of {identifier} has the type '{type_name}'; "
+                f"the supported types are {', '.join(_TYPE_NAMES)}"
+            )
+        factory, args = spec
+        fields.append((column, getattr(pa, factory)(*args)))
+    return pa.schema(fields)
+
+
+def _catalog_property(value: Any) -> Any:
+    """Renders a YAML scalar as the string PyIceberg reads catalog properties as."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if value is None or isinstance(value, (str, Mapping)):
+        return value
+    return str(value)
+
+
+def _time_columns(schema: Any, pa: Any) -> Dict[str, str]:
+    """
+    Names the timestamp and date columns of an Arrow schema.
+
+    Args:
+        schema (Any): The table's PyArrow schema.
+        pa (Any): Injected reference to the `pyarrow` module.
+
+    Returns:
+        Dict[str, str]: Column name to `timestamp`, `timestamptz` or `date`.
+    """
+    columns: Dict[str, str] = {}
+    for field in schema:
+        if pa.types.is_timestamp(field.type):
+            columns[field.name] = "timestamptz" if field.type.tz else "timestamp"
+        elif pa.types.is_date(field.type):
+            columns[field.name] = "date"
+    return columns
 
 
 class IcebergStorageEgress(BaseEgress):
@@ -21,6 +103,10 @@ class IcebergStorageEgress(BaseEgress):
     `batch_size` on `add_egress` so the run produces a handful of snapshots rather
     than hundreds.
 
+    Without a `table_router`, events are written to `default_table` as flat rows:
+    each event's `value` mapping becomes columns, and telemetry is left out. With a
+    router, records are written as the router leaves them.
+
     By default every record is appended. Name a table's key columns in
     `upsert_keys` to write it with PyIceberg's `upsert` instead: a record whose key
     exists updates that row, and a new key is inserted, so rerunning a seeded
@@ -31,17 +117,22 @@ class IcebergStorageEgress(BaseEgress):
     flush is still one commit, but it can add up to three snapshots: an overwrite
     and two appends.
 
-    The catalog is supplied by the caller rather than configured here. The supported
-    catalog is Iceberg REST, which is what the integration tests run against.
+    The catalog is supplied by the caller, either as a built `Catalog` or as a
+    mapping of PyIceberg catalog properties that is passed to `load_catalog`. The
+    supported catalog is Iceberg REST, which is what the integration tests run
+    against.
 
     Schemas are inferred from the first batch per table and reused for later ones,
     exactly as the Parquet writer does. Inference reads an ISO timestamp as a string,
-    so a table whose consumer expects a real timestamp needs an explicit schema. A
-    pinned column is not a conversion: PyArrow rejects an ISO string against a
-    timestamp column, so the router has to hand over a `datetime` for that field.
+    so a table whose consumer expects a real timestamp needs an explicit schema. An
+    ISO string bound for a timestamp or date column of the table is converted to a
+    `datetime` or `date` before the write, because PyArrow rejects the string itself.
 
     Attributes:
-        catalog (Any): An instantiated pyiceberg `Catalog`.
+        catalog (Any): An instantiated pyiceberg `Catalog`, or None until it is built
+            from `catalog_properties`.
+        catalog_properties (Optional[Dict[str, Any]]): The PyIceberg catalog
+            properties given instead of a `Catalog`, or None.
         default_table (Optional[str]): Fallback `namespace.table` when no router is given.
         table_router (Optional[Callable]): Logic returning `namespace.table`, or None to
             drop the record.
@@ -55,8 +146,6 @@ class IcebergStorageEgress(BaseEgress):
         Splitting events and telemetry into two tables on a REST catalog:
 
         ```python
-        from datetime import datetime
-
         import pyarrow as pa
         from pyiceberg.catalog.rest import RestCatalog
 
@@ -67,9 +156,6 @@ class IcebergStorageEgress(BaseEgress):
         def table_router(data: dict) -> str | None:
             if data.get("path_id") == "system.simulation.lag_seconds":
                 return None  # drop
-            # A pinned timestamp column needs a datetime, not the ISO string the
-            # environment writes.
-            data["timestamp"] = datetime.fromisoformat(data["timestamp"])
             if data.get("stream_type") == "telemetry":
                 return "simulation.telemetry"
             return "simulation.events"
@@ -107,13 +193,20 @@ class IcebergStorageEgress(BaseEgress):
 
         Args:
             catalog: An instantiated pyiceberg `Catalog`, already configured with its
-                URI, warehouse and credentials.
+                URI, warehouse and credentials. A mapping of PyIceberg catalog
+                properties (`uri`, `warehouse`, `s3.endpoint` and so on) is also
+                accepted: the catalog is then built with PyIceberg's `load_catalog`
+                on the first write, with an optional `name` key as the catalog name.
             default_table: The target `namespace.table` used when no router is given.
+                Only events are written there, with their `value` mapping unpacked
+                into columns.
             table_router: A function taking a dict payload and returning a
                 `namespace.table` identifier, or None to drop the record.
             schemas: Optional PyArrow schema per table identifier. A table named here
                 is created with that schema and every batch is cast to it, instead of
-                the schema being inferred from the first batch.
+                the schema being inferred from the first batch. A schema can also be
+                a mapping of column name to an Iceberg type name: string, int, long,
+                float, double, boolean, timestamp, timestamptz, date or binary.
             locations: Optional storage location per table identifier. Pin this when a
                 consumer reads the table by path, because a catalog with
                 `unique-table-location` set otherwise appends a random suffix.
@@ -132,10 +225,19 @@ class IcebergStorageEgress(BaseEgress):
                 "IcebergStorageEgress needs default_table or table_router; "
                 "without one it has no table to write to"
             )
+        # A mapping of properties is loaded on the first write rather than here,
+        # because a REST catalog contacts its server as soon as it is built.
+        self.catalog_properties: Optional[Dict[str, Any]] = None
         self.catalog = catalog
+        if isinstance(catalog, Mapping):
+            self.catalog_properties = dict(catalog)
+            self.catalog = None
         self.default_table = default_table
         self.table_router = table_router
-        self.schemas: Dict[str, Any] = dict(schemas or {})
+        self.schemas: Dict[str, Any] = {
+            identifier: _arrow_schema(identifier, schema)
+            for identifier, schema in (schemas or {}).items()
+        }
         self.locations: Dict[str, str] = dict(locations or {})
         self.upsert_keys: Dict[str, list] = {
             identifier: list(keys) for identifier, keys in (upsert_keys or {}).items()
@@ -228,18 +330,13 @@ class IcebergStorageEgress(BaseEgress):
         Raises:
             ValueError: If a record for an upserted table lacks a key column.
         """
-        grouped_batches: Dict[str, list] = {}
-
-        for data in batch:
-            identifier = (
-                self.table_router(data) if self.table_router else self.default_table
-            )
-            if not identifier:
-                continue
-            grouped_batches.setdefault(identifier, []).append(extract_dict(data))
+        grouped_batches = group_rows(batch, self.table_router, self.default_table)
 
         for identifier, records in grouped_batches.items():
             table = self._resolve_table(identifier, records, pa)
+            records = parse_iso_columns(
+                records, _time_columns(self.schemas[identifier], pa)
+            )
             keys = self.upsert_keys.get(identifier)
             if keys:
                 missing = sorted({k for r in records for k in keys if r.get(k) is None})
@@ -290,8 +387,9 @@ class IcebergStorageEgress(BaseEgress):
         namespace = identifier.rsplit(".", 1)[0]
 
         schema = self.schemas.get(identifier) or pa.Table.from_pylist(records).schema
-        self.catalog.create_namespace_if_not_exists(namespace)
-        table = self.catalog.create_table_if_not_exists(
+        catalog = self._load_catalog()
+        catalog.create_namespace_if_not_exists(namespace)
+        table = catalog.create_table_if_not_exists(
             identifier, schema=schema, location=self.locations.get(identifier)
         )
 
@@ -300,3 +398,21 @@ class IcebergStorageEgress(BaseEgress):
         self.schemas[identifier] = table.schema().as_arrow()
         self._tables[identifier] = table
         return table
+
+    def _load_catalog(self) -> Any:
+        """
+        Returns the catalog, building it from `catalog_properties` on first use.
+
+        Returns:
+            Any: The pyiceberg `Catalog`.
+        """
+        if self.catalog is None:
+            from pyiceberg.catalog import load_catalog
+
+            properties = {
+                key: _catalog_property(value)
+                for key, value in (self.catalog_properties or {}).items()
+            }
+            name = properties.pop("name", None)
+            self.catalog = load_catalog(name, **properties)
+        return self.catalog

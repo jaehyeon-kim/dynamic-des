@@ -58,9 +58,8 @@ def create_history_router(base_path: str):
 # ==========================================
 # Reading environment variables and constructing the S3 client are safe at import.
 # Creating the destination is not, so it lives in ensure_destination() and runs from
-# run(). Importing this module for discovery, by a test collector, a docs build or the
-# entry-point wiring in examples/__init__.py, must not create a directory or reach out
-# to S3.
+# run(). Importing this module for discovery, by a test collector or a docs build,
+# must not create a directory or reach out to S3.
 use_s3 = os.getenv("USE_S3", "false").lower() == "true"
 # odctl-dev is one of the buckets the odctl `storage` profile creates.
 base_path = os.getenv("DEST_PATH", "odctl-dev/history" if use_s3 else "data")

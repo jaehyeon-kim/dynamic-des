@@ -16,13 +16,34 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-BLOCK = re.compile(r'```python title="(examples/[^"]+)"\n(.*?)\n```', re.S)
+# Python and YAML blocks labelled with a file from examples/ or docs/snippets/. A
+# block inside a content tab is indented, so the fence's indent is captured and the
+# closing fence must carry the same one.
+BLOCK = re.compile(
+    r'^( *)```(?:python|yaml) title="((?:examples|docs/snippets)/[^"]+)"\n(.*?)\n\1```$',
+    re.S | re.M,
+)
+# Every YAML block, labelled or not.
+YAML_BLOCK = re.compile(r"```yaml([^\n]*)\n")
+
+
+def _dedent(code, indent):
+    """Removes a content tab's indent. Blank lines carry none, so they are kept empty."""
+    return "\n".join(
+        line[len(indent) :] if line.startswith(indent) else line.strip()
+        for line in code.split("\n")
+    )
+
+
+def _pages():
+    """Every documentation page, and the README, which shows a blueprint too."""
+    return sorted((ROOT / "docs").rglob("*.md")) + [ROOT / "README.md"]
 
 
 def _blocks():
-    for page in sorted((ROOT / "docs").rglob("*.md")):
-        for path, code in BLOCK.findall(page.read_text(encoding="utf-8")):
-            yield page.relative_to(ROOT), path, code
+    for page in _pages():
+        for indent, path, code in BLOCK.findall(page.read_text(encoding="utf-8")):
+            yield page.relative_to(ROOT), path, _dedent(code, indent)
 
 
 def test_at_least_one_page_shows_a_script():
@@ -42,3 +63,25 @@ def test_documented_source_matches_the_script(page, path, code):
         f"{page} has drifted from {path}. Copy the script in again rather than "
         f"editing the page."
     )
+
+
+def test_every_yaml_block_is_a_file():
+    """A YAML block typed into a page is never built, so nothing would catch it drifting."""
+    unlabelled = [
+        str(page.relative_to(ROOT))
+        for page in _pages()
+        for label in YAML_BLOCK.findall(page.read_text(encoding="utf-8"))
+        if 'title="examples/' not in label and 'title="docs/snippets/' not in label
+    ]
+    assert unlabelled == [], (
+        "These pages show YAML that is not a file. Put it under docs/snippets/ or "
+        "examples/yaml/ and label the block with its path."
+    )
+
+
+def test_yaml_pages_show_yaml_files():
+    """The YAML pages are what this test extends to, so a regex miss must fail."""
+    shown = {path for _, path, _ in _blocks() if path.endswith(".yaml")}
+    assert {
+        str(p.relative_to(ROOT)) for p in (ROOT / "examples/yaml").rglob("*.yaml")
+    } <= shown

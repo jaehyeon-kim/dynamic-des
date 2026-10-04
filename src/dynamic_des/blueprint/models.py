@@ -1,0 +1,280 @@
+"""Pydantic models for a blueprint file.
+
+Every model forbids unknown keys, so a misspelt key is reported rather than ignored.
+Distributions and capacities reuse `DistributionConfig` and `CapacityConfig`, the
+dataclasses the builder already registers. Fields that take Python objects are
+filled by `!python` references and checked here, so a wrong reference fails when the
+file is loaded rather than during the run.
+"""
+
+import inspect
+from datetime import datetime, timedelta
+from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
+
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    TypeAdapter,
+    ValidationError,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
+
+from dynamic_des.models.params import CapacityConfig, DistributionConfig
+from dynamic_des.utils import time_to_seconds
+
+# What a `telemetry` entry can publish about a resource without any Python.
+RESOURCE_STATS = ("capacity", "in_use", "queue_length", "utilization")
+
+# The names an egress `when` takes instead of a `!python` function.
+WHEN_NAMES = ("history", "live")
+
+
+def _seconds(value: Union[float, str]) -> float:
+    """Accepts a number of seconds or a duration such as `"10 min"`."""
+    if isinstance(value, str):
+        return time_to_seconds(value)
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return float(value)
+    raise ValueError("expected seconds or a duration such as '10 min'")
+
+
+_DATETIME = TypeAdapter(datetime)
+
+
+def _instant(value: Any, now: datetime) -> Any:
+    """Reads `now`, a signed duration from now such as `-1d`, or an ISO datetime.
+
+    A datetime, from a YAML timestamp or a `!python` reference, is returned as it is.
+    """
+    if not isinstance(value, str):
+        return value
+    text = value.strip()
+    if text.lower() == "now":
+        return now
+    if text[:1] in ("+", "-"):
+        try:
+            offset = time_to_seconds(text[1:])
+        except ValueError:
+            raise ValueError(
+                f"{value!r} is not a duration. Write a sign and a duration, such "
+                f"as -1d, -7d or -10m"
+            ) from None
+        return now + timedelta(seconds=offset if text[0] == "+" else -offset)
+    try:
+        return _DATETIME.validate_python(text)
+    except ValidationError:
+        raise ValueError(
+            f"{value!r} is not a time. Use now, a signed duration such as -1d, or "
+            f"an ISO datetime such as 2026-01-01T00:00:00"
+        ) from None
+
+
+def _generator_function(value: Any) -> Any:
+    if not inspect.isgeneratorfunction(value):
+        raise ValueError(
+            f"{value!r} must be a generator function, one that uses `yield`"
+        )
+    return value
+
+
+class _Model(BaseModel):
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+
+
+class Simulation(_Model):
+    """The `simulation` section: the arguments of `SimulationContext`.
+
+    `logical_start_time` and `go_live_at` take `now`, a signed duration from now such
+    as `-1d` or `-10m`, an ISO datetime, or a `!python` datetime. Both read the same
+    `now`, the moment the file is validated, so `-10m` and `now` are exactly ten
+    minutes apart.
+    """
+
+    sim_id: str
+    factor: float = 1.0
+    random_seed: Optional[int] = None
+    logical_start_time: Optional[datetime] = None
+    go_live_at: Optional[datetime] = None
+
+    @field_validator("logical_start_time", "go_live_at", mode="before")
+    @classmethod
+    def _parse_instant(cls, value: Any, info: ValidationInfo) -> Any:
+        now = (info.context or {}).get("now") or datetime.now()
+        return _instant(value, now)
+
+
+class Arrival(_Model):
+    """An `arrivals` entry: a distribution, and optionally the task it spawns."""
+
+    dist: Literal["exponential", "normal", "lognormal"]
+    rate: Optional[float] = None
+    mean: Optional[float] = None
+    std: Optional[float] = None
+    spawn: Optional[str] = None
+
+
+class Task(_Model):
+    """A `tasks` entry, built with `SimulationContext.task`.
+
+    `payload` is the value of the `finished` event: a mapping, or a `!python`
+    function called as `payload(task_id, context)`. `id_field` adds the task id to a
+    mapping payload under that key. A task with neither `service` nor `resource`
+    emits its payload as soon as it is spawned.
+    """
+
+    service: Optional[str] = None
+    resource: Optional[str] = None
+    payload: Union[Dict[str, Any], Callable[..., Any]]
+    id_field: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _service_and_resource_together(self) -> "Task":
+        if (self.service is None) != (self.resource is None):
+            raise ValueError(
+                "give both service and resource, or neither for a task that emits "
+                "its payload at once"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _id_field_needs_a_mapping(self) -> "Task":
+        if self.id_field is not None and not isinstance(self.payload, dict):
+            raise ValueError("id_field applies only to a mapping payload")
+        return self
+
+
+class Process(_Model):
+    """A `processes` entry: a generator function and extra keyword arguments.
+
+    The function is called as `function(context, **kwargs)` when the run starts.
+    """
+
+    function: Callable[..., Any]
+    kwargs: Dict[str, Any] = Field(default_factory=dict)
+
+    _check_function = field_validator("function")(_generator_function)
+
+
+class Connector(_Model):
+    """An `ingress` entry: a connector type and its constructor arguments.
+
+    `type` is a short name such as `Kafka`, or a `!python` class for a connector
+    from another package.
+    """
+
+    type: Union[str, Type[Any]]
+    config: Dict[str, Any] = Field(default_factory=dict)
+
+
+class EgressConnector(Connector):
+    """An `egress` entry, with the per-provider options of `add_egress`.
+
+    `when` is `history`, `live` or a `!python` function taking one record. `history`
+    sends the records stamped before `simulation.go_live_at`, and `live` sends the
+    records stamped at or after it.
+    """
+
+    when: Optional[Union[Literal["history", "live"], Callable[[dict], bool]]] = None
+    batch_size: Optional[int] = Field(default=None, gt=0)
+    flush_interval: Optional[float] = Field(default=None, gt=0)
+
+    @field_validator("when", mode="before")
+    @classmethod
+    def _known_name(cls, value: Any) -> Any:
+        if isinstance(value, str) and value not in WHEN_NAMES:
+            raise ValueError(
+                f"'{value}' is not a when. Use history, live or a !python function"
+            )
+        return value
+
+
+class Batching(_Model):
+    """The `batching` section: the arguments of `with_batching`."""
+
+    batch_size: int = Field(gt=0)
+    flush_interval: float = Field(gt=0)
+    max_queued_batches: Optional[int] = Field(default=None, gt=0)
+    drain_stall_seconds: Optional[float] = Field(default=None, gt=0)
+
+
+class Telemetry(_Model):
+    """A `telemetry` entry: metrics published every `interval` simulation seconds.
+
+    `publish` maps a metric name to `<resource>.<stat>`, where the stat is one of
+    `capacity`, `in_use`, `queue_length` and `utilization`. `function` is a `!python`
+    function called as `function(context)` instead. Give one or the other.
+    """
+
+    interval: float = Field(gt=0)
+    publish: Optional[Dict[str, str]] = None
+    function: Optional[Callable[..., Any]] = None
+
+    @model_validator(mode="after")
+    def _one_source(self) -> "Telemetry":
+        if (self.publish is None) == (self.function is None):
+            raise ValueError("give either publish or function")
+        return self
+
+
+class ScenarioStep(_Model):
+    """A `scenario` entry: set the registry `path` to `value` at simulation time `at`.
+
+    `at` is seconds from the start of the run, or a duration such as `"10 min"`.
+    """
+
+    at: float
+    path: str
+    value: Any
+
+    @field_validator("at", mode="before")
+    @classmethod
+    def _parse_at(cls, value: Any) -> Any:
+        return _seconds(value)
+
+
+class Run(_Model):
+    """The `run` section.
+
+    `before` lists `!python` functions called with no arguments before the run
+    starts, for setup such as creating topics or tables.
+    """
+
+    until: Optional[float] = Field(default=None, gt=0)
+    before: List[Callable[[], Any]] = Field(default_factory=list)
+
+    @field_validator("until", mode="before")
+    @classmethod
+    def _parse_until(cls, value: Any) -> Any:
+        return None if value is None else _seconds(value)
+
+
+class Blueprint(_Model):
+    """A whole blueprint file."""
+
+    simulation: Simulation
+    resources: Dict[str, CapacityConfig] = Field(default_factory=dict)
+    containers: Dict[str, CapacityConfig] = Field(default_factory=dict)
+    services: Dict[str, DistributionConfig] = Field(default_factory=dict)
+    arrivals: Dict[str, Arrival] = Field(default_factory=dict)
+    variables: Dict[str, Any] = Field(default_factory=dict)
+    tasks: Dict[str, Task] = Field(default_factory=dict)
+    telemetry: List[Telemetry] = Field(default_factory=list)
+    processes: List[Process] = Field(default_factory=list)
+    scenario: List[ScenarioStep] = Field(default_factory=list)
+    ingress: List[Connector] = Field(default_factory=list)
+    egress: List[EgressConnector] = Field(default_factory=list)
+    batching: Optional[Batching] = None
+    run: Run = Field(default_factory=Run)
+
+    @field_validator("processes", mode="before")
+    @classmethod
+    def _bare_functions(cls, value: Any) -> Any:
+        """Lets a process be written as a bare `!python` reference."""
+        if isinstance(value, list):
+            return [
+                item if isinstance(item, dict) else {"function": item} for item in value
+            ]
+        return value

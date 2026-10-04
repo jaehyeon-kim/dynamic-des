@@ -22,7 +22,8 @@ class Sampler:
 
         Args:
             rng (np.random.Generator, optional): A seeded NumPy random generator for reproducible runs.
-                If None, a default unseeded generator is used.
+                If None, nothing is drawn at random: each sample is the distribution's mean,
+                or `1 / rate` for an exponential distribution.
         """
         self.rng = rng
 

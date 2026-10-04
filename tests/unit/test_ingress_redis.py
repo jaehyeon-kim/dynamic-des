@@ -49,4 +49,4 @@ async def test_redis_ingress():
         assert val == 42
 
         mock_pubsub.unsubscribe.assert_called_once_with("test_params")
-        mock_client.close.assert_called_once()
+        mock_client.aclose.assert_called_once()

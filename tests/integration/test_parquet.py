@@ -40,7 +40,7 @@ async def test_parquet_egress_local_file(tmp_path: Path):
     table = pq.read_table(parquet_files[0])
     records = table.to_pylist()
 
+    # Without a router the nested value is unpacked into columns.
     assert len(records) == 2
-    assert "amount" in records[0]["value"]
-    assert records[0]["value"]["amount"] == 100.0
-    assert records[1]["value"]["order_id"] == 2
+    assert records[0]["amount"] == 100.0
+    assert records[1]["order_id"] == 2

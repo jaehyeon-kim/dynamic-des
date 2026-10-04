@@ -1,6 +1,6 @@
 # Getting Started
 
-Ready to build real-time digital twins? This guide will walk you through installing Dynamic DES, running the built-in zero-setup demos, and exploring the core infrastructure.
+Ready to build real-time digital twins? This guide will walk you through installing Dynamic DES, running the example scripts, and exploring the core infrastructure.
 
 ## Installation
 
@@ -22,10 +22,19 @@ pip install "dynamic-des[kafka,confluent]"
 # For AWS Glue Schema Registry (Avro)
 pip install "dynamic-des[kafka,glue]"
 
+# For Redis support
+pip install "dynamic-des[redis]"
+
+# For PostgreSQL support
+pip install "dynamic-des[postgres]"
+
 # For Parquet support (required for data lake integration)
 pip install "dynamic-des[parquet]"
 
-# For all backends (Kafka, Redis, Postgres, Avro, Parquet)
+# For Lakehouse Storage (Apache Iceberg)
+pip install "dynamic-des[iceberg]"
+
+# For all backends (Kafka, Redis, Postgres, Avro, Parquet, Iceberg)
 pip install "dynamic-des[all]"
 ```
 
@@ -43,7 +52,7 @@ uv tool install "odctl>=0.5.1"
 pip install "odctl>=0.5.1"
 ```
 
-`odctl list -d` shows every profile and the ports it publishes. The examples here use four of them: `kafka-lite`, `postgres`, `valkey` and `storage`.
+`odctl list -d` shows every profile and the ports it publishes. The examples here use five of them: `kafka-lite`, `postgres`, `valkey`, `storage` and `catalog`.
 
 ### Starting infrastructure
 
@@ -57,6 +66,8 @@ Each example needs one odctl profile, started before you run it and torn down af
 | redis | `odctl up valkey` | `odctl down valkey --volumes` |
 | parquet with `USE_S3=true` | `odctl up storage` | `odctl down storage --volumes` |
 | iceberg | `odctl up catalog` | `odctl down catalog --volumes` |
+
+The YAML blueprints in `examples/yaml/` need the same profile as their declarative twin.
 
 Kafka and Redis are the two whose profile names are not what you would guess, because odctl ships a one-broker Kafka as `kafka-lite` and uses Valkey rather than Redis.
 
@@ -132,30 +143,43 @@ python backfill_live_example.py
 odctl down kafka-lite --volumes
 ```
 
-Examples that need a broker, a database or an object store get their container from [odctl](https://github.com/jaehyeon-kim/odctl). Start the profile an example needs before you run it, and stop it with `odctl down <profile> --volumes` when you are finished. Kafka and Redis are the two whose odctl profile names differ, because odctl ships a one-broker Kafka as `kafka-lite` and uses Valkey rather than Redis.
-
-| Profile | Start | Needed by |
-|---|---|---|
-| kafka-lite | `odctl up kafka-lite` | `declarative/kafka_example.py`, `imperative/kafka_example.py`, `declarative/backfill_live_example.py`, `kafka_dashboard.py` |
-| postgres | `odctl up postgres` | `declarative/postgres_example.py`, `imperative/postgres_example.py` |
-| valkey | `odctl up valkey` | `declarative/redis_example.py`, `imperative/redis_example.py` |
-| storage | `odctl up storage` | `declarative/parquet_example.py` with `USE_S3=true` |
-
-Paths in that table are relative to the `examples/` folder. `declarative/local_example.py` needs no container, and `declarative/parquet_example.py` needs one only when `USE_S3=true`.
+Examples that need a broker, a database or an object store get their container from odctl. [Starting infrastructure](#starting-infrastructure) above lists the profile each one needs.
 
 Guide: [Backfill then live](guides/backfill-then-live.md).
+
+### A YAML blueprint
+
+The same local simulation is also a YAML file, run with the `ddes` command that the package installs. It needs no Python:
+
+```bash
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/local.yaml
+
+# With uv
+uv run --no-project --with dynamic-des ddes run local.yaml
+
+# Or with pip, after `pip install dynamic-des`
+ddes run local.yaml
+```
+
+Every declarative example has a YAML twin, in the YAML tab of its [example page](examples/local.md). [YAML Blueprints, from First File to Connectors](guides/yaml-blueprints.md) shows how to write one.
 
 The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
 
 <div align="center">
-  <img src="assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
+  <img src="../assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
 </div>
 
 ## Build Your Own
 
-Ready to build your own system? We have prepared a gallery of real-world use cases to demonstrate how to architect your simulation.
+Each example is written three ways: with the low-level API, with the declarative API and as a YAML blueprint. Its page shows the versions in tabs. Backfill Then Go Live has no low-level version, and the advanced orders example exists only as YAML.
 
-- [Local Simulation](examples/declarative/local.md): A dependency-free approach to testing.
-- [Kafka Digital Twin](examples/declarative/kafka.md): A full manufacturing architecture with dynamic queues.
-- [Fast-Forward to Parquet](examples/declarative/parquet.md): Batch processing simulation data into Parquet.
-- [Fast-Forward to Iceberg](examples/declarative/iceberg.md): The same run, committed into an Iceberg table.
+| Example | What it shows | Low-level | Declarative | YAML |
+|---|---|---|---|---|
+| [Local Simulation](examples/local.md) | prints events and telemetry, with no container | [`local_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/local_example.py) | [`local_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/local_example.py) | [`local.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/local.yaml) |
+| [Kafka Digital Twin](examples/kafka.md) | takes updates from Kafka and publishes events and telemetry to Kafka | [`kafka_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/kafka_example.py) | [`kafka_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/kafka_example.py) | [`kafka.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/kafka.yaml) |
+| [Fast-Forward to Parquet](examples/parquet.md) | a week generated at `factor=0.0`, written to Parquet | [`parquet_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/parquet_example.py) | [`parquet_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/parquet_example.py) | [`parquet.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/parquet.yaml) |
+| [Fast-Forward to Iceberg](examples/iceberg.md) | a day generated at `factor=0.0`, appended to an Iceberg table | [`iceberg_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/iceberg_example.py) | [`iceberg_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/iceberg_example.py) | [`iceberg.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/iceberg.yaml) |
+| [Relational DB (Postgres)](examples/postgres.md) | writes orders to PostgreSQL and takes updates from a table | [`postgres_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/postgres_example.py) | [`postgres_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/postgres_example.py) | [`postgres.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/postgres.yaml) |
+| [In-Memory Store (Redis)](examples/redis.md) | writes to a Redis Stream and takes updates from Pub/Sub | [`redis_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/redis_example.py) | [`redis_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/redis_example.py) | [`redis.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/redis.yaml) |
+| [Backfill Then Go Live](examples/backfill-live.md) | backdated history to Parquet, then live to Kafka | no | [`backfill_live_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/backfill_live_example.py) | [`backfill_live.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/backfill_live.yaml) |
+| [Orders with Line Items (Advanced YAML)](examples/advanced-postgres-orders.md) | orders with line items, from a blueprint with one Python function | no | no | [`postgres_orders.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/advanced/postgres_orders.yaml) |

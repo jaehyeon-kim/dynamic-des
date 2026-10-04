@@ -1,6 +1,6 @@
 # Examples
 
-Runnable scripts for every connector, in both API styles. They live outside the package, so `pip install dynamic-des` does not carry them and the library declares only what it imports.
+Runnable scripts for every connector, in both API styles, and YAML blueprints for the declarative ones. They live outside the package, so `pip install dynamic-des` does not carry them and the library declares only what it imports.
 
 Run one directly:
 
@@ -25,7 +25,7 @@ python examples/declarative/kafka_example.py
 
 Extras by example: `kafka` for `*/kafka_example.py` and `kafka_dashboard.py`, `postgres` for `*/postgres_example.py`, `redis` for `*/redis_example.py`, `parquet` for `*/parquet_example.py`, `iceberg` for `*/iceberg_example.py`, both `kafka` and `parquet` for `declarative/backfill_live_example.py`, and none for `*/local_example.py`.
 
-`kafka_dashboard.py` additionally needs `nicegui`, which is not a dependency of the library because nothing in it imports the package. Run it as `uv run --extra kafka --with nicegui examples/kafka_dashboard.py`, which installs nothing permanently, or `pip install nicegui` first.
+`kafka_dashboard.py` additionally needs `nicegui`, which is not a dependency of the library because nothing in the package imports it. Run it as `uv run --extra kafka --with nicegui examples/kafka_dashboard.py`, which installs nothing permanently, or `pip install nicegui` first.
 
 ## What to start
 
@@ -46,10 +46,22 @@ Stop a profile with `odctl down <profile> --volumes`. `odctl list -d` shows ever
 
 Kafka and Redis are the two whose profile names are not what you would guess, because odctl ships a one-broker Kafka as `kafka-lite` and uses Valkey rather than Redis.
 
-## Two API styles, same simulation
+## Three ways, same simulation
 
 `declarative/` uses `SimulationContext`, the builder, where infrastructure is declared by chaining and the simulation logic hangs off decorators.
 
 `imperative/` uses `DynamicRealtimeEnvironment` directly, wiring the registry, resources and connectors by hand. It is the lower-level API the builder is written on.
 
+`yaml/` holds the same simulations as YAML blueprints, described in the next section.
+
 Most pairs run the same simulation, so reading one against the other shows what the builder does for you. The local pair is the exception and the two differ on purpose: `declarative/local_example.py` runs `Factory_A` for 60 seconds with no ingress, while `imperative/local_example.py` runs `Line_A` for 30 seconds and uses `LocalIngress` to schedule two capacity changes.
+
+## YAML blueprints
+
+`yaml/` holds a YAML twin of every declarative example, run with the `ddes` command:
+
+```bash
+uv run ddes run examples/yaml/local.yaml
+```
+
+The blueprints in `yaml/` are plain YAML with no Python. `yaml/advanced/postgres_orders.yaml` keeps its order generator in Python, in `postgres_orders_logic.py` beside it, and references it with `!python`. The extras and odctl profiles are the same as for the declarative twin, so `kafka.yaml` needs `--extra kafka` and `odctl up kafka-lite`, and `backfill_live.yaml` needs both `kafka` and `parquet`. `tests/unit/test_yaml_examples.py` builds and runs each blueprint and checks the records it produces.

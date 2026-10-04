@@ -66,4 +66,4 @@ async def test_redis_integration(redis_container):
     except asyncio.CancelledError:
         pass
 
-    await client.close()
+    await client.aclose()

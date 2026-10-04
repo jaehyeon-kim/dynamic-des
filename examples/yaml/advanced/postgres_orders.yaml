@@ -1,0 +1,58 @@
+# Orders with random line items, in YAML with one Python function.
+#
+# Each customer_order arrival builds an order with 1 to 5 items, random prices and
+# quantities, and a total computed from them. A mapping payload is a constant, so
+# the generator is Python in postgres_orders_logic.py beside this file, referenced
+# with !python. Everything else is plain YAML.
+#
+# Two PostgresEgress instances are attached, one per table, and each keeps only the
+# records whose __table__ key names its table. Each creates its table at start.
+#
+# Needs a database: odctl up postgres. Runs until interrupted with Ctrl + C.
+# Run it with: ddes run examples/yaml/advanced/postgres_orders.yaml
+
+simulation:
+  sim_id: Store
+  factor: 1.0
+  random_seed: 42
+
+ingress:
+  - type: Postgres
+    config:
+      connection_dsn: postgresql://user:password@localhost:5432/odctl
+      table_name: simulation_params
+
+egress:
+  - type: Postgres
+    config:
+      connection_dsn: postgresql://user:password@localhost:5432/odctl
+      tables:
+        orders:
+          columns:
+            order_id: INT
+            customer_id: INT
+            total_amount: REAL
+            status: TEXT
+            timestamp: TIMESTAMP
+          primary_key: order_id
+  - type: Postgres
+    config:
+      connection_dsn: postgresql://user:password@localhost:5432/odctl
+      tables:
+        order_items:
+          columns:
+            order_item_id: INT
+            order_id: INT
+            product_id: INT
+            quantity: INT
+            unit_price: REAL
+          primary_key: order_item_id
+
+arrivals:
+  # No spawn: the process below waits on this arrival itself.
+  customer_order: {dist: exponential, rate: 1.0}
+
+processes:
+  # Called as order_generator(context, arrival="customer_order", max_items=5).
+  - function: !python postgres_orders_logic.order_generator
+    kwargs: {arrival: customer_order, max_items: 5}

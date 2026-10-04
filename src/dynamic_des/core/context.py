@@ -1,6 +1,8 @@
+import functools
 import logging
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
 
@@ -104,6 +106,43 @@ class SimulationContext:
         self.sampler: Optional[Sampler] = None
         self._resources_map: Dict[str, DynamicResource] = {}
         self._startup_loops: List[Tuple[Callable, Optional[str]]] = []
+
+        # Set by from_yaml from the blueprint's `run` section.
+        self._default_until: Any = None
+        self._before_run: List[Callable[[], Any]] = []
+
+    @classmethod
+    def from_yaml(cls, path: Union[str, Path]) -> "SimulationContext":
+        """
+        Builds a context from a YAML blueprint file.
+
+        The blueprint is validated before anything is built, and every error names
+        the file and line. The context is built through the same builder methods a
+        Python script calls, so the result is the same simulation.
+
+        Args:
+            path: The blueprint file.
+
+        Returns:
+            SimulationContext: The built context. Its `run()` calls the blueprint's
+                `run.before` functions first, and uses `run.until` when no `until`
+                is passed.
+
+        Raises:
+            BlueprintError: If the blueprint is invalid.
+
+        Example:
+            ```python
+            app = SimulationContext.from_yaml("examples/yaml/local.yaml")
+            app.run()
+            ```
+        """
+        from dynamic_des.blueprint.build import build
+
+        context, run = build(path)
+        context._default_until = run.until
+        context._before_run = list(run.before)
+        return context
 
     # ==========================================
     # BUILDER METHODS (Fluent API)
@@ -309,6 +348,7 @@ class SimulationContext:
         dist: Literal["exponential", "normal", "lognormal"],
         rate: float = 0.0,
         mean: float = 0.0,
+        std: float = 0.0,
     ) -> "SimulationContext":
         """
         Registers a statistical distribution defining the inter-arrival times of entities.
@@ -317,13 +357,14 @@ class SimulationContext:
             name: The internal identifier (e.g., 'structural').
             dist: The distribution type ('exponential', 'normal', 'lognormal').
             rate: The rate (lambda) for exponential distributions.
-            mean: The mean (mu) for normal distributions.
+            mean: The mean (mu) for normal/lognormal distributions.
+            std: The standard deviation (sigma) for normal/lognormal distributions.
 
         Returns:
             SimulationContext: The current instance for method chaining.
         """
         self._arrivals_config[name] = DistributionConfig(
-            dist=dist, rate=rate, mean=mean
+            dist=dist, rate=rate, mean=mean, std=std
         )
         return self
 
@@ -331,7 +372,9 @@ class SimulationContext:
     # DECORATORS (Execution Logic)
     # ==========================================
 
-    def task(self, service_id: str, resource_id: str) -> Callable:
+    def task(
+        self, service_id: Optional[str] = None, resource_id: Optional[str] = None
+    ) -> Callable:
         """
         Transforms a standard Python function into an event-driven SimPy task.
 
@@ -346,9 +389,16 @@ class SimulationContext:
         5. Samples the live `service_id` distribution and yields the temporal timeout.
         6. Emits a strict `finished` event containing the user's custom payload.
 
+        A task with neither `service_id` nor `resource_id` takes no time and holds no
+        resource. When spawned it emits the payload at once, with no `queued` or
+        `started` event, which suits an arrival that only records that it happened.
+
         Args:
             service_id: The ID of the configured distribution dictating the execution time.
             resource_id: The ID of the configured resource this task exclusively requires.
+
+        Raises:
+            ValueError: If only one of `service_id` and `resource_id` is given.
 
         Returns:
             Callable: A decorator that wraps the target function into a SimPy generator.
@@ -360,6 +410,26 @@ class SimulationContext:
                 return {"status": "success", "part_id": task_id}
             ```
         """
+
+        if (service_id is None) != (resource_id is None):
+            raise ValueError(
+                "give both service_id and resource_id, or neither for a task that "
+                "emits its payload at once"
+            )
+
+        def emit(user_func):
+            def wrapper(task_id: int, *args, **kwargs):
+                if not self._env:
+                    raise RuntimeError("Simulation has not been built yet.")
+                payload = user_func(task_id, *args, **kwargs)
+                self._env.publish_event(f"task-{task_id}", payload)
+                # Makes this a generator, which `spawn` needs, without waiting.
+                yield from ()
+
+            return wrapper
+
+        if service_id is None or resource_id is None:
+            return emit
 
         def decorator(user_func):
             def wrapper(task_id: int, *args, **kwargs):
@@ -432,6 +502,34 @@ class SimulationContext:
 
         return decorator
 
+    def add_process(self, func: Callable, **kwargs: Any) -> "SimulationContext":
+        """
+        Registers a generator function to start when the run starts.
+
+        This is the builder form of `spawn`, for a process that is not an arrival or
+        telemetry loop, such as a drift engine or a scripted scenario. It is how a
+        YAML blueprint starts the processes it references with `!python`.
+
+        Args:
+            func: A generator function. It is called as `func(context, **kwargs)`.
+            **kwargs: Extra keyword arguments passed to `func`.
+
+        Returns:
+            SimulationContext: The current instance for method chaining.
+
+        Example:
+            ```python
+            def drift(context, step):
+                while True:
+                    yield context.env.timeout(1.0)
+                    ...
+
+            app.add_process(drift, step=0.5)
+            ```
+        """
+        self._startup_loops.append((functools.partial(func, self, **kwargs), None))
+        return self
+
     # ==========================================
     # RUNTIME HELPERS (For Raw Generators)
     # ==========================================
@@ -499,24 +597,53 @@ class SimulationContext:
     # ORCHESTRATION (The Compilation Phase)
     # ==========================================
 
+    def compile_parameters(self) -> SimParameter:
+        """
+        Compiles the builder state into the `SimParameter` that `run()` registers.
+
+        Useful before the run, to see which registry paths a configuration creates
+        or to compare two configurations.
+
+        Returns:
+            SimParameter: The parameters, sharing their config objects with the builder.
+        """
+        return SimParameter(
+            sim_id=self.sim_id,
+            resources=self._resources_config,
+            containers=self._containers_config,
+            service=self._services_config,
+            arrival=self._arrivals_config,
+            variables=self._variables_config,
+        )
+
     def run(self, until: Any = None) -> None:
         """
         Compiles the defined infrastructure architecture and triggers the simulation loop.
+
+        Before Phase 1, a context built by `from_yaml` calls the blueprint's
+        `run.before` functions.
 
         Phase 1: Instantiates the foundational `DynamicRealtimeEnvironment` and `Sampler`.
         Phase 2: Compiles all builder dictionaries into a monolithic `SimParameter`
                  object and registers it with the Switchboard Registry.
         Phase 3: Connects and boots the asynchronous Kafka/Redis background threads.
         Phase 4: Hydrates physical SimPy limits based on the registry boundaries.
-        Phase 5: Spawns all registered `@arrival_loop` and `@telemetry_loop` generators.
+        Phase 5: Spawns all registered `@arrival_loop`, `@telemetry_loop` and
+                 `add_process` generators.
         Phase 6: Relinquishes the main thread to the SimPy environment execution clock.
 
         Args:
             until: The absolute simulation termination time. Can be a numeric float
                 (representing base seconds) or a human-readable string parsed by
-                the utility module (e.g., "1 week", "8 hours"). If None, the
-                simulation runs infinitely.
+                the utility module (e.g., "1 week", "8 hours"). If None, a context
+                built by `from_yaml` uses the blueprint's `run.until`, and otherwise
+                the simulation runs infinitely.
         """
+        if until is None:
+            until = self._default_until
+        for setup in self._before_run:
+            setup()
+
         logger.info(f"Building SimulationContext for '{self.sim_id}'...")
 
         env_kwargs: Dict[str, Any] = {"factor": self.factor}
@@ -530,15 +657,7 @@ class SimulationContext:
         self.sampler = Sampler(rng=np.random.default_rng(self.random_seed))
 
         # Compile Master Parameter Object
-        params = SimParameter(
-            sim_id=self.sim_id,
-            resources=self._resources_config,
-            containers=self._containers_config,
-            service=self._services_config,
-            arrival=self._arrivals_config,
-            variables=self._variables_config,
-        )
-        self._env.registry.register_sim_parameter(params)
+        self._env.registry.register_sim_parameter(self.compile_parameters())
 
         # Connect External Infrastructure
         if self._ingress_providers:

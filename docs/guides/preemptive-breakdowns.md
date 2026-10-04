@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 
 app = (
     SimulationContext(sim_id="Line_A", factor=1.0)
-    .add_resource("lathe", current_cap=1)
+    .add_resource("lathe", current_cap=1, max_cap=1)
     .add_arrival("standard", dist="exponential", rate=0.2)
     .add_egress(ConsoleEgress())
 )

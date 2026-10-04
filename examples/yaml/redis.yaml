@@ -1,0 +1,37 @@
+# Redis Streams output with live parameter updates, in YAML.
+#
+# The YAML version of examples/declarative/redis_example.py. Each part_arrival
+# spawns record_part, a task with no service or resource, which publishes its
+# payload at once. RedisEgress writes it to the part_events stream that the
+# __stream__ key names, while RedisIngress subscribes to the simulation_params
+# channel.
+#
+# Needs Valkey: odctl up valkey. Runs until interrupted with Ctrl + C.
+# Run it with: ddes run examples/yaml/redis.yaml
+
+simulation:
+  sim_id: Factory
+  factor: 1.0
+
+ingress:
+  - type: Redis
+    config:
+      # The odctl valkey profile disables the unauthenticated default user, so the
+      # URL carries credentials.
+      url: redis://user:password@localhost:6379/0
+      channel_name: simulation_params
+
+egress:
+  - type: Redis
+    config:
+      url: redis://user:password@localhost:6379/0
+      stream_name: events
+
+arrivals:
+  part_arrival: {dist: exponential, rate: 2.0, spawn: record_part}
+
+tasks:
+  record_part:
+    # id_field adds the task id as part_id.
+    payload: {__stream__: part_events, type: A, status: arrived}
+    id_field: part_id

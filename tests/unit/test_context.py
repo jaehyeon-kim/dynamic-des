@@ -333,3 +333,73 @@ def test_per_provider_cadence_takes_effect_through_the_builder():
     assert len(small.batch_sizes) > 1
     assert set(small.batch_sizes) == {2}
     assert len(large.batch_sizes) == 1
+
+
+def test_add_arrival_keeps_the_standard_deviation():
+    """A normal arrival lost its spread, because add_arrival had no std to pass on."""
+    app = SimulationContext("TestSim", factor=0.0).add_arrival(
+        "batch", dist="normal", mean=4.0, std=0.5
+    )
+
+    config = app._arrivals_config["batch"]
+    assert (config.dist, config.mean, config.std) == ("normal", 4.0, 0.5)
+
+
+def test_add_arrival_std_reaches_the_registry():
+    """The spread is registered, so it can be changed while the run is live."""
+    app = SimulationContext("TestSim", factor=0.0).add_arrival(
+        "batch", dist="lognormal", mean=4.0, std=0.5
+    )
+    app.run(until=1)
+
+    assert app.env.registry.get("TestSim.arrival.batch.std").value == 0.5
+
+
+def test_add_process_starts_the_generator_with_the_context_and_kwargs():
+    seen = []
+
+    def drift(context, step):
+        while True:
+            yield context.env.timeout(step)
+            seen.append(context.env.now)
+
+    app = SimulationContext("TestSim", factor=0.0).add_process(drift, step=2.0)
+    app.run(until=7)
+
+    assert seen == [2.0, 4.0, 6.0]
+
+
+def test_a_task_without_service_or_resource_emits_its_payload_at_once():
+    records = []
+
+    class Capture:
+        async def run(self, egress_queue):
+            while True:
+                try:
+                    records.extend(egress_queue.get_nowait())
+                except queue.Empty:
+                    await asyncio.sleep(0.01)
+
+    app = SimulationContext("TestSim", factor=0.0).add_egress(Capture())
+
+    @app.task()
+    def tick(task_id):
+        return {"tick": task_id}
+
+    def spawner(context):
+        yield context.env.timeout(3.0)
+        context.spawn(tick(7))
+
+    app.add_process(spawner)
+    app.run(until=5)
+
+    events = [r for r in records if r["stream_type"] == "event"]
+    assert [(r["sim_ts"], r["key"], r["value"]) for r in events] == [
+        (3.0, "task-7", {"tick": 7})
+    ]
+
+
+@pytest.mark.parametrize("kwargs", [{"service_id": "s"}, {"resource_id": "r"}])
+def test_a_task_needs_both_service_and_resource_or_neither(kwargs):
+    with pytest.raises(ValueError, match="give both service_id and resource_id"):
+        SimulationContext("TestSim").task(**kwargs)

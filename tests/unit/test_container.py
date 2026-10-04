@@ -92,3 +92,55 @@ def test_capacity_shrinkage_paradox(env, registry, sample_params):
 
     # The consumer took 30, and the pending put of 10 was instantly processed
     assert cont.level == 30.0  # 50 - 30 + 10
+
+
+def test_fractional_capacity_change_is_kept(env, registry, sample_params):
+    """Verify a fractional current_cap update is not rounded down."""
+    registry.register_sim_parameter(sample_params)
+    cont = DynamicContainer(env, "Line_A", "tank1", init=10.0)
+
+    registry.update("Line_A.containers.tank1.current_cap", 62.5)
+    env.run(until=env.now + 0.1)
+
+    assert cont.capacity == 62.5
+
+
+def test_max_cap_decrease_lowers_capacity(env, registry, sample_params):
+    """Verify lowering max_cap below current_cap shrinks the capacity at once."""
+    registry.register_sim_parameter(sample_params)
+    cont = DynamicContainer(env, "Line_A", "tank1", init=10.0)
+
+    registry.update("Line_A.containers.tank1.max_cap", 30.0)
+    env.run(until=env.now + 0.1)
+
+    assert cont.capacity == 30.0
+
+
+def test_integer_starting_capacity_keeps_fractional_updates(env, registry):
+    """Verify a container registered with whole numbers still takes 62.5."""
+    from dynamic_des.models.params import CapacityConfig, SimParameter
+
+    registry.register_sim_parameter(
+        SimParameter(
+            sim_id="Line_B",
+            containers={"tank": CapacityConfig(current_cap=50, max_cap=100)},
+        )
+    )
+    cont = DynamicContainer(env, "Line_B", "tank", init=10)
+
+    registry.update("Line_B.containers.tank.current_cap", 62.5)
+    env.run(until=env.now + 0.1)
+
+    assert cont.capacity == 62.5
+
+
+def test_resource_classes_are_exported_from_the_package():
+    """Verify all three dynamic resource classes import from dynamic_des."""
+    import dynamic_des
+    from dynamic_des.resources.store import DynamicStore
+
+    assert dynamic_des.DynamicContainer is DynamicContainer
+    assert dynamic_des.DynamicStore is DynamicStore
+    assert {"DynamicResource", "DynamicContainer", "DynamicStore"} <= set(
+        dynamic_des.__all__
+    )
