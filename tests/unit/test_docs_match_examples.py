@@ -36,7 +36,8 @@ def _dedent(code, indent):
 
 
 def _pages():
-    return sorted((ROOT / "docs").rglob("*.md"))
+    """Every documentation page, and the README, which shows a blueprint too."""
+    return sorted((ROOT / "docs").rglob("*.md")) + [ROOT / "README.md"]
 
 
 def _blocks():

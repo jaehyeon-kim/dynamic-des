@@ -17,7 +17,8 @@ Dynamic DES bridges the gap between static discrete-event simulations and the li
 ## Key Features
 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
-- **🧾 YAML Blueprints**: Declare parameters, connectors and timed experiments in a YAML file and run it with `ddes run`, with logic kept in Python and referenced through `!python`.
+- **🧭 Three Ways to Write a Simulation**: The low-level `DynamicRealtimeEnvironment`, the declarative `SimulationContext` builder, or a YAML blueprint. All three build the same parameters and run on the same environment.
+- **🧾 YAML Blueprints**: Declare parameters, connectors, tasks, telemetry and timed experiments in a plain YAML file and run it with `ddes run`. Logic that YAML cannot express stays in Python and is referenced through `!python`.
 - **⏩ Backfill Then Go Live**: One run generates backdated history unpaced, then switches to real time at `go_live_at`, with one seed and one seam.
 - **🔀 Several Sinks per Run**: Attach a stream sink and a lake sink to one run, each with its own `when` predicate, `batch_size` and `flush_interval` on `add_egress`.
 - **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.standard.rate`) that trigger instant logic changes.
@@ -152,7 +153,11 @@ The control dashboard lets you update simulation parameters live and watch the t
   <img src="https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/docs/assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
 </div>
 
-## Building Your Own Simulation (Local Example)
+## Three Ways to Write a Simulation
+
+A simulation can be written with the low-level API, with the declarative API, or as a YAML blueprint. All three build the same `SimParameter` and run on the same `DynamicRealtimeEnvironment`, so the registry paths, the records and the connectors are the same whichever way you choose. [Ways to write a simulation](https://jaehyeon.me/dynamic-des/latest/architecture/overview/) compares them, and the tutorials build one factory in each: [Part 1: Low-level API](https://jaehyeon.me/dynamic-des/latest/tutorials/low-level/), [Part 2: Declarative API](https://jaehyeon.me/dynamic-des/latest/tutorials/01-first-factory/) and [Part 3: YAML](https://jaehyeon.me/dynamic-des/latest/tutorials/yaml/).
+
+### Declarative API
 
 The following snippet demonstrates a simple example using the declarative **Standard API (`SimulationContext`)**. It initializes a production line, schedules dynamic capacity updates, and streams telemetry to the console.
 
@@ -207,29 +212,82 @@ print("Simulation started. Watch capacity change at t=10s and t=20s...")
 app.run(until=25.0)
 ```
 
-### What this does
+#### What this does
 
 1.  **Declarative Builder**: `SimulationContext` chains the setup, defining parameters, connectors, and configuration in one clean block.
 2.  **Live Ingress**: The `LocalIngress` schedules registry mutations independently from the simulation logic.
 3.  **Automatic Task Lifecycle**: The `@app.task` decorator automatically handles queued/started/finished event emissions, resource locking, and random duration sampling.
 4.  **Telemetry Egress**: The `@app.telemetry_loop` captures continuous stats and streams them to the designated egress (`ConsoleEgress`).
 
-### The same idea in YAML
+### Low-level API
 
-A simulation can also be a YAML blueprint: parameters, connectors, simple tasks, telemetry and a scenario of changes at set simulation times, with any logic kept in a Python module and referenced with `!python`. The package installs a `ddes` command to run one:
+The low-level API is `DynamicRealtimeEnvironment` used directly. A script registers a `SimParameter` with the registry, attaches connectors with `setup_ingress` and `setup_egress`, creates each `DynamicResource`, and starts plain SimPy processes with `env.process`. Use it when you need what the builder does not do, such as resources created mid-run. Every example in [`examples/imperative/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/imperative) is written this way. See the [Low-level API page](https://jaehyeon.me/dynamic-des/latest/architecture/low-level/).
+
+### YAML
+
+A simulation can also be a plain YAML blueprint: parameters, connectors, simple tasks, telemetry and a scenario of changes at set simulation times, with no Python. This is the local example as a blueprint:
+
+```yaml title="examples/yaml/local.yaml"
+# Local simulation in YAML, with no Python and no containers.
+#
+# The twin of examples/declarative/local_example.py. Factory_A writes to
+# ConsoleEgress, so events and telemetry are printed to the terminal, and the run
+# ends on its own after 60 simulation seconds.
+#
+# Run it with: ddes run examples/yaml/local.yaml
+
+simulation:
+  sim_id: Factory_A
+  factor: 1.0
+
+egress:
+  - type: Console
+
+resources:
+  lathe: {current_cap: 2, max_cap: 5}
+
+services:
+  milling: {dist: normal, mean: 3.0, std: 0.5}
+
+arrivals:
+  # Each arrival spawns one process_part task.
+  standard: {dist: exponential, rate: 1.0, spawn: process_part}
+
+tasks:
+  process_part:
+    service: milling
+    resource: lathe
+    # The value of the task's finished event. id_field adds the task id as part_id.
+    payload: {event_type: part_produced, quality: A}
+    id_field: part_id
+
+telemetry:
+  # Samples the lathe every 2 simulation seconds.
+  - interval: 2.0
+    publish:
+      utilization: lathe.utilization
+      queue_length: lathe.queue_length
+
+run:
+  until: 60
+```
+
+The package installs a `ddes` command to run one:
 
 ```bash
 curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/local.yaml
 ddes run local.yaml
 ```
 
-From Python, `SimulationContext.from_yaml("local.yaml")` returns the built context. Every declarative example has a YAML twin in [`examples/yaml/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/yaml). See the [YAML Blueprints reference](https://jaehyeon.me/dynamic-des/latest/architecture/yaml/) and the [guide from a first file to connectors](https://jaehyeon.me/dynamic-des/latest/guides/yaml-blueprints/).
+`ddes run local.yaml --until 10` overrides `run.until`. From Python, `SimulationContext.from_yaml("local.yaml")` returns the built context.
 
-### Data Egress JSON Schemas
+Every declarative example has a YAML twin in [`examples/yaml/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/yaml): `local.yaml`, `kafka.yaml`, `parquet.yaml`, `iceberg.yaml`, `postgres.yaml`, `redis.yaml` and `backfill_live.yaml`. They are plain YAML. `advanced/postgres_orders.yaml` keeps its order generator in Python, in `postgres_orders_logic.py` beside it, and references it with `!python`. See the [YAML Blueprints reference](https://jaehyeon.me/dynamic-des/latest/architecture/yaml/) and the [guide from a first file to connectors](https://jaehyeon.me/dynamic-des/latest/guides/yaml-blueprints/).
+
+## Data Egress JSON Schemas
 
 To ensure strict data contracts with external consumers (like Kafka, Redis, or PostgreSQL), `dynamic-des` publishes records in the shape of its `TelemetryPayload` and `EventPayload` models. Users can expect two distinct JSON structures depending on the stream type:
 
-#### Telemetry Stream
+### Telemetry Stream
 
 Used for scalar metrics like resource utilization, queue lengths, or simulation lag.
 
@@ -243,7 +301,7 @@ Used for scalar metrics like resource utilization, queue lengths, or simulation 
 }
 ```
 
-#### Event Stream
+### Event Stream
 
 Used for discrete task lifecycle events (e.g., a part arriving, entering a queue, or finishing processing).
 
@@ -260,7 +318,7 @@ Used for discrete task lifecycle events (e.g., a part arriving, entering a queue
 }
 ```
 
-### More Examples
+## More Examples
 
 For more examples, including implementations using **Kafka** providers, please explore the [examples](./examples/) folder, which has its own README naming what to install and which odctl profile each one needs.
 
@@ -294,6 +352,11 @@ To handle high throughput, the `EgressMixIn` uses:
 
 For full documentation, architecture details, and API reference, visit:
 [https://jaehyeon.me/dynamic-des/](https://jaehyeon.me/dynamic-des/).
+
+- **Tutorials**: [Part 1: Low-level API](https://jaehyeon.me/dynamic-des/latest/tutorials/low-level/), [Part 2: Declarative API](https://jaehyeon.me/dynamic-des/latest/tutorials/01-first-factory/), [Part 3: YAML](https://jaehyeon.me/dynamic-des/latest/tutorials/yaml/).
+- **Core Architecture**: [Overview](https://jaehyeon.me/dynamic-des/latest/architecture/overview/), [Low-level API](https://jaehyeon.me/dynamic-des/latest/architecture/low-level/), [Declarative API](https://jaehyeon.me/dynamic-des/latest/architecture/context/), [YAML Blueprints](https://jaehyeon.me/dynamic-des/latest/architecture/yaml/), and the runtime: [Realtime Environment](https://jaehyeon.me/dynamic-des/latest/architecture/environment/), [Registry and Live Parameters](https://jaehyeon.me/dynamic-des/latest/architecture/registry/), [Time](https://jaehyeon.me/dynamic-des/latest/architecture/time/), [Resources and Containers](https://jaehyeon.me/dynamic-des/latest/architecture/resources/), [Connectors](https://jaehyeon.me/dynamic-des/latest/architecture/connectors/), [Records and Telemetry](https://jaehyeon.me/dynamic-des/latest/architecture/records/), [Batching and Delivery](https://jaehyeon.me/dynamic-des/latest/architecture/batching/).
+- **Guides**: [Backfill Then Go Live](https://jaehyeon.me/dynamic-des/latest/guides/backfill-then-live/), [Change Parameters While a Simulation Runs](https://jaehyeon.me/dynamic-des/latest/guides/live-parameters/), [YAML Blueprints](https://jaehyeon.me/dynamic-des/latest/guides/yaml-blueprints/), and the connector guides.
+- **Examples**: one page per example, with the declarative, low-level and YAML versions in tabs, starting with the [local example](https://jaehyeon.me/dynamic-des/latest/examples/local/).
 
 ## Related reading
 
