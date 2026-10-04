@@ -1002,7 +1002,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pyiceberg", extras = ["pyarrow"], marker = "extra == 'iceberg'", specifier = ">=0.7.0" },
     { name = "pyyaml", specifier = ">=6.0.1" },
-    { name = "redis", marker = "extra == 'redis'", specifier = ">=5.0.0" },
+    { name = "redis", marker = "extra == 'redis'", specifier = ">=5.0.1" },
     { name = "simpy", specifier = ">=4.0.0" },
     { name = "typer", specifier = ">=0.16.0" },
 ]

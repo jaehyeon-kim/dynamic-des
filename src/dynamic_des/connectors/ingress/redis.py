@@ -90,4 +90,4 @@ class RedisIngress(BaseIngress):
             if self.pubsub:
                 await self.pubsub.unsubscribe(self.channel_name)
             if self.client:
-                await self.client.close()
+                await self.client.aclose()

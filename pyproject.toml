@@ -1,7 +1,7 @@
 [project]
 name = "dynamic-des"
 version = "0.16.0"
-description = "A dynamic, real-time control plane for SimPy-based discrete-event digital twins."
+description = "Real-time SimPy simulations that take parameter changes while they run and write their events and telemetry to streams, databases, files and Iceberg tables."
 readme = "README.md"
 authors = [
     { name = "Jaehyeon Kim", email = "dottami@gmail.com" }
@@ -15,9 +15,14 @@ keywords = [
     "redis",
     "postgres",
     "real-time",
-    "industry-4-0"
+    "industry-4-0",
+    "yaml",
+    "iceberg",
+    "parquet"
 ]
 requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -26,7 +31,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Intended Audience :: System Administrators",
     "Intended Audience :: Education",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -62,7 +66,7 @@ kafka =[
     "aiokafka[lz4]>=0.11.0",
     "kafka-python>=2.0.2"
 ]
-redis = ["redis>=5.0.0"]
+redis = ["redis>=5.0.1"]
 postgres =["asyncpg>=0.29.0"]
 confluent = [
     # ConfluentAvroSerializer lives in the Kafka connector module, so the kafka
