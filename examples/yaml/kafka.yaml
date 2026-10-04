@@ -7,7 +7,7 @@
 #
 # Needs a broker: odctl up kafka-lite. Runs until interrupted with Ctrl + C.
 # KAFKA_BOOTSTRAP_SERVERS overrides the broker address.
-# Run it with: dynamic-des run examples/yaml/kafka.yaml
+# Run it with: ddes run examples/yaml/kafka.yaml
 
 simulation:
   sim_id: Line_A

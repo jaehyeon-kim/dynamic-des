@@ -22,7 +22,7 @@ uv tool install "odctl>=0.5.1"
 odctl up kafka-lite
 
 # 3. Run the blueprint (Ctrl + C to stop)
-uv run --no-project --with "dynamic-des[kafka]" dynamic-des run kafka.yaml
+uv run --no-project --with "dynamic-des[kafka]" ddes run kafka.yaml
 
 # 4. Clean up the infrastructure when finished
 odctl down kafka-lite --volumes
@@ -38,7 +38,7 @@ pip install "dynamic-des[kafka]" "odctl>=0.5.1"
 odctl up kafka-lite
 
 # 3. Run the blueprint (Ctrl + C to stop)
-dynamic-des run kafka.yaml
+ddes run kafka.yaml
 
 # 4. Clean up the infrastructure when finished
 odctl down kafka-lite --volumes
@@ -68,7 +68,7 @@ Files live in the [`examples/yaml/` folder](https://github.com/jaehyeon-kim/dyna
 #
 # Needs a broker: odctl up kafka-lite. Runs until interrupted with Ctrl + C.
 # KAFKA_BOOTSTRAP_SERVERS overrides the broker address.
-# Run it with: dynamic-des run examples/yaml/kafka.yaml
+# Run it with: ddes run examples/yaml/kafka.yaml
 
 simulation:
   sim_id: Line_A

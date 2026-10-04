@@ -1,6 +1,6 @@
 """Every YAML example builds, runs at factor 0 and produces the records it describes.
 
-Each file in examples/yaml/ is built as `dynamic-des run` builds it, with the
+Each file in examples/yaml/ is built as `ddes run` builds it, with the
 environment variables it reads left unset so the defaults apply. The connectors are
 checked as constructed, then replaced by capturing sinks for a short run at factor 0.
 The captured records are passed to the real connector code where that needs no

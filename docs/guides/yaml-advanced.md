@@ -173,7 +173,7 @@ The configuration moves to YAML. The processes stay as they are, and a small ada
 # in sim_logic.py, and hot_rolling_adapter.py beside this file adapts them.
 #
 # Place this file and the adapter in sim_control/, then run from there:
-#   dynamic-des run hot_rolling.yaml
+#   ddes run hot_rolling.yaml
 simulation:
   sim_id: HotRolling
   factor: 1.0

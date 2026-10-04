@@ -18,7 +18,7 @@ curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples
 
 ```bash
 # 1. Run the blueprint
-uv run --no-project --with dynamic-des dynamic-des run local.yaml
+uv run --no-project --with dynamic-des ddes run local.yaml
 ```
 
 ### With pip
@@ -28,7 +28,7 @@ uv run --no-project --with dynamic-des dynamic-des run local.yaml
 pip install dynamic-des
 
 # 2. Run the blueprint
-dynamic-des run local.yaml
+ddes run local.yaml
 ```
 
 ## What It Does
@@ -56,7 +56,7 @@ Files live in the [`examples/yaml/` folder](https://github.com/jaehyeon-kim/dyna
 # ConsoleEgress, so events and telemetry are printed to the terminal, and the run
 # ends on its own after 60 simulation seconds.
 #
-# Run it with: dynamic-des run examples/yaml/local.yaml
+# Run it with: ddes run examples/yaml/local.yaml
 
 simulation:
   sim_id: Factory_A

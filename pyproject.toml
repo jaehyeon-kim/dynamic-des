@@ -49,7 +49,7 @@ dependencies = [
 ]
 
 [project.scripts]
-dynamic-des = "dynamic_des.blueprint.cli:app"
+ddes = "dynamic_des.blueprint.cli:app"
 
 [project.urls]
 Homepage = "https://jaehyeon.me/dynamic-des/"

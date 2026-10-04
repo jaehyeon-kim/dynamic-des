@@ -22,7 +22,7 @@ uv tool install "odctl>=0.5.1"
 odctl up valkey
 
 # 3. Run the blueprint (Ctrl + C to stop)
-uv run --no-project --with "dynamic-des[redis]" dynamic-des run redis.yaml
+uv run --no-project --with "dynamic-des[redis]" ddes run redis.yaml
 
 # 4. Clean up the infrastructure when finished
 odctl down valkey --volumes
@@ -38,7 +38,7 @@ pip install "dynamic-des[redis]" "odctl>=0.5.1"
 odctl up valkey
 
 # 3. Run the blueprint (Ctrl + C to stop)
-dynamic-des run redis.yaml
+ddes run redis.yaml
 
 # 4. Clean up the infrastructure when finished
 odctl down valkey --volumes
@@ -70,7 +70,7 @@ Files live in the [`examples/yaml/` folder](https://github.com/jaehyeon-kim/dyna
 # channel.
 #
 # Needs Valkey: odctl up valkey. Runs until interrupted with Ctrl + C.
-# Run it with: dynamic-des run examples/yaml/redis.yaml
+# Run it with: ddes run examples/yaml/redis.yaml
 
 simulation:
   sim_id: Factory

@@ -31,7 +31,7 @@ Standard Usage Example:
     app.run(until=10.0)
 
 A YAML blueprint builds the same kind of context: `SimulationContext.from_yaml(path)`,
-or `dynamic-des run <file>.yaml` from a shell.
+or `ddes run <file>.yaml` from a shell.
 """
 
 import logging

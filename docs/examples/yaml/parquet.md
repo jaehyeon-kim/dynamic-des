@@ -16,7 +16,7 @@ curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples
 
 ```bash
 # 1. Run the blueprint
-uv run --no-project --with "dynamic-des[parquet]" dynamic-des run parquet.yaml
+uv run --no-project --with "dynamic-des[parquet]" ddes run parquet.yaml
 ```
 
 ### With pip
@@ -26,7 +26,7 @@ uv run --no-project --with "dynamic-des[parquet]" dynamic-des run parquet.yaml
 pip install "dynamic-des[parquet]"
 
 # 2. Run the blueprint
-dynamic-des run parquet.yaml
+ddes run parquet.yaml
 ```
 
 ## What It Does
@@ -37,7 +37,7 @@ To write to S3 instead, run `odctl up storage` and set the variables the file re
 
 ```bash
 PARQUET_FILESYSTEM=s3 DEST_PATH=odctl-dev/history S3_ENDPOINT=http://localhost:8333 \
-  S3_ACCESS_KEY=user S3_SECRET_KEY=password dynamic-des run parquet.yaml
+  S3_ACCESS_KEY=user S3_SECRET_KEY=password ddes run parquet.yaml
 ```
 
 The chunks land under the `odctl-dev/history/` prefix.
@@ -59,7 +59,7 @@ Files live in the [`examples/yaml/` folder](https://github.com/jaehyeon-kim/dyna
 # Writes to ./data by default. To write to the odctl storage profile instead (odctl
 # up storage), set PARQUET_FILESYSTEM=s3, DEST_PATH=odctl-dev/history,
 # S3_ENDPOINT=http://localhost:8333, S3_ACCESS_KEY=user and S3_SECRET_KEY=password.
-# Run it with: dynamic-des run examples/yaml/parquet.yaml
+# Run it with: ddes run examples/yaml/parquet.yaml
 
 simulation:
   sim_id: Line_A

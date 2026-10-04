@@ -1,6 +1,6 @@
 """Builds a `SimulationContext` from a YAML blueprint file.
 
-Use `SimulationContext.from_yaml` from Python, or `dynamic-des run <file>.yaml` from a
+Use `SimulationContext.from_yaml` from Python, or `ddes run <file>.yaml` from a
 shell.
 """
 

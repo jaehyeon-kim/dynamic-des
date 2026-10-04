@@ -14,7 +14,7 @@ It bridges the gap between static discrete-event simulations and the live world 
 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
 - **🔗 Builder Pattern**: Construct digital twins declaratively with `SimulationContext` and decorators like `@app.task`.
-- **🧾 YAML Blueprints**: Declare parameters, connectors and timed experiments in a YAML file and run it with `dynamic-des run`, with logic kept in Python and referenced through `!python`.
+- **🧾 YAML Blueprints**: Declare parameters, connectors and timed experiments in a YAML file and run it with `ddes run`, with logic kept in Python and referenced through `!python`.
 - **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.standard.rate`) that trigger instant logic changes.
 - **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
 - **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers.

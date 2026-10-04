@@ -8,7 +8,7 @@ Dynamic DES provides three ways to build your event-driven simulations, allowing
 
 | Feature | YAML Blueprint | Standard API (Declarative) | Low-Level API (Imperative) |
 |---|---|---|---|
-| **Entry Point** | `dynamic-des run` or `SimulationContext.from_yaml` | `SimulationContext` | `DynamicRealtimeEnvironment` |
+| **Entry Point** | `ddes run` or `SimulationContext.from_yaml` | `SimulationContext` | `DynamicRealtimeEnvironment` |
 | **Philosophy** | Declare the configuration in a file, and reference Python for the logic. | Define *what* the system looks like and use decorators for task lifecycles. | Define *how* every event and resource operates step-by-step. |
 | **Boilerplate** | None for configuration. Logic is Python referenced with `!python`. | Low (Automatic event emission, resource requesting, and sampling). | High (Manual queueing, starting, timing out, and releasing). |
 | **Typical Use Case** | Varying parameters, connectors and timed experiments between runs without editing code. | Building standard digital twins, historical data generation, and forecasting pipelines. | Edge-case scenarios requiring dynamic topology changes mid-run. |
@@ -113,7 +113,7 @@ def manual_generator(env, res):
 ---
 
 ## 3. YAML Blueprint
-A blueprint declares the same configuration as the builder chain in a YAML file, and `dynamic-des run` builds and runs it. Simple tasks, arrival loops and resource telemetry are declared in the file. Processes, payload functions and routers are Python, referenced with `!python`. The [local example](../examples/yaml/local.md) needs no Python at all, and the [YAML Blueprints reference](yaml.md) covers every section.
+A blueprint declares the same configuration as the builder chain in a YAML file, and `ddes run` builds and runs it. Simple tasks, arrival loops and resource telemetry are declared in the file. Processes, payload functions and routers are Python, referenced with `!python`. The [local example](../examples/yaml/local.md) needs no Python at all, and the [YAML Blueprints reference](yaml.md) covers every section.
 
 ```yaml title="examples/yaml/local.yaml"
 # Local simulation in YAML, with no Python and no containers.
@@ -122,7 +122,7 @@ A blueprint declares the same configuration as the builder chain in a YAML file,
 # ConsoleEgress, so events and telemetry are printed to the terminal, and the run
 # ends on its own after 60 simulation seconds.
 #
-# Run it with: dynamic-des run examples/yaml/local.yaml
+# Run it with: ddes run examples/yaml/local.yaml
 
 simulation:
   sim_id: Factory_A

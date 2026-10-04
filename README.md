@@ -17,7 +17,7 @@ Dynamic DES bridges the gap between static discrete-event simulations and the li
 ## Key Features
 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
-- **🧾 YAML Blueprints**: Declare parameters, connectors and timed experiments in a YAML file and run it with `dynamic-des run`, with logic kept in Python and referenced through `!python`.
+- **🧾 YAML Blueprints**: Declare parameters, connectors and timed experiments in a YAML file and run it with `ddes run`, with logic kept in Python and referenced through `!python`.
 - **⏩ Backfill Then Go Live**: One run generates backdated history unpaced, then switches to real time at `go_live_at`, with one seed and one seam.
 - **🔀 Several Sinks per Run**: Attach a stream sink and a lake sink to one run, each with its own `when` predicate, `batch_size` and `flush_interval` on `add_egress`.
 - **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.standard.rate`) that trigger instant logic changes.
@@ -216,11 +216,11 @@ app.run(until=25.0)
 
 ### The same idea in YAML
 
-A simulation can also be a YAML blueprint: parameters, connectors, simple tasks, telemetry and a scenario of changes at set simulation times, with any logic kept in a Python module and referenced with `!python`. The package installs a `dynamic-des` command to run one:
+A simulation can also be a YAML blueprint: parameters, connectors, simple tasks, telemetry and a scenario of changes at set simulation times, with any logic kept in a Python module and referenced with `!python`. The package installs a `ddes` command to run one:
 
 ```bash
 curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/local.yaml
-dynamic-des run local.yaml
+ddes run local.yaml
 ```
 
 From Python, `SimulationContext.from_yaml("local.yaml")` returns the built context. Every declarative example has a YAML twin in [`examples/yaml/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/yaml). See the [YAML Blueprints reference](https://jaehyeon.me/dynamic-des/latest/architecture/yaml/) and the [guide from a first file to connectors](https://jaehyeon.me/dynamic-des/latest/guides/yaml-blueprints/).

@@ -23,7 +23,7 @@ uv tool install "odctl>=0.5.1"
 odctl up postgres
 
 # 3. Run the blueprint (Ctrl + C to stop)
-uv run --no-project --with "dynamic-des[postgres]" dynamic-des run postgres_orders.yaml
+uv run --no-project --with "dynamic-des[postgres]" ddes run postgres_orders.yaml
 
 # 4. Clean up the infrastructure when finished
 odctl down postgres --volumes
@@ -39,7 +39,7 @@ pip install "dynamic-des[postgres]" "odctl>=0.5.1"
 odctl up postgres
 
 # 3. Run the blueprint (Ctrl + C to stop)
-dynamic-des run postgres_orders.yaml
+ddes run postgres_orders.yaml
 
 # 4. Clean up the infrastructure when finished
 odctl down postgres --volumes
@@ -73,7 +73,7 @@ Files live in the [`examples/yaml/` folder](https://github.com/jaehyeon-kim/dyna
 # records whose __table__ key names its table. Each creates its table at start.
 #
 # Needs a database: odctl up postgres. Runs until interrupted with Ctrl + C.
-# Run it with: dynamic-des run examples/yaml/advanced/postgres_orders.yaml
+# Run it with: ddes run examples/yaml/advanced/postgres_orders.yaml
 
 simulation:
   sim_id: Store

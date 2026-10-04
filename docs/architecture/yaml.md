@@ -10,12 +10,12 @@ For a walk from a first blueprint to live connectors, see [YAML Blueprints, from
 
 ## Running a Blueprint
 
-From a shell, with the `dynamic-des` command that the package installs:
+From a shell, with the `ddes` command that the package installs:
 
 ```bash
-dynamic-des run blueprint.yaml               # runs until run.until, or forever
-dynamic-des run blueprint.yaml --until 10min # overrides run.until
-dynamic-des --version
+ddes run blueprint.yaml               # runs until run.until, or forever
+ddes run blueprint.yaml --until 10min # overrides run.until
+ddes --version
 ```
 
 `--until` takes seconds or a duration such as `10 min`, `2 hours` or `1 week`, the forms `time_to_seconds` accepts. The command logs at INFO level, so `ConsoleEgress` output is visible. An invalid file prints its errors and exits with code 1.
@@ -156,7 +156,7 @@ A blueprint covers configuration. Anything that is logic stays in Python.
 
 ## Errors
 
-Every error names the file and the line, and `dynamic-des run` prints it after `Error:`. Validation errors are all reported at once:
+Every error names the file and the line, and `ddes run` prints it after `Error:`. Validation errors are all reported at once:
 
 ```text
 Error: err.yaml:3: simulation.speed: Extra inputs are not permitted

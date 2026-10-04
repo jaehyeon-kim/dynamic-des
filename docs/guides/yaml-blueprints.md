@@ -52,7 +52,7 @@ run:
 Run it with the command the package installs:
 
 ```bash
-dynamic-des run first.yaml
+ddes run first.yaml
 ```
 
 Each section maps to one builder call. `resources` is `add_resource`, `services` is `add_service`, and `arrivals` is `add_arrival`. `spawn: drill_part` starts the `drill_part` task on every arrival, which is the arrival loop a Python script writes by hand. The task requests the drill, waits a sampled drilling time and publishes its `payload`:
@@ -146,7 +146,7 @@ Connectors are listed under `ingress` and `egress`. `type` is a short name, and 
 # channel.
 #
 # Needs Valkey: odctl up valkey. Runs until interrupted with Ctrl + C.
-# Run it with: dynamic-des run examples/yaml/redis.yaml
+# Run it with: ddes run examples/yaml/redis.yaml
 
 simulation:
   sim_id: Factory

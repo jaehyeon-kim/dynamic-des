@@ -9,7 +9,7 @@
 # records whose __table__ key names its table. Each creates its table at start.
 #
 # Needs a database: odctl up postgres. Runs until interrupted with Ctrl + C.
-# Run it with: dynamic-des run examples/yaml/advanced/postgres_orders.yaml
+# Run it with: ddes run examples/yaml/advanced/postgres_orders.yaml
 
 simulation:
   sim_id: Store

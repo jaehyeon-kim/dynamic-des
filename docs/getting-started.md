@@ -149,16 +149,16 @@ Guide: [Backfill then live](guides/backfill-then-live.md).
 
 ### A YAML blueprint
 
-The same local simulation is also a YAML file, run with the `dynamic-des` command that the package installs. It needs no Python:
+The same local simulation is also a YAML file, run with the `ddes` command that the package installs. It needs no Python:
 
 ```bash
 curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/local.yaml
 
 # With uv
-uv run --no-project --with dynamic-des dynamic-des run local.yaml
+uv run --no-project --with dynamic-des ddes run local.yaml
 
 # Or with pip, after `pip install dynamic-des`
-dynamic-des run local.yaml
+ddes run local.yaml
 ```
 
 Every declarative example has a [YAML twin](examples/yaml/local.md). [YAML Blueprints, from First File to Connectors](guides/yaml-blueprints.md) shows how to write one.

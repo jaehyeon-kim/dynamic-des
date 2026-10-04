@@ -1,4 +1,4 @@
-"""The `dynamic-des` command."""
+"""The `ddes` command."""
 
 import logging
 from pathlib import Path

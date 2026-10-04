@@ -7,7 +7,7 @@
 # Kafka for one minute.
 #
 # Needs a broker: odctl up kafka-lite.
-# Run it with: dynamic-des run examples/yaml/backfill_live.yaml
+# Run it with: ddes run examples/yaml/backfill_live.yaml
 
 simulation:
   sim_id: Line_A

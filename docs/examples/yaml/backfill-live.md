@@ -22,7 +22,7 @@ uv tool install "odctl>=0.5.1"
 odctl up kafka-lite
 
 # 3. Run the blueprint
-uv run --no-project --with "dynamic-des[kafka,parquet]" dynamic-des run backfill_live.yaml
+uv run --no-project --with "dynamic-des[kafka,parquet]" ddes run backfill_live.yaml
 
 # 4. Clean up the infrastructure when finished
 odctl down kafka-lite --volumes
@@ -38,7 +38,7 @@ pip install "dynamic-des[kafka,parquet]" "odctl>=0.5.1"
 odctl up kafka-lite
 
 # 3. Run the blueprint
-dynamic-des run backfill_live.yaml
+ddes run backfill_live.yaml
 
 # 4. Clean up the infrastructure when finished
 odctl down kafka-lite --volumes
@@ -64,7 +64,7 @@ Files live in the [`examples/yaml/` folder](https://github.com/jaehyeon-kim/dyna
 # Kafka for one minute.
 #
 # Needs a broker: odctl up kafka-lite.
-# Run it with: dynamic-des run examples/yaml/backfill_live.yaml
+# Run it with: ddes run examples/yaml/backfill_live.yaml
 
 simulation:
   sim_id: Line_A

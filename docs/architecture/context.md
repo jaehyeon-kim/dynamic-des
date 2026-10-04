@@ -81,4 +81,4 @@ app = SimulationContext.from_yaml("examples/yaml/local.yaml")
 app.run()  # uses run.until from the file
 ```
 
-`run()` calls the blueprint's `run.before` functions first, and uses `run.until` when no `until` is passed. The `dynamic-des run` command does the same from a shell.
+`run()` calls the blueprint's `run.before` functions first, and uses `run.until` when no `until` is passed. The `ddes run` command does the same from a shell.

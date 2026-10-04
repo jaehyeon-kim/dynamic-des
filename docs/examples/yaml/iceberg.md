@@ -22,7 +22,7 @@ uv tool install "odctl>=0.5.1"
 odctl up catalog
 
 # 3. Run the blueprint
-uv run --no-project --with "dynamic-des[iceberg]" dynamic-des run iceberg.yaml
+uv run --no-project --with "dynamic-des[iceberg]" ddes run iceberg.yaml
 
 # 4. Clean up the infrastructure when finished
 odctl down catalog --volumes
@@ -38,7 +38,7 @@ pip install "dynamic-des[iceberg]" "odctl>=0.5.1"
 odctl up catalog
 
 # 3. Run the blueprint
-dynamic-des run iceberg.yaml
+ddes run iceberg.yaml
 
 # 4. Clean up the infrastructure when finished
 odctl down catalog --volumes
@@ -68,7 +68,7 @@ Files live in the [`examples/yaml/` folder](https://github.com/jaehyeon-kim/dyna
 #
 # Needs the odctl catalog profile: odctl up catalog. ICEBERG_URI, ICEBERG_WAREHOUSE,
 # S3_ENDPOINT, S3_ACCESS_KEY and S3_SECRET_KEY override the catalog and credentials.
-# Run it with: dynamic-des run examples/yaml/iceberg.yaml
+# Run it with: ddes run examples/yaml/iceberg.yaml
 
 simulation:
   sim_id: Line_A

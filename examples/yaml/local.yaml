@@ -4,7 +4,7 @@
 # ConsoleEgress, so events and telemetry are printed to the terminal, and the run
 # ends on its own after 60 simulation seconds.
 #
-# Run it with: dynamic-des run examples/yaml/local.yaml
+# Run it with: ddes run examples/yaml/local.yaml
 
 simulation:
   sim_id: Factory_A
