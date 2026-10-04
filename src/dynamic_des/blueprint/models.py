@@ -140,6 +140,22 @@ class Telemetry(_Model):
         return self
 
 
+class ScenarioStep(_Model):
+    """A `scenario` entry: set the registry `path` to `value` at simulation time `at`.
+
+    `at` is seconds from the start of the run, or a duration such as `"10 min"`.
+    """
+
+    at: float
+    path: str
+    value: Any
+
+    @field_validator("at", mode="before")
+    @classmethod
+    def _parse_at(cls, value: Any) -> Any:
+        return _seconds(value)
+
+
 class Run(_Model):
     """The `run` section.
 
@@ -168,6 +184,7 @@ class Blueprint(_Model):
     tasks: Dict[str, Task] = Field(default_factory=dict)
     telemetry: List[Telemetry] = Field(default_factory=list)
     processes: List[Process] = Field(default_factory=list)
+    scenario: List[ScenarioStep] = Field(default_factory=list)
     ingress: List[Connector] = Field(default_factory=list)
     egress: List[EgressConnector] = Field(default_factory=list)
     batching: Optional[Batching] = None

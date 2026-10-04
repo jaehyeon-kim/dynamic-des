@@ -9,16 +9,29 @@ Connectors are the integration gateways of Dynamic DES. They handle the communic
 Ingress connectors listen to external sources and dynamically apply modifications to the simulation registry during runtime.
 
 ### Local Ingress (`LocalIngress`)
-Applies scheduled overrides at predetermined simulation timestamps. This is ideal for local testing, debugging, and executing deterministic test scenarios.
+Applies scheduled overrides after set delays in wall-clock seconds from the start of the run. It waits with `asyncio.sleep`, so the delays do not follow simulation time: at `factor=0` the run can finish before the first change, and at any other factor the simulation time of each change varies a little from run to run. For changes at exact simulation times, use a [YAML scenario](#scenarios-versus-localingress).
 ```python
 from dynamic_des import LocalIngress
 
-# At t=10.0s, set machine lathe capacity to 3
+# 10 wall-clock seconds after the start, set machine lathe capacity to 3
 ingress = LocalIngress(schedule=[(10.0, "Line_A.resources.lathe.current_cap", 3)])
 ```
 
 ### Kafka Ingress (`KafkaIngress`)
 Spawns a consumer in the background thread that listens to a Kafka control topic. External admin tools can write a command payload to the topic (e.g. updating the speed of a conveyor belt), and the connector automatically applies the change to the Registry in real time.
+
+### Scenarios versus `LocalIngress`
+A YAML blueprint can carry a `scenario`: a list of registry changes, each with the simulation time it applies at.
+
+```yaml
+scenario:
+  - {at: 10, path: Line_A.resources.lathe.current_cap, value: 3}
+  - {at: 10 min, path: Line_A.arrival.standard.rate, value: 5.0}
+```
+
+A scenario is not a connector. It is compiled into a SimPy process that waits on the simulation clock, so each change lands at exactly its `at`, on every run and at any `factor`, including `factor=0`. Every path is checked against the registry when the file is loaded, so a misspelt path stops the load with its line number. `LocalIngress` waits on the wall clock instead, and an unknown path is only logged as a warning when it is due.
+
+A scenario and an ingress connector can be used together. Both write to the same registry, so a scripted baseline can run while an operator steers over Kafka. When both change the same path, the later write wins.
 
 ---
 

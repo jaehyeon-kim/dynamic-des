@@ -568,6 +568,25 @@ class SimulationContext:
     # ORCHESTRATION (The Compilation Phase)
     # ==========================================
 
+    def compile_parameters(self) -> SimParameter:
+        """
+        Compiles the builder state into the `SimParameter` that `run()` registers.
+
+        Useful before the run, to see which registry paths a configuration creates
+        or to compare two configurations.
+
+        Returns:
+            SimParameter: The parameters, sharing their config objects with the builder.
+        """
+        return SimParameter(
+            sim_id=self.sim_id,
+            resources=self._resources_config,
+            containers=self._containers_config,
+            service=self._services_config,
+            arrival=self._arrivals_config,
+            variables=self._variables_config,
+        )
+
     def run(self, until: Any = None) -> None:
         """
         Compiles the defined infrastructure architecture and triggers the simulation loop.
@@ -609,15 +628,7 @@ class SimulationContext:
         self.sampler = Sampler(rng=np.random.default_rng(self.random_seed))
 
         # Compile Master Parameter Object
-        params = SimParameter(
-            sim_id=self.sim_id,
-            resources=self._resources_config,
-            containers=self._containers_config,
-            service=self._services_config,
-            arrival=self._arrivals_config,
-            variables=self._variables_config,
-        )
-        self._env.registry.register_sim_parameter(params)
+        self._env.registry.register_sim_parameter(self.compile_parameters())
 
         # Connect External Infrastructure
         if self._ingress_providers:

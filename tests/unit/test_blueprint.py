@@ -437,3 +437,113 @@ def test_plain_safe_load_is_unaffected():
 
     with pytest.raises(yaml.constructor.ConstructorError):
         yaml.safe_load("x: !python os.system\n")
+
+
+# ---------------------------------------------------------------------------
+# Scenarios (#15)
+# ---------------------------------------------------------------------------
+SCENARIO = """\
+scenario:
+  - {at: 20, path: Line_A.resources.lathe.current_cap, value: 1}
+  - {at: 10, path: Line_A.resources.lathe.current_cap, value: 4}
+  - {at: 15 s, path: Line_A.arrival.standard.rate, value: 3}
+  - {at: 0, path: Line_A.variables.mode, value: warm}
+"""
+
+
+def test_scenario_applies_on_simulation_time_at_factor_0(tmp_path):
+    text = (
+        MINIMAL
+        + "variables:\n  mode: cold\n"
+        + SCENARIO
+        + textwrap.dedent("""\
+        telemetry:
+          - interval: 1
+            publish: {cap: lathe.capacity}
+        """)
+    )
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    capture = _Capture()
+    app.add_egress(capture)
+    app.run(until=25)
+
+    capacity = {
+        r["sim_ts"]: r["value"]
+        for r in capture.records
+        if r.get("path_id") == "Line_A.cap"
+    }
+    assert capacity[9.0] == 2
+    assert capacity[11.0] == 4
+    assert capacity[21.0] == 1
+
+    registry = app.env.registry
+    assert registry.get("Line_A.arrival.standard.rate").value == 3.0
+    assert registry.get("Line_A.variables.mode").value == "warm"
+
+
+def test_scenario_repeats_exactly(tmp_path):
+    text = MINIMAL + SCENARIO.replace(
+        "  - {at: 0, path: Line_A.variables.mode, value: warm}\n", ""
+    )
+
+    def run_once():
+        app = SimulationContext.from_yaml(write(tmp_path, text))
+        capture = _Capture()
+        app.add_egress(capture)
+        app.run(until=25)
+        return [
+            (r["sim_ts"], r.get("key"), r["value"])
+            for r in capture.records
+            if r["stream_type"] == "event"
+        ]
+
+    assert run_once() == run_once()
+
+
+@pytest.mark.parametrize(
+    "step,fragment",
+    [
+        (
+            "{at: 5, path: Line_A.resources.press.current_cap, value: 1}",
+            "not a registry",
+        ),
+        ("{at: 5, path: Line_A.arrival.standard.mean, value: 1}", "not a registry"),
+        (
+            "{at: 5, path: Line_B.resources.lathe.current_cap, value: 1}",
+            "not a registry",
+        ),
+        (
+            "{at: 5, path: Line_A.resources.lathe.current_cap, value: many}",
+            "holds a int",
+        ),
+    ],
+)
+def test_scenario_paths_are_checked_before_the_run(tmp_path, step, fragment):
+    path = write(tmp_path, MINIMAL + f"scenario:\n  - {step}\n")
+    with pytest.raises(BlueprintError) as error:
+        SimulationContext.from_yaml(path)
+
+    message = str(error.value)
+    assert message.startswith(f"{path}:20:"), message
+    assert fragment in message
+
+
+def test_scenario_at_must_be_a_time(tmp_path):
+    path = write(
+        tmp_path,
+        MINIMAL + "scenario:\n  - {at: later, path: Line_A.variables.x, value: 1}\n",
+    )
+    with pytest.raises(BlueprintError, match=rf"{path}:20: scenario.0.at"):
+        SimulationContext.from_yaml(path)
+
+
+def test_compile_parameters_matches_what_run_registers(tmp_path):
+    app = SimulationContext.from_yaml(write(tmp_path, MINIMAL))
+    params = app.compile_parameters()
+    app.run(until=1)
+
+    assert params.sim_id == "Line_A"
+    assert (
+        app.env.registry.get_config("Line_A.resources.lathe")
+        is (params.resources["lathe"])
+    )

@@ -6,13 +6,15 @@ script that make the same calls produce the same simulation.
 
 import importlib
 from pathlib import Path
-from typing import Any, Callable, Dict, Tuple, Union
+from typing import Any, Callable, Dict, Generator, List, Tuple, Union
 
+import simpy
 from pydantic import ValidationError
 
 from dynamic_des.blueprint.loader import BlueprintError, SourceMap, read_document
 from dynamic_des.blueprint.models import RESOURCE_STATS, Blueprint, Run
 from dynamic_des.core.context import SimulationContext
+from dynamic_des.core.registry import SimulationRegistry
 
 # Short connector names, mapped to the module, the class and the extra that installs
 # what the module imports. Modules are imported only when a blueprint names them, so
@@ -69,7 +71,9 @@ def build(path: Union[str, Path]) -> Tuple[SimulationContext, Run]:
         raise _validation_error(exc, source) from None
 
     _check_references(blueprint, source)
-    return _build_context(blueprint, source), blueprint.run
+    context = _build_context(blueprint, source)
+    _check_scenario(blueprint, context, source)
+    return context, blueprint.run
 
 
 def _validation_error(exc: ValidationError, source: SourceMap) -> BlueprintError:
@@ -182,7 +186,64 @@ def _build_context(blueprint: Blueprint, source: SourceMap) -> SimulationContext
         sample = entry.function or _publish_stats(entry.publish or {})
         context.telemetry_loop(entry.interval)(sample)
 
+    if blueprint.scenario:
+        steps = sorted(
+            ((step.at, step.path, step.value) for step in blueprint.scenario),
+            key=lambda step: step[0],
+        )
+        context.add_process(_run_scenario, steps=steps)
+
     return context
+
+
+def _check_scenario(
+    blueprint: Blueprint, context: SimulationContext, source: SourceMap
+) -> None:
+    """Checks every scenario path against the registry the run will build.
+
+    The parameters are registered into a scratch registry with the same code the run
+    uses, so a path is accepted exactly when `registry.update` would find it. Without
+    this a misspelt path is only logged as a warning, at the moment it is due.
+    """
+    if not blueprint.scenario:
+        return
+
+    registry = SimulationRegistry(simpy.Environment())
+    registry.register_sim_parameter(context.compile_parameters())
+
+    for index, step in enumerate(blueprint.scenario):
+        try:
+            current = registry.get(step.path).value
+        except KeyError:
+            raise source.error(
+                ("scenario", index, "path"),
+                f"'{step.path}' is not a registry path. Paths look like "
+                f"{context.sim_id}.resources.<name>.current_cap or "
+                f"{context.sim_id}.arrival.<name>.rate",
+            ) from None
+        if current is not None and not isinstance(step.value, type(current)):
+            try:
+                type(current)(step.value)
+            except (TypeError, ValueError):
+                raise source.error(
+                    ("scenario", index, "value"),
+                    f"'{step.path}' holds a {type(current).__name__}, and "
+                    f"{step.value!r} cannot be converted to one",
+                ) from None
+
+
+def _run_scenario(
+    context: SimulationContext, steps: List[Tuple[float, str, Any]]
+) -> Generator:
+    """Applies each scenario step at its simulation time.
+
+    It waits on the simulation clock, so a scenario repeats exactly and works at
+    `factor=0`, where `LocalIngress`, which waits on the wall clock, would not.
+    """
+    for at, path, value in steps:
+        if at > context.env.now:
+            yield context.env.timeout(at - context.env.now)
+        context.env.registry.update(path, value)
 
 
 def _set_fields(fields: Dict[str, Any]) -> Dict[str, Any]:
