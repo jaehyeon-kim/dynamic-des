@@ -1,6 +1,6 @@
 # Orders with Line Items (Advanced YAML)
 
-This example builds a simulation like the [declarative Postgres example](../declarative/postgres.md) from a YAML blueprint with one Python function. Every customer order has 1 to 5 line items with random products, prices and quantities, and a total computed from them. A mapping payload is a constant, so the order generator is a process in `postgres_orders_logic.py`, referenced with `!python`. See [Advanced YAML: Custom Logic with `!python`](../../guides/yaml-advanced.md) for how references work.
+This example builds a simulation like the [declarative Postgres example](postgres.md) from a YAML blueprint with one Python function. Every customer order has 1 to 5 line items with random products, prices and quantities, and a total computed from them. A mapping payload is a constant, so the order generator is a process in `postgres_orders_logic.py`, referenced with `!python`. See [Advanced YAML: Custom Logic with `!python`](../guides/yaml-advanced.md) for how references work.
 
 ---
 
