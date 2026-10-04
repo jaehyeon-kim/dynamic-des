@@ -68,7 +68,8 @@ nav:
       - Ingress and Egress Connectors: architecture/connectors.md
       - Resources and Containers: architecture/resources.md
   - Integration Guides:
-      - YAML Blueprints, from First File to Hybrid: guides/yaml-blueprints.md
+      - YAML Blueprints, from First File to Connectors: guides/yaml-blueprints.md
+      - "Advanced YAML: Custom Logic with !python": guides/yaml-advanced.md
       - Backfill Then Go Live in One Run: guides/backfill-then-live.md
       - Complex Routing (Kafka): guides/complex-routing.md
       - Advanced Serialization (Avro and Pydantic): guides/avro-and-pydantic.md
@@ -100,6 +101,7 @@ nav:
           - Relational DB (Postgres): examples/yaml/postgres.md
           - In-Memory Store (Redis): examples/yaml/redis.md
           - Backfill Then Go Live: examples/yaml/backfill-live.md
+          - Orders with Line Items (Advanced): examples/yaml/advanced-postgres-orders.md
   - API Reference: api.md
 
 markdown_extensions:

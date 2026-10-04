@@ -67,5 +67,5 @@ def test_yaml_pages_show_yaml_files():
     """The YAML pages are what this test extends to, so a regex miss must fail."""
     shown = {path for _, path, _ in _blocks() if path.endswith(".yaml")}
     assert {
-        f"examples/yaml/{p.name}" for p in (ROOT / "examples/yaml").glob("*.yaml")
+        str(p.relative_to(ROOT)) for p in (ROOT / "examples/yaml").rglob("*.yaml")
     } <= shown

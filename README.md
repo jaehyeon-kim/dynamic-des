@@ -223,7 +223,7 @@ curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples
 dynamic-des run local.yaml
 ```
 
-From Python, `SimulationContext.from_yaml("local.yaml")` returns the built context. Every declarative example has a YAML twin in [`examples/yaml/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/yaml). See the [YAML Blueprints reference](https://jaehyeon.me/dynamic-des/latest/architecture/yaml/) and the [guide from a first file to a hybrid one](https://jaehyeon.me/dynamic-des/latest/guides/yaml-blueprints/).
+From Python, `SimulationContext.from_yaml("local.yaml")` returns the built context. Every declarative example has a YAML twin in [`examples/yaml/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/yaml). See the [YAML Blueprints reference](https://jaehyeon.me/dynamic-des/latest/architecture/yaml/) and the [guide from a first file to connectors](https://jaehyeon.me/dynamic-des/latest/guides/yaml-blueprints/).
 
 ### Data Egress JSON Schemas
 

@@ -1,10 +1,10 @@
-# Relational output with table multiplexing, in YAML.
+# Relational output in YAML.
 #
-# The twin of examples/declarative/postgres_example.py. Two PostgresEgress
-# instances are attached, one per table, and each keeps only the records whose
-# __table__ key matches its own table_name. PostgresIngress polls simulation_params
-# for parameter updates. The order generator and the schema setup stay in
-# postgres_logic.py beside this file.
+# The YAML version of examples/declarative/postgres_example.py, with one table.
+# Each customer_order spawns place_order, a task with no service or resource, which
+# publishes its payload at once. PostgresEgress creates the orders table at start
+# and writes one row per order. PostgresIngress creates simulation_params and polls
+# it for parameter updates.
 #
 # Needs a database: odctl up postgres. Runs until interrupted with Ctrl + C.
 # Run it with: dynamic-des run examples/yaml/postgres.yaml
@@ -23,19 +23,21 @@ egress:
   - type: Postgres
     config:
       connection_dsn: postgresql://user:password@localhost:5432/odctl
-      table_name: orders
-  - type: Postgres
-    config:
-      connection_dsn: postgresql://user:password@localhost:5432/odctl
-      table_name: order_items
+      tables:
+        orders:
+          columns:
+            order_id: INT
+            customer_id: INT
+            total_amount: REAL
+            status: TEXT
+            timestamp: TIMESTAMP
+          primary_key: order_id
 
 arrivals:
-  customer_order: {dist: exponential, rate: 1.0}
+  customer_order: {dist: exponential, rate: 1.0, spawn: place_order}
 
-processes:
-  # Builds an order and its items on every customer_order arrival.
-  - !python postgres_logic.order_generator
-
-run:
-  before:
-    - !python postgres_logic.init_db
+tasks:
+  place_order:
+    # id_field adds the task id as order_id. timestamp comes from the record.
+    payload: {customer_id: 42, total_amount: 59.97, status: pending}
+    id_field: order_id

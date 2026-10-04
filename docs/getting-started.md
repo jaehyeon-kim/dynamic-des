@@ -161,7 +161,7 @@ uv run --no-project --with dynamic-des dynamic-des run local.yaml
 dynamic-des run local.yaml
 ```
 
-Every declarative example has a [YAML twin](examples/yaml/local.md). [YAML Blueprints, from First File to Hybrid](guides/yaml-blueprints.md) shows how to write one.
+Every declarative example has a [YAML twin](examples/yaml/local.md). [YAML Blueprints, from First File to Connectors](guides/yaml-blueprints.md) shows how to write one.
 
 The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
 

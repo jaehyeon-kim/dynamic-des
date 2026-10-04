@@ -1,6 +1,6 @@
-# YAML Blueprints, from First File to Hybrid
+# YAML Blueprints, from First File to Connectors
 
-A blueprint puts the configuration of a simulation in a YAML file: the machines, the distributions, the connectors and the experiment. The logic stays in Python. This guide starts with a file that needs no Python at all, then adds a scripted experiment, connectors, Python functions referenced with `!python`, and finally lifts an existing digital twin whose processes cannot change.
+A blueprint puts the configuration of a simulation in a YAML file: the machines, the distributions, the connectors and the experiment. This guide starts with a first file, then adds a scripted experiment, connectors, and settings that change from one environment to the next. Every file on this page is plain YAML.
 
 The [YAML Blueprints reference](../architecture/yaml.md) lists every section and field. Every file on this page is in the repository under [`docs/snippets/`](https://github.com/jaehyeon-kim/dynamic-des/tree/main/docs/snippets), and the tests build each one.
 
@@ -10,7 +10,7 @@ The [YAML Blueprints reference](../architecture/yaml.md) lists every section and
 
 Use a blueprint when the configuration is what changes between runs: a new arrival rate, a second machine, a different broker, a capacity experiment. A YAML file is easier to review and to diff than a builder chain, and a run is one command.
 
-Stay in Python when most of the program is logic. Of the 13 programs surveyed in issue #13, only one needed no Python at all. In practice a blueprint holds the configuration and a module beside it holds the logic, and `!python` joins the two.
+Stay in Python when most of the program is logic. A blueprint can also reference Python objects with `!python` for the logic YAML cannot express, as [Advanced YAML: Custom Logic with `!python`](yaml-advanced.md) explains.
 
 ---
 
@@ -139,10 +139,11 @@ Connectors are listed under `ingress` and `egress`. `type` is a short name, and 
 ```yaml title="examples/yaml/redis.yaml"
 # Redis Streams output with live parameter updates, in YAML.
 #
-# The twin of examples/declarative/redis_example.py. Factory writes part records to
-# the part_events Redis Stream through RedisEgress, named by each record's
-# __stream__ key, while RedisIngress subscribes to the simulation_params channel. The part generator stays in redis_logic.py beside
-# this file.
+# The YAML version of examples/declarative/redis_example.py. Each part_arrival
+# spawns record_part, a task with no service or resource, which publishes its
+# payload at once. RedisEgress writes it to the part_events stream that the
+# __stream__ key names, while RedisIngress subscribes to the simulation_params
+# channel.
 #
 # Needs Valkey: odctl up valkey. Runs until interrupted with Ctrl + C.
 # Run it with: dynamic-des run examples/yaml/redis.yaml
@@ -166,296 +167,41 @@ egress:
       stream_name: events
 
 arrivals:
-  part_arrival: {dist: exponential, rate: 2.0}
-
-processes:
-  # Publishes one part event on every part_arrival.
-  - !python redis_logic.part_generator
-```
-
-The other options of `add_egress` sit beside `config`: `when` routes records, and `batch_size` and `flush_interval` give one sink its own cadence. `batching` sets the defaults, as `with_batching` does. The [YAML examples](../examples/yaml/local.md) cover every connector the declarative examples use: Console, Kafka, Parquet, Iceberg, Postgres and Redis, and the backfill-then-live run that sends history to Parquet and the live tail to Kafka.
-
-A connector from another package is referenced by class: `type: !python my_package.MyEgress`. Its `config` is passed to the constructor, as for a built-in one.
-
----
-
-## 4. Add Python with `!python`
-
-The Redis example already uses Python: its generator draws a random part type for every arrival, which a blueprint has no syntax for. `!python module.attribute` imports the module and uses the attribute in place of a value. The folder of the YAML file is searched first, so a module beside it is found from any working directory.
-
-This blueprint keeps the workshop in YAML and moves three pieces of logic into Python: a payload that grades each part, a maintenance process with arguments, and a predicate that keeps telemetry off the terminal:
-
-```yaml title="docs/snippets/yaml/hybrid.yaml"
-# The workshop with its logic in Python. YAML keeps the blueprint and the
-# experiment; workshop_logic.py beside this file holds what YAML cannot express.
-simulation:
-  sim_id: Workshop
-  factor: 0
-  random_seed: 1
-
-egress:
-  - type: Console
-    # Only events reach the terminal; telemetry is dropped.
-    when: !python workshop_logic.events_only
-
-resources:
-  drill: {current_cap: 1, max_cap: 3}
-
-services:
-  drilling: {dist: normal, mean: 4.0, std: 1.0}
-
-arrivals:
-  parts: {dist: exponential, rate: 0.2, spawn: drill_part}
+  part_arrival: {dist: exponential, rate: 2.0, spawn: record_part}
 
 tasks:
-  drill_part:
-    service: drilling
-    resource: drill
-    # Called as grade_part(task_id, context) for every finished part.
-    payload: !python workshop_logic.grade_part
-
-processes:
-  # Called as maintenance(context, resource="drill", every=50, duration=5).
-  - function: !python workshop_logic.maintenance
-    kwargs: {resource: drill, every: 50, duration: 5}
-
-scenario:
-  - {at: 1 min, path: Workshop.arrival.parts.rate, value: 0.4}
-
-run:
-  until: 3 min
+  record_part:
+    # id_field adds the task id as part_id.
+    payload: {__stream__: part_events, type: A, status: arrived}
+    id_field: part_id
 ```
 
-```python title="docs/snippets/yaml/workshop_logic.py"
-"""Python for hybrid.yaml: a payload, a process with arguments and a predicate."""
+The other options of `add_egress` sit beside `config`: `when` routes records, and `batch_size` and `flush_interval` give one sink its own cadence. `when: history` sends the records stamped before `simulation.go_live_at`, and `when: live` sends the rest. `batching` sets the defaults, as `with_batching` does. The [YAML examples](../examples/yaml/local.md) cover every connector the declarative examples use: Console, Kafka, Parquet, Iceberg, Postgres and Redis, and the backfill-then-live run that sends history to Parquet and the live tail to Kafka.
 
+Settings that the Python API takes as objects are plain values in `config`:
 
-def grade_part(task_id: int, context):
-    """Grades each part from the shared random generator, so a seed repeats it."""
-    grade = "A" if context.sampler.rng.random() < 0.9 else "B"
-    return {"status": "finished", "part_id": task_id, "grade": grade}
-
-
-def maintenance(context, resource: str, every: float, duration: float):
-    """Waits `every` seconds, then takes the machine out of service for `duration`."""
-    path = f"{context.sim_id}.resources.{resource}.current_cap"
-    registry = context.env.registry
-    while True:
-        yield context.env.timeout(every)
-        normal = registry.get(path).value
-        registry.update(path, 0)
-        context.env.publish_event(f"{resource}-maintenance", {"status": "down"})
-        yield context.env.timeout(duration)
-        registry.update(path, normal)
-        context.env.publish_event(f"{resource}-maintenance", {"status": "up"})
-
-
-def events_only(record: dict) -> bool:
-    """Egress predicate: keeps events and drops telemetry."""
-    return record["stream_type"] == "event"
-```
-
-What each reference receives:
-
-- `payload` is called as `grade_part(task_id, context)` for every finished part. It draws from `context.sampler`, the generator seeded by `random_seed`, so the grades repeat with the seed.
-- `processes` entries are called as `function(context, **kwargs)` when the run starts. `kwargs` is how one function serves several machines.
-- `when` is called with every record and returns True to send it to that sink.
-
-The run shows both:
-
-```text
-[EVT] {'sim_ts': 10.271, 'timestamp': '...', 'key': 'task-0', 'value': {'status': 'finished', 'part_id': 0, 'grade': 'B'}}
-[EVT] {'sim_ts': 50.0, 'timestamp': '...', 'key': 'drill-maintenance', 'value': {'status': 'down'}}
-[EVT] {'sim_ts': 55.0, 'timestamp': '...', 'key': 'drill-maintenance', 'value': {'status': 'up'}}
-```
-
-Every reference is resolved and checked when the file is loaded. A process must be a generator function, a payload, predicate or telemetry function must be callable, and a connector `type` must be a class. A wrong reference stops the load with its line.
-
-**Loading a blueprint runs the imports it names**, and importing a module runs its top-level code. Treat a blueprint as you would a Python script, and load only files you trust.
+- A Parquet or JSONL `filesystem` is a mapping. `type` is `local` or `s3`, and the other keys are passed to PyArrow's `S3FileSystem`. A key whose value is empty is left out. The destination folder is created on the first write.
+- An Iceberg `catalog` is a mapping of PyIceberg catalog properties, and `schemas` names a type for each column, such as `string`, `double` or `timestamp`.
+- Without a router, Parquet, JSONL and Iceberg write each event to `default_path` or `default_table` as one flat row, and leave telemetry out.
+- Kafka creates its event and telemetry topics, and Postgres creates the tables listed under `tables`, when the run starts.
 
 ---
 
-## 5. Lift an existing twin
+## 4. Change settings per environment
 
-The [OML hot rolling digital twin](https://github.com/jaehyeon-kim/oml-digital-twin-hotrolling) is a steel mill written with the low-level API. Its `generator.py` builds a `SimParameter` with three arrivals, three services, three resources, three containers and three variables, wires Kafka in both directions with a topic router, and starts the processes in `sim_logic.py`. Those processes take `(env, sampler, resource, ...)`, not a context, and `sim_logic.py` runs to 262 lines of multi-stage routing, wear and physics.
+`${VAR}` in a value is replaced with the environment variable, and `${VAR:-default}` uses the default when the variable is unset or empty. An unquoted value is read as YAML reads it after the replacement, so `port: ${PG_PORT:-5432}` is the number 5432. `$${` writes a literal `${`. The Kafka example reads its broker this way, as `bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}`, and the [Parquet example](../examples/yaml/parquet.md) switches from the local disk to S3 with five variables.
 
-The configuration moves to YAML. The processes stay as they are, and a small adapter changes only how they are called.
-
-```yaml title="docs/snippets/hot_rolling/hot_rolling.yaml"
-# The OML hot rolling digital twin as a blueprint. The parameters and the Kafka
-# wiring that generator.py builds in Python are declared here. The processes stay
-# in sim_logic.py, and hot_rolling_adapter.py beside this file adapts them.
-#
-# Place this file and the adapter in sim_control/, then run from there:
-#   dynamic-des run hot_rolling.yaml
-simulation:
-  sim_id: HotRolling
-  factor: 1.0
-  random_seed: 42
-
-ingress:
-  # Control commands from the dashboard.
-  - type: Kafka
-    config:
-      bootstrap_servers: !python src.config.KAFKA_BROKER
-      topic: !python src.config.TOPIC_CONTROL_INGRESS
-
-egress:
-  # One producer; the router picks one of four topics for every record.
-  - type: Kafka
-    config:
-      bootstrap_servers: !python src.config.KAFKA_BROKER
-      topic_router: !python routing.custom_topic_router
-
-arrivals:
-  structural: {dist: exponential, rate: 0.2}
-  microalloyed: {dist: exponential, rate: 0.15}
-  high_alloy: {dist: exponential, rate: 0.1}
-
-services:
-  pass_roughing: {dist: normal, mean: 2.0, std: 0.2}
-  pass_intermediate: {dist: normal, mean: 4.5, std: 0.5}
-  pass_finishing: {dist: normal, mean: 8.0, std: 1.2}
-
-resources:
-  mill_structural: {current_cap: 4, max_cap: 10}
-  mill_microalloyed: {current_cap: 4, max_cap: 10}
-  mill_high_alloy: {current_cap: 4, max_cap: 10}
-
-containers:
-  wear_structural: {current_cap: 0.001, max_cap: 100.0}
-  wear_microalloyed: {current_cap: 0.001, max_cap: 100.0}
-  wear_high_alloy: {current_cap: 0.001, max_cap: 100.0}
-
-variables:
-  velocity_structural: {type: abrupt, value: 0.0}
-  velocity_microalloyed: {type: abrupt, value: 0.0}
-  velocity_high_alloy: {type: abrupt, value: 0.0}
-
-processes:
-  # Started in the order generator.py starts them.
-  - function: !python hot_rolling_adapter.drift
-    kwargs: {product_lines: [structural, microalloyed, high_alloy]}
-  - function: !python hot_rolling_adapter.monitor
-    kwargs: {product_lines: [structural, microalloyed, high_alloy]}
-  - function: !python hot_rolling_adapter.primer
-    kwargs: {product: structural}
-  - function: !python hot_rolling_adapter.arrivals
-    kwargs: {product: structural}
-  - function: !python hot_rolling_adapter.primer
-    kwargs: {product: microalloyed}
-  - function: !python hot_rolling_adapter.arrivals
-    kwargs: {product: microalloyed}
-  - function: !python hot_rolling_adapter.primer
-    kwargs: {product: high_alloy}
-  - function: !python hot_rolling_adapter.arrivals
-    kwargs: {product: high_alloy}
-
-# A reproducible drift experiment, which the dashboard otherwise drives by hand:
-# gradual wear on the structural line from 10 minutes.
-scenario:
-  - at: 10 min
-    path: HotRolling.variables.velocity_structural
-    value: {type: gradual, value: 0.5, freq: 1}
-
-run:
-  before:
-    - !python hot_rolling_adapter.create_topics
-```
-
-```python title="docs/snippets/hot_rolling/hot_rolling_adapter.py"
-"""Adapts the hot rolling processes to the calls a blueprint makes.
-
-A blueprint calls every process as `function(context, **kwargs)`. The processes in
-sim_logic.py take `(env, sampler, resource, ...)` instead, so each function here
-takes the context, picks out what the process needs, and hands over with
-`yield from`. Nothing in sim_logic.py changes.
-"""
-
-import time
-import uuid
-
-from dynamic_des import KafkaAdminConnector
-from generator import telemetry_monitor
-from sim_logic import arrival_process, drift_engine, roll_slab
-from src.config import (
-    KAFKA_BROKER,
-    TOPIC_CONTROL_INGRESS,
-    TOPIC_GROUND_TRUTH,
-    TOPIC_LIFECYCLE,
-    TOPIC_PREDICTION_REQUESTS,
-    TOPIC_TELEMETRY,
-)
-
-# The command-line options of generator.py, fixed here.
-VARIABLE_PASSES = False
-MAX_PASSES = 5
-
-
-def drift(context, product_lines):
-    yield from drift_engine(context.env, product_lines)
-
-
-def monitor(context, product_lines):
-    yield from telemetry_monitor(context.env, product_lines)
-
-
-def primer(context, product):
-    """Rolls a first slab, so the mill does not start dry."""
-    yield from roll_slab(
-        context.env,
-        uuid.uuid4().hex[:8].upper(),
-        product,
-        VARIABLE_PASSES,
-        MAX_PASSES,
-        context.sampler,
-        context.get_resource(f"mill_{product}"),
-    )
-
-
-def arrivals(context, product):
-    yield from arrival_process(
-        context.env,
-        product,
-        VARIABLE_PASSES,
-        MAX_PASSES,
-        context.sampler,
-        context.get_resource(f"mill_{product}"),
-    )
-
-
-def create_topics():
-    """Creates the five topics generator.py creates before it starts."""
-    KafkaAdminConnector(bootstrap_servers=KAFKA_BROKER).create_topics(
-        topics_config=[
-            {"name": TOPIC_CONTROL_INGRESS, "partitions": 1},
-            {"name": TOPIC_TELEMETRY, "partitions": 1},
-            {"name": TOPIC_LIFECYCLE, "partitions": 1},
-            {"name": TOPIC_PREDICTION_REQUESTS, "partitions": 3},
-            {"name": TOPIC_GROUND_TRUTH, "partitions": 3},
-        ]
-    )
-    time.sleep(2)
-```
-
-**What moved.** The whole `SimParameter`, both Kafka connectors with the custom topic router, the seed, the factor and the topic creation. The broker address and the topic names stay in `src/config.py`, and the blueprint references them. `containers` and `variables` carry the wear levels and drift velocities the processes read and write.
-
-**What stayed.** `drift_engine`, `arrival_process`, `roll_slab` and `telemetry_monitor`, unchanged. The adapter is one generator function per process. Each takes the context, picks out the environment, the sampler and the mill resource, and hands over with `yield from`. The primer slab and the arrival loop are separate entries, so they start in the order `generator.py` starts them.
-
-**What is new.** The scenario turns on gradual wear on the structural line at ten minutes. The twin's dashboard does this by hand over Kafka. As a scenario it repeats exactly, and it can still be combined with the dashboard, because both write to the same registry.
-
-Built with the same seed at `factor: 0`, this blueprint and `generator.py` produced the same 3,830 records in the first 300 simulation seconds, in the same order, once the random slab ids from `uuid4` were masked. The registry differs in one way that does not change the run: the builder stores `mean: 0.0` and `std: 0.0` for an exponential arrival where the hand-built `SimParameter` stores `None`, and an exponential distribution reads neither.
+`logical_start_time` and `go_live_at` take `now`, a signed duration from now such as `-1d` or `-10m`, or an ISO datetime. Both are read against one moment, when the file is loaded, so `-10m` and `now` are exactly ten minutes apart. The [backfill-then-live example](../examples/yaml/backfill-live.md) uses both, with `when: history` and `when: live`.
 
 ---
 
-## 6. Limitations
+## 5. Limitations
 
 A blueprint is configuration. These stay in Python:
 
-- **Field values with logic.** A mapping payload is a constant, apart from the task id that `id_field` adds. Random or weighted choices, derived fields and state carried between events are a `!python` payload or process.
+- **Field values with logic.** A mapping payload is a constant, apart from the task id that `id_field` adds. Random or weighted choices, derived fields and state carried between events are a Python payload or process, as the [advanced guide](yaml-advanced.md) shows.
 - **Containers and stores as SimPy objects.** `containers` registers capacities in the registry only, as `add_container` does. A process that needs a SimPy container builds a `DynamicContainer`, or reads and writes the registry path as the hot rolling twin does. Stores have no builder method, so neither API registers them.
 - **Anything beyond one task on one resource.** Multi-stage routing, several resources per task, priorities and preemption are processes.
 - **Telemetry other than resource statistics.** Container levels, variables and derived metrics need a telemetry `function`.
-- **Environment variables.** The file has no interpolation. Read the variable in a module and reference the value, as `kafka_logic.BOOTSTRAP_SERVERS` does.
 
 The [reference](../architecture/yaml.md#limitations) lists the full set.

@@ -1,16 +1,15 @@
 # Kafka Digital Twin (YAML)
 
-This example builds the same simulation as the [declarative Kafka example](../declarative/kafka.md) from a YAML blueprint. The connectors, the parameters and the task are in YAML. The task's Pydantic payload and a telemetry loop that derives a metric stay in `kafka_logic.py`, which the blueprint references with `!python`.
+This example builds the simulation of the [declarative Kafka example](../declarative/kafka.md) from a YAML blueprint, with no Python. The connectors, the parameters, the task and the telemetry are all declared in the file.
 
 ---
 
 ## Quick Start
 
-Download the blueprint and the Python module beside it into the same folder, then run it.
+Download the blueprint, then run it.
 
 ```bash
 curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/kafka.yaml
-curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/kafka_logic.py
 ```
 
 ### With uv
@@ -47,27 +46,28 @@ odctl down kafka-lite --volumes
 
 ## What It Does
 
-The run keeps going until you stop it. `run.before` calls `create_topics` first, which creates `sim-config`, `sim-events` and `sim-telemetry`. After that the run logs one line per task as the task claims the lathe, publishes task lifecycle events to `sim-events` and lathe metrics to `sim-telemetry`, and applies parameter updates sent to `sim-config`.
+The run keeps going until you stop it. When it starts, `KafkaEgress` creates `sim-events` and `sim-telemetry` if they do not exist. The run then publishes task lifecycle events to `sim-events` and lathe metrics to `sim-telemetry`, and applies parameter updates sent to `sim-config`.
 
-The dashboard from the declarative example works with this run unchanged, because the topics and the records are the same: `uv run --no-project --with "dynamic-des[kafka]" --with nicegui kafka_dashboard.py`, after downloading [`kafka_dashboard.py`](https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/kafka_dashboard.py).
+The dashboard from the declarative example works with this run unchanged, because it reads the same topics and the same four lathe metrics: `uv run --no-project --with "dynamic-des[kafka]" --with nicegui kafka_dashboard.py`, after downloading [`kafka_dashboard.py`](https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/kafka_dashboard.py).
 
-`KAFKA_BOOTSTRAP_SERVERS` overrides the broker address, because the blueprint reads it from `kafka_logic.BOOTSTRAP_SERVERS`.
+`KAFKA_BOOTSTRAP_SERVERS` overrides the broker address, because the blueprint reads it with `${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}`.
 
 ## Full Source Code
 
-The blueprint wires both Kafka connectors and declares the lathe, the service, the arrival and the task. The Python module holds what YAML cannot express: a payload built from a Pydantic model, a telemetry loop that computes `avg_wait` from the queue, and the topic setup.
+The blueprint wires both Kafka connectors and declares the lathe, the service, the arrival and the task. The finished event of each task is the fixed `payload`, and the `telemetry` entry publishes four built-in statistics of the lathe every 2 simulation seconds. The declarative example also publishes `lathe.avg_wait`, a derived metric, which a blueprint computes only with Python.
 
 Files live in the [`examples/yaml/` folder](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/yaml) of the repository, and the label on each block below is its path there.
 
 ```yaml title="examples/yaml/kafka.yaml"
 # Kafka digital twin in YAML.
 #
-# The twin of examples/declarative/kafka_example.py. KafkaIngress reads parameter
-# updates from sim-config, and KafkaEgress publishes lifecycle events to sim-events
-# and metrics to sim-telemetry. The task payload and the telemetry loop stay in
-# kafka_logic.py beside this file.
+# The YAML version of examples/declarative/kafka_example.py. KafkaIngress reads
+# parameter updates from sim-config, and KafkaEgress publishes lifecycle events to
+# sim-events and lathe metrics to sim-telemetry. KafkaEgress creates its two topics
+# when the run starts.
 #
 # Needs a broker: odctl up kafka-lite. Runs until interrupted with Ctrl + C.
+# KAFKA_BOOTSTRAP_SERVERS overrides the broker address.
 # Run it with: dynamic-des run examples/yaml/kafka.yaml
 
 simulation:
@@ -79,14 +79,14 @@ ingress:
   - type: Kafka
     config:
       topic: sim-config
-      bootstrap_servers: !python kafka_logic.BOOTSTRAP_SERVERS
+      bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
 
 egress:
   - type: Kafka
     config:
       event_topic: sim-events
       telemetry_topic: sim-telemetry
-      bootstrap_servers: !python kafka_logic.BOOTSTRAP_SERVERS
+      bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
 
 resources:
   lathe: {current_cap: 1, max_cap: 10}
@@ -101,78 +101,14 @@ tasks:
   process_part:
     service: milling
     resource: lathe
-    # Returns a Pydantic model dumped to JSON, so the event has a declared shape.
-    payload: !python kafka_logic.process_part
+    payload: {path_id: Line_A.service.milling, status: finished}
 
 telemetry:
-  # avg_wait is derived from the queue, so this loop is Python.
+  # Samples the lathe every 2 simulation seconds.
   - interval: 2.0
-    function: !python kafka_logic.telemetry_monitor
-
-run:
-  before:
-    - !python kafka_logic.create_topics
-```
-
-```python title="examples/yaml/kafka_logic.py"
-"""Python for examples/yaml/kafka.yaml: the task payload, telemetry and topic setup."""
-
-import logging
-import os
-import time
-
-from pydantic import BaseModel
-
-from dynamic_des import KafkaAdminConnector
-
-logger = logging.getLogger("kafka_example")
-
-BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
-
-
-class TaskEvent(BaseModel):
-    """Strongly typed event payload, so every finished event has the same shape."""
-
-    path_id: str
-    status: str
-
-
-def process_part(task_id: int, context):
-    """The finished event of each task. The task itself is declared in the YAML."""
-    logger.info(f"Task {task_id} started at sim time: {context.env.now:.2f}s")
-    return TaskEvent(path_id="Line_A.service.milling", status="finished").model_dump(
-        mode="json"
-    )
-
-
-def telemetry_monitor(context):
-    """Low-volume system health stream."""
-    res = context.get_resource("lathe")
-
-    context.publish("lathe.capacity", res.capacity)
-    context.publish("lathe.in_use", res.in_use)
-    context.publish("lathe.queue_length", len(res.queue.items))
-
-    util = (res.in_use / res.capacity) * 100 if res.capacity > 0 else 0
-    context.publish("lathe.utilization", util)
-
-    avg_wait = len(res.queue.items) * 3.0
-    context.publish("lathe.avg_wait", avg_wait)
-
-
-def create_topics():
-    """Creates the three topics before the run starts."""
-    logger.info(f"Connecting to Kafka at {BOOTSTRAP_SERVERS}...")
-    try:
-        admin = KafkaAdminConnector(bootstrap_servers=BOOTSTRAP_SERVERS, max_tasks=100)
-        admin.create_topics(
-            topics_config=[
-                {"name": "sim-config", "partitions": 1},
-                {"name": "sim-telemetry", "partitions": 1},
-                {"name": "sim-events", "partitions": 1},
-            ]
-        )
-        time.sleep(2)
-    except Exception as e:
-        logger.warning(f"Could not explicitly create topics: {e}")
+    publish:
+      lathe.capacity: lathe.capacity
+      lathe.in_use: lathe.in_use
+      lathe.queue_length: lathe.queue_length
+      lathe.utilization: lathe.utilization
 ```

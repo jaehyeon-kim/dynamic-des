@@ -62,4 +62,4 @@ Most pairs run the same simulation, so reading one against the other shows what 
 uv run dynamic-des run examples/yaml/local.yaml
 ```
 
-`local.yaml` needs no Python. Each of the others has a `<name>_logic.py` beside it with the processes, routers and serializers the YAML references with `!python`. The extras and odctl profiles are the same as for the declarative twin, so `kafka.yaml` needs `--extra kafka` and `odctl up kafka-lite`, and `backfill_live.yaml` needs both `kafka` and `parquet`. Each pair builds the same simulation, which `tests/unit/test_yaml_examples.py` checks.
+The blueprints in `yaml/` are plain YAML with no Python. `yaml/advanced/postgres_orders.yaml` keeps its order generator in Python, in `postgres_orders_logic.py` beside it, and references it with `!python`. The extras and odctl profiles are the same as for the declarative twin, so `kafka.yaml` needs `--extra kafka` and `odctl up kafka-lite`, and `backfill_live.yaml` needs both `kafka` and `parquet`. `tests/unit/test_yaml_examples.py` builds and runs each blueprint and checks the records it produces.

@@ -1,10 +1,10 @@
 # YAML Blueprints
 
-A YAML blueprint is a third way to define a simulation, beside the `SimulationContext` builder and the low-level `DynamicRealtimeEnvironment`. The file holds the configuration: parameters, connectors, batching, simple tasks, telemetry and a scenario of timed changes. Logic that is code stays in Python and is referenced from the file with `!python`.
+A YAML blueprint is a third way to define a simulation, beside the `SimulationContext` builder and the low-level `DynamicRealtimeEnvironment`. The file holds the configuration: parameters, connectors, batching, simple tasks, telemetry and a scenario of timed changes. Logic that YAML cannot express is Python, which a blueprint references with `!python`, as [Advanced YAML: Custom Logic with `!python`](../guides/yaml-advanced.md) explains.
 
-A blueprint is built through the same public builder methods a Python script calls, such as `add_resource`, `add_egress`, `task` and `arrival_loop`. There is no second build path, so a blueprint and a script that make the same calls produce the same simulation. The examples prove this: each [YAML example](../examples/yaml/local.md) is tested against its declarative twin with the same seed, and the two must publish the same records.
+A blueprint is built through the same public builder methods a Python script calls, such as `add_resource`, `add_egress`, `task` and `arrival_loop`. There is no second build path, so a blueprint and a script that make the same calls produce the same simulation. The tests build and run each [YAML example](../examples/yaml/local.md) and check the records it produces.
 
-For a walk from a first blueprint to a hybrid one, see [YAML Blueprints, from First File to Hybrid](../guides/yaml-blueprints.md). This page is the reference.
+For a walk from a first blueprint to live connectors, see [YAML Blueprints, from First File to Connectors](../guides/yaml-blueprints.md). This page is the reference.
 
 ---
 
@@ -49,21 +49,26 @@ Every section is optional except `simulation`. Unknown keys are rejected, so a m
 | `services` | `add_service` | `name: {dist, mean, std, rate}` |
 | `arrivals` | `add_arrival` | `name: {dist, mean, std, rate, spawn}` |
 | `tasks` | `task` | `name: {service, resource, payload, id_field}` |
-| `processes` | `add_process` | A list of `!python` generator functions, each optionally with `kwargs` |
+| `processes` | `add_process` | A list of Python generator functions, each optionally with `kwargs` |
 | `telemetry` | `telemetry_loop` | A list of `{interval, publish}` or `{interval, function}` |
 | `scenario` | `add_process` | A list of `{at, path, value}` |
-| `run` | `run()` | `until`, and `before`, a list of `!python` functions |
+| `run` | `run()` | `until`, and `before`, a list of Python functions |
 
 `dist` is `exponential`, `normal` or `lognormal`. An exponential distribution reads `rate`, and the other two read `mean` and `std`. A field left out takes the builder's default, so a blueprint registers exactly what the equivalent Python call registers.
 
-`logical_start_time` and `go_live_at` take a YAML timestamp such as `2026-01-01T00:00:00`, or a `!python` reference to a `datetime`. `run.until` takes seconds, a duration string, or a `!python` reference to a number.
+`logical_start_time` and `go_live_at` take `now`, a signed duration from now such as `-1d` or `-10m`, or an ISO datetime such as `2026-01-01T00:00:00`. Both are read against one moment, when the file is loaded, so `-10m` and `now` are exactly ten minutes apart. `run.until` takes seconds or a duration string such as `11m`.
+
+### Environment variables
+
+`${VAR}` in a value is replaced with the environment variable, so one file can serve several environments. `${VAR:-default}` uses the default when the variable is unset or empty, as in a shell, and `$${` writes a literal `${`. An unquoted value is read as YAML reads it after the replacement, so `port: ${PG_PORT:-5432}` is the number 5432. A quoted value stays a string. A variable without a default that is unset stops the load with its line.
 
 ### Tasks and arrivals
 
 A task is the `@app.task` decorator in YAML. Each run of the task emits `queued`, waits for the resource, emits `started`, waits for a service time sampled from the service, and emits a finished event whose value is the `payload`.
 
-- `payload` is a mapping, published as it is, or a `!python` function called as `payload(task_id, context)` that returns the value.
+- `payload` is a mapping, published as it is. A payload computed for each task is a Python function, described in the [advanced guide](../guides/yaml-advanced.md).
 - `id_field` adds the task id to a mapping payload under that key. It is the only part of a mapping payload that changes from one task to the next.
+- A task with neither `service` nor `resource` takes no time and holds no resource. It emits its payload as soon as it is spawned, with no `queued` or `started` event.
 
 `spawn` on an arrival names the task that each arrival starts. It is the loop a declarative example writes by hand:
 
@@ -90,11 +95,11 @@ A telemetry entry runs every `interval` simulation seconds. `publish` maps a met
 | `queue_length` | Requests waiting |
 | `utilization` | `in_use / capacity * 100`, or 0 when the capacity is 0 |
 
-Each metric is published as `<sim_id>.<metric name>`. For anything else, give `function: !python module.func` instead of `publish`. It is called as `func(context)`, as a function decorated with `@app.telemetry_loop` is.
+Each metric is published as `<sim_id>.<metric name>`. For anything else, `function` takes a Python function instead of `publish`, as the [advanced guide](../guides/yaml-advanced.md) describes.
 
 ### Connectors
 
-`type` is one of the short names below, or a `!python` reference to a connector class from another package. `config` holds the constructor's keyword arguments, so it takes exactly what the class takes. Values that are Python objects, such as a router or a filesystem, are `!python` references.
+`type` is one of the short names below, or a connector class from another package, as the [advanced guide](../guides/yaml-advanced.md) describes. `config` holds the constructor's keyword arguments, so it takes exactly what the class takes.
 
 | Direction | `type` | Class | Extra |
 |---|---|---|---|
@@ -112,6 +117,21 @@ Each metric is published as `<sim_id>.<metric name>`. For anything else, give `f
 
 A connector module is imported only when a blueprint names it, so a blueprint that uses Kafka does not need the Postgres driver. When a connector's package is missing, the load stops with the line and the `pip install` command. Parquet and JSONL are the exception: they import PyArrow only when they start writing, so a missing `parquet` extra is reported when the run starts.
 
+Settings that the Python API takes as objects are plain values:
+
+| `type` | Setting | Plain value |
+|---|---|---|
+| `Kafka` | topics | Without a `topic_router`, `event_topic` and `telemetry_topic` are created when the run starts, with one partition each, if they do not exist. |
+| `Parquet`, `Jsonl` | `filesystem` | A mapping. `type` is `local` (the default) or `s3`, and the other keys are passed to PyArrow's `S3FileSystem`, such as `endpoint_override`, `access_key`, `secret_key` and `region`. An `endpoint_override` starting with `http://` sets the scheme. A key whose value is empty is left out, so `${S3_ENDPOINT:-}` with the variable unset takes the default. |
+| `Parquet`, `Jsonl` | `default_path` | Without a `path_router`, each event is written there as one flat row, with its `value` mapping unpacked into columns, and telemetry is left out. The folder is created on the first write. |
+| `Iceberg` | `catalog` | A mapping of PyIceberg catalog properties, such as `type`, `uri`, `warehouse` and `s3.endpoint`, passed to `load_catalog` on the first write. An optional `name` key names the catalog. |
+| `Iceberg` | `default_table`, `schemas` | Without a `table_router`, each event is written to `default_table` as one flat row. `schemas` maps a table to its columns, each with a type: `string`, `int`, `long`, `float`, `double`, `boolean`, `timestamp`, `timestamptz`, `date` or `binary`. |
+| `Postgres` | `tables` | Tables created when the run starts, if they do not exist. Each maps to `columns`, a mapping of column name to SQL type, and an optional `primary_key`. `table_name` defaults to the table when `tables` names one. |
+
+An ISO time string bound for a timestamp or date column of Iceberg or Postgres is converted before the write.
+
+`when` on an egress entry is `history`, which sends the records stamped before `simulation.go_live_at`, or `live`, which sends the records stamped at or after it. Both need `go_live_at`.
+
 ### Scenario
 
 A scenario sets registry paths to new values at given simulation times. Each step is a mapping such as `{at: 30, path: Workshop.resources.drill.current_cap, value: 2}`.
@@ -122,53 +142,15 @@ A resource follows a capacity change within the same simulation instant, but aft
 
 ---
 
-## Referencing Python with `!python`
-
-`!python module.attribute` imports `module` and returns its `attribute`. The reference can name anything: a function, a class, a dictionary or a constant. For example, `payload: !python workshop_logic.grade_part` makes a function the payload of a task, and `bootstrap_servers: !python kafka_logic.BOOTSTRAP_SERVERS` reads a constant that the module took from an environment variable.
-
-**Resolution.** The longest prefix that is a module is imported, and the rest is read as attributes, so `pkg.module.func` and `module.Class.attribute` both work. The folder of the YAML file is put at the front of `sys.path` before anything is resolved, so a module beside the blueprint is found from any working directory. Other modules are found on the normal `sys.path`, which includes installed packages.
-
-**Where it is accepted, and what is checked.** Every reference is resolved and checked when the file is loaded, so a wrong reference fails before the run starts, with the file and line.
-
-| Field | Must be | Called as |
-|---|---|---|
-| `processes[].function` | a generator function | `function(context, **kwargs)` when the run starts |
-| `tasks.<name>.payload` | a callable, or a mapping | `payload(task_id, context)` once per finished task |
-| `telemetry[].function` | a callable | `function(context)` every `interval` |
-| `egress[].when` | a callable | `when(record)`, True to send the record to that sink |
-| `ingress[].type`, `egress[].type` | a class | `type(**config)` while the blueprint is built |
-| `run.before[]` | a callable | `before()` once, at the start of `run()` |
-| any value under `config`, `simulation` or `run.until` | whatever that argument takes | not called |
-
-**Arguments.** A process is written either as a bare reference, `- !python module.func`, which is called as `func(context)`, or as a mapping with `function` and `kwargs`, which is called as `func(context, **kwargs)`. The [hybrid blueprint in the guide](../guides/yaml-blueprints.md#4-add-python-with-python) starts `maintenance(context, resource="drill", every=50, duration=5)` this way.
-
-`kwargs` is what lets a blueprint start a process whose signature is not `(context)`. When the signature differs more, write a small adapter: a generator function that takes the context, picks out what the process needs, and hands over with `yield from`.
-
-```python
-def arrivals(context, product):
-    yield from arrival_process(
-        context.env, product, False, 5, context.sampler,
-        context.get_resource(f"mill_{product}"),
-    )
-```
-
-[Lifting an existing twin](../guides/yaml-blueprints.md#5-lift-an-existing-twin) shows a whole adapter for the OML hot rolling twin, whose processes take `(env, sampler, resource)`.
-
-**A process must be a generator function**, one that contains `yield`. The check runs when the file is loaded and looks only at the function, so an adapter that returns a generator instead of yielding from one is rejected. Write adapters with `yield from`.
-
----
-
 ## Limitations
 
 A blueprint covers configuration. Anything that is logic stays in Python.
 
-- **No expression language for field values.** A mapping payload is a constant, apart from the task id that `id_field` adds. Weighted or Zipf choices, fields derived from other fields, values drawn from distributions, Markov walks and state carried from one event to the next are all Python, referenced with `!python`. The [Postgres](../examples/yaml/postgres.md) and [Redis](../examples/yaml/redis.md) examples are like this: their generators draw random values, so they are processes in Python.
+- **No expression language for field values.** A mapping payload is a constant, apart from the task id that `id_field` adds. Weighted or Zipf choices, fields derived from other fields, values drawn from distributions, Markov walks and state carried from one event to the next are all Python, which the [advanced guide](../guides/yaml-advanced.md) covers. The [advanced Postgres example](../examples/yaml/advanced-postgres-orders.md) is like this: its generator draws random values, so it is a process in Python.
 - **Containers and stores exist only in the registry.** `containers` registers capacities, as `add_container` does, but no SimPy container is created for them. A process that needs one builds a `DynamicContainer` itself, or reads and writes the registry path directly, as the hot rolling twin does with its wear levels. `SimParameter.stores` has no builder method, so neither the builder nor a blueprint can register stores.
 - **Built-in telemetry reads resources only.** Container levels, variables or derived metrics need a telemetry `function`.
-- **A task needs a service and a resource.** Multi-stage routing, several resources per task, priorities and preemption are processes in Python.
+- **A task uses at most one service and one resource.** Multi-stage routing, several resources per task, priorities and preemption are processes in Python.
 - **One simulation per file.** A blueprint has one `sim_id`.
-- **No environment variables in the file.** Read them in a module and reference the value, as `kafka_logic.BOOTSTRAP_SERVERS` does.
-- **Only `!python` is added to YAML.** Every other tag, such as `!!python/object`, is rejected as `yaml.safe_load` rejects it.
 
 ---
 
@@ -181,10 +163,9 @@ Error: err.yaml:3: simulation.speed: Extra inputs are not permitted
 err.yaml:9: arrivals.standard.dist: Input should be 'exponential', 'normal' or 'lognormal'
 ```
 
-`!python` references are resolved while the file is read, and cross-references are checked after validation: a task's `service` and `resource`, an arrival's `spawn`, each telemetry `publish` entry, and each scenario `path` and `value`.
+Cross-references are checked after validation: a task's `service` and `resource`, an arrival's `spawn`, each telemetry `publish` entry, and each scenario `path` and `value`.
 
 ```text
-Error: err.yaml:6: !python workshop_logic.missing: 'workshop_logic' has no attribute 'missing'
 Error: err.yaml:11: task 'part' uses service 'drilling', which is not defined under services
 Error: err.yaml:6: 'Line_A.resources.press.current_cap' is not a registry path. Paths look like Line_A.resources.<name>.current_cap or Line_A.arrival.<name>.rate
 ```
@@ -193,4 +174,4 @@ Error: err.yaml:6: 'Line_A.resources.press.current_cap' is not a registry path. 
 
 ## Security
 
-**Loading a blueprint runs the imports it names.** `!python` imports modules, and importing a module runs its top-level code. A blueprint is therefore as trusted as a Python script: load only files you would run as code, in a local or trusted CI workflow. Every other node is constructed by `yaml.SafeLoader`, and the tag is registered on a subclass of it, so `yaml.safe_load` elsewhere in the process is unaffected.
+A blueprint with no Python references is read entirely by `yaml.SafeLoader`, and loading it imports only the connector modules its `type` entries name. A file that references Python runs the imports it names, so it is as trusted as a Python script. The [advanced guide](../guides/yaml-advanced.md#7-security) explains.

@@ -1,12 +1,13 @@
 # Historical data generation in YAML.
 #
-# The twin of examples/declarative/parquet_example.py. With factor 0 the clock is
-# detached from the wall clock, so a week of factory data is written to Parquet as
-# fast as the machine allows. The router, the optional S3 filesystem and the start
-# time stay in parquet_logic.py beside this file.
+# The YAML version of examples/declarative/parquet_example.py. With factor 0 the
+# clock is detached from the wall clock, so a week of factory data is written to
+# Parquet as fast as the machine allows. Without a router, each event is written as
+# one flat row and telemetry is left out. The folder is created on the first write.
 #
-# Writes to ./data by default. Set USE_S3=true to write to the odctl storage
-# profile instead (odctl up storage).
+# Writes to ./data by default. To write to the odctl storage profile instead (odctl
+# up storage), set PARQUET_FILESYSTEM=s3, DEST_PATH=odctl-dev/history,
+# S3_ENDPOINT=http://localhost:8333, S3_ACCESS_KEY=user and S3_SECRET_KEY=password.
 # Run it with: dynamic-des run examples/yaml/parquet.yaml
 
 simulation:
@@ -14,13 +15,18 @@ simulation:
   factor: 0.0
   random_seed: 42
   # A week before now, so the records are stamped as history.
-  logical_start_time: !python parquet_logic.LOGICAL_START_TIME
+  logical_start_time: -7d
 
 egress:
   - type: Parquet
     config:
-      path_router: !python parquet_logic.router
-      filesystem: !python parquet_logic.filesystem
+      default_path: ${DEST_PATH:-data}/events.parquet
+      # Empty values are left out, so with no variables set this is the local disk.
+      filesystem:
+        type: ${PARQUET_FILESYSTEM:-local}
+        endpoint_override: ${S3_ENDPOINT:-}
+        access_key: ${S3_ACCESS_KEY:-}
+        secret_key: ${S3_SECRET_KEY:-}
 
 batching:
   batch_size: 5000
@@ -41,15 +47,5 @@ tasks:
     resource: lathe
     payload: {path_id: Line_A.service.milling, status: finished}
 
-telemetry:
-  - interval: 60.0
-    publish:
-      lathe.capacity: lathe.capacity
-      lathe.in_use: lathe.in_use
-      lathe.queue_length: lathe.queue_length
-      lathe.utilization: lathe.utilization
-
 run:
   until: 1 week
-  before:
-    - !python parquet_logic.ensure_destination

@@ -1,11 +1,12 @@
 # Kafka digital twin in YAML.
 #
-# The twin of examples/declarative/kafka_example.py. KafkaIngress reads parameter
-# updates from sim-config, and KafkaEgress publishes lifecycle events to sim-events
-# and metrics to sim-telemetry. The task payload and the telemetry loop stay in
-# kafka_logic.py beside this file.
+# The YAML version of examples/declarative/kafka_example.py. KafkaIngress reads
+# parameter updates from sim-config, and KafkaEgress publishes lifecycle events to
+# sim-events and lathe metrics to sim-telemetry. KafkaEgress creates its two topics
+# when the run starts.
 #
 # Needs a broker: odctl up kafka-lite. Runs until interrupted with Ctrl + C.
+# KAFKA_BOOTSTRAP_SERVERS overrides the broker address.
 # Run it with: dynamic-des run examples/yaml/kafka.yaml
 
 simulation:
@@ -17,14 +18,14 @@ ingress:
   - type: Kafka
     config:
       topic: sim-config
-      bootstrap_servers: !python kafka_logic.BOOTSTRAP_SERVERS
+      bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
 
 egress:
   - type: Kafka
     config:
       event_topic: sim-events
       telemetry_topic: sim-telemetry
-      bootstrap_servers: !python kafka_logic.BOOTSTRAP_SERVERS
+      bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
 
 resources:
   lathe: {current_cap: 1, max_cap: 10}
@@ -39,14 +40,13 @@ tasks:
   process_part:
     service: milling
     resource: lathe
-    # Returns a Pydantic model dumped to JSON, so the event has a declared shape.
-    payload: !python kafka_logic.process_part
+    payload: {path_id: Line_A.service.milling, status: finished}
 
 telemetry:
-  # avg_wait is derived from the queue, so this loop is Python.
+  # Samples the lathe every 2 simulation seconds.
   - interval: 2.0
-    function: !python kafka_logic.telemetry_monitor
-
-run:
-  before:
-    - !python kafka_logic.create_topics
+    publish:
+      lathe.capacity: lathe.capacity
+      lathe.in_use: lathe.in_use
+      lathe.queue_length: lathe.queue_length
+      lathe.utilization: lathe.utilization

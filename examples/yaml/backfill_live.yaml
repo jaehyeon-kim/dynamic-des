@@ -1,11 +1,10 @@
 # Backfill then go live in one run, in YAML.
 #
-# The twin of examples/declarative/backfill_live_example.py. Until go_live_at the
-# clock is detached from the wall clock, so ten minutes of backdated history are
-# written to Parquet as fast as the machine allows. From go_live_at the run is
-# paced at one simulated second per real second, and the same events go to Kafka.
-# The instants, the predicates and the router stay in backfill_live_logic.py
-# beside this file, because they are computed from the current time.
+# The YAML version of examples/declarative/backfill_live_example.py. Until
+# go_live_at the clock is detached from the wall clock, so ten minutes of backdated
+# history are written to Parquet as fast as the machine allows. From go_live_at the
+# run is paced at one simulated second per real second, and the same events go to
+# Kafka for one minute.
 #
 # Needs a broker: odctl up kafka-lite.
 # Run it with: dynamic-des run examples/yaml/backfill_live.yaml
@@ -15,24 +14,26 @@ simulation:
   # Unpaced to begin with, so the history costs no real time.
   factor: 0.0
   random_seed: 42
-  logical_start_time: !python backfill_live_logic.LOGICAL_START_TIME
+  logical_start_time: -10m
   # From here the same run is paced at one simulated second per real second.
-  go_live_at: !python backfill_live_logic.GO_LIVE_AT
+  go_live_at: now
 
 egress:
   - type: Parquet
     config:
-      path_router: !python backfill_live_logic.history_router
-    when: !python backfill_live_logic.is_history
+      default_path: data/backfill/events.parquet
+    # Records stamped before go_live_at.
+    when: history
   - type: Kafka
     config:
       event_topic: sim-events
       telemetry_topic: sim-telemetry
-      bootstrap_servers: !python backfill_live_logic.BOOTSTRAP_SERVERS
-    when: !python backfill_live_logic.is_live
+      bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
+    # Records stamped at or after go_live_at.
+    when: live
 
-# Only batch_size governs the history, as in the Python twin. The interval flush
-# starts at go-live, so the live tail also flushes every 10 seconds.
+# Only batch_size governs the history. The interval flush starts at go-live, so the
+# live tail also flushes every 10 seconds.
 batching:
   batch_size: 2000
   flush_interval: 10.0
@@ -59,7 +60,5 @@ telemetry:
       lathe.queue_length: lathe.queue_length
 
 run:
-  # The history, then LIVE_SECONDS of live tail.
-  until: !python backfill_live_logic.UNTIL
-  before:
-    - !python backfill_live_logic.prepare
+  # Ten minutes of history, then one minute of live tail.
+  until: 11m

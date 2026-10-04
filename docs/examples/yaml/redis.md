@@ -1,16 +1,15 @@
 # In-Memory Store (Redis, YAML)
 
-This example builds the same simulation as the [declarative Redis example](../declarative/redis.md) from a YAML blueprint. `RedisEgress` writes part records to the `part_events` stream, which each record's `__stream__` key names, and `RedisIngress` subscribes to the `simulation_params` channel. The part generator stays in `redis_logic.py` as a process.
+This example builds the simulation of the [declarative Redis example](../declarative/redis.md) from a YAML blueprint, with no Python. `RedisEgress` writes part records to the `part_events` stream, which each record's `__stream__` key names, and `RedisIngress` subscribes to the `simulation_params` channel.
 
 ---
 
 ## Quick Start
 
-Download the blueprint and the Python module beside it into the same folder, then run it.
+Download the blueprint, then run it.
 
 ```bash
 curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/redis.yaml
-curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/redis_logic.py
 ```
 
 ### With uv
@@ -57,17 +56,18 @@ docker exec -it valkey valkey-cli --user user --pass password PUBLISH simulation
 
 ## Full Source Code
 
-The part generator is listed under `processes`, because it draws a random part type for every arrival, which YAML has no way to express.
+`record_part` has no service or resource, so it publishes its fixed `payload` as soon as an arrival spawns it, with the task id added as `part_id`. The declarative example draws a random part type for every arrival. A mapping payload is a constant, so every part here has type `A`.
 
 Files live in the [`examples/yaml/` folder](https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/yaml) of the repository, and the label on each block below is its path there.
 
 ```yaml title="examples/yaml/redis.yaml"
 # Redis Streams output with live parameter updates, in YAML.
 #
-# The twin of examples/declarative/redis_example.py. Factory writes part records to
-# the part_events Redis Stream through RedisEgress, named by each record's
-# __stream__ key, while RedisIngress subscribes to the simulation_params channel. The part generator stays in redis_logic.py beside
-# this file.
+# The YAML version of examples/declarative/redis_example.py. Each part_arrival
+# spawns record_part, a task with no service or resource, which publishes its
+# payload at once. RedisEgress writes it to the part_events stream that the
+# __stream__ key names, while RedisIngress subscribes to the simulation_params
+# channel.
 #
 # Needs Valkey: odctl up valkey. Runs until interrupted with Ctrl + C.
 # Run it with: dynamic-des run examples/yaml/redis.yaml
@@ -91,33 +91,11 @@ egress:
       stream_name: events
 
 arrivals:
-  part_arrival: {dist: exponential, rate: 2.0}
+  part_arrival: {dist: exponential, rate: 2.0, spawn: record_part}
 
-processes:
-  # Publishes one part event on every part_arrival.
-  - !python redis_logic.part_generator
-```
-
-```python title="examples/yaml/redis_logic.py"
-"""Python for examples/yaml/redis.yaml: the part generator."""
-
-import random
-from datetime import datetime
-
-
-def part_generator(context):
-    part_id = 1
-    while True:
-        yield context.wait_for_arrival("part_arrival")
-
-        part_event = {
-            "__stream__": "part_events",
-            "part_id": part_id,
-            "type": random.choice(["A", "B", "C"]),
-            "timestamp": datetime.utcnow().isoformat(),
-            "status": "arrived",
-        }
-
-        context.publish("factory_event", part_event)
-        part_id += 1
+tasks:
+  record_part:
+    # id_field adds the task id as part_id.
+    payload: {__stream__: part_events, type: A, status: arrived}
+    id_field: part_id
 ```
