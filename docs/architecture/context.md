@@ -38,7 +38,7 @@ The fluent builder API allows chaining configurations:
 * `SimulationContext(..., go_live_at)`: Logical instant, measured from `logical_start_time`, at which `factor` gives way to real-time pacing. One run can therefore backfill unpaced and then tail live. See [Backfill Then Go Live in One Run](../guides/backfill-then-live.md).
 
 ### Statistical Profiles
-* `.add_arrival(name, dist, rate, mean)`: Configures an inter-arrival time distribution.
+* `.add_arrival(name, dist, rate, mean, std)`: Configures an inter-arrival time distribution.
 * `.add_service(name, dist, rate, mean, std)`: Configures a task processing duration distribution.
 
 ### Connectors & Ingestion

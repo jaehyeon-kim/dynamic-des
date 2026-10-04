@@ -309,6 +309,7 @@ class SimulationContext:
         dist: Literal["exponential", "normal", "lognormal"],
         rate: float = 0.0,
         mean: float = 0.0,
+        std: float = 0.0,
     ) -> "SimulationContext":
         """
         Registers a statistical distribution defining the inter-arrival times of entities.
@@ -317,13 +318,14 @@ class SimulationContext:
             name: The internal identifier (e.g., 'structural').
             dist: The distribution type ('exponential', 'normal', 'lognormal').
             rate: The rate (lambda) for exponential distributions.
-            mean: The mean (mu) for normal distributions.
+            mean: The mean (mu) for normal/lognormal distributions.
+            std: The standard deviation (sigma) for normal/lognormal distributions.
 
         Returns:
             SimulationContext: The current instance for method chaining.
         """
         self._arrivals_config[name] = DistributionConfig(
-            dist=dist, rate=rate, mean=mean
+            dist=dist, rate=rate, mean=mean, std=std
         )
         return self
 

@@ -333,3 +333,23 @@ def test_per_provider_cadence_takes_effect_through_the_builder():
     assert len(small.batch_sizes) > 1
     assert set(small.batch_sizes) == {2}
     assert len(large.batch_sizes) == 1
+
+
+def test_add_arrival_keeps_the_standard_deviation():
+    """A normal arrival lost its spread, because add_arrival had no std to pass on."""
+    app = SimulationContext("TestSim", factor=0.0).add_arrival(
+        "batch", dist="normal", mean=4.0, std=0.5
+    )
+
+    config = app._arrivals_config["batch"]
+    assert (config.dist, config.mean, config.std) == ("normal", 4.0, 0.5)
+
+
+def test_add_arrival_std_reaches_the_registry():
+    """The spread is registered, so it can be changed while the run is live."""
+    app = SimulationContext("TestSim", factor=0.0).add_arrival(
+        "batch", dist="lognormal", mean=4.0, std=0.5
+    )
+    app.run(until=1)
+
+    assert app.env.registry.get("TestSim.arrival.batch.std").value == 0.5
