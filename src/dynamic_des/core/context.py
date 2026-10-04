@@ -1,3 +1,4 @@
+import functools
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -108,6 +109,7 @@ class SimulationContext:
 
         # Set by from_yaml from the blueprint's `run` section.
         self._default_until: Any = None
+        self._before_run: List[Callable[[], Any]] = []
 
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> "SimulationContext":
@@ -122,8 +124,9 @@ class SimulationContext:
             path: The blueprint file.
 
         Returns:
-            SimulationContext: The built context. Its `run()` uses the blueprint's
-                `run.until` when no `until` is passed.
+            SimulationContext: The built context. Its `run()` calls the blueprint's
+                `run.before` functions first, and uses `run.until` when no `until`
+                is passed.
 
         Raises:
             BlueprintError: If the blueprint is invalid.
@@ -138,6 +141,7 @@ class SimulationContext:
 
         context, run = build(path)
         context._default_until = run.until
+        context._before_run = list(run.before)
         return context
 
     # ==========================================
@@ -469,6 +473,34 @@ class SimulationContext:
 
         return decorator
 
+    def add_process(self, func: Callable, **kwargs: Any) -> "SimulationContext":
+        """
+        Registers a generator function to start when the run starts.
+
+        This is the builder form of `spawn`, for a process that is not an arrival or
+        telemetry loop, such as a drift engine or a scripted scenario. It is how a
+        YAML blueprint starts the processes it references with `!python`.
+
+        Args:
+            func: A generator function. It is called as `func(context, **kwargs)`.
+            **kwargs: Extra keyword arguments passed to `func`.
+
+        Returns:
+            SimulationContext: The current instance for method chaining.
+
+        Example:
+            ```python
+            def drift(context, step):
+                while True:
+                    yield context.env.timeout(1.0)
+                    ...
+
+            app.add_process(drift, step=0.5)
+            ```
+        """
+        self._startup_loops.append((functools.partial(func, self, **kwargs), None))
+        return self
+
     # ==========================================
     # RUNTIME HELPERS (For Raw Generators)
     # ==========================================
@@ -540,12 +572,16 @@ class SimulationContext:
         """
         Compiles the defined infrastructure architecture and triggers the simulation loop.
 
+        Before Phase 1, a context built by `from_yaml` calls the blueprint's
+        `run.before` functions.
+
         Phase 1: Instantiates the foundational `DynamicRealtimeEnvironment` and `Sampler`.
         Phase 2: Compiles all builder dictionaries into a monolithic `SimParameter`
                  object and registers it with the Switchboard Registry.
         Phase 3: Connects and boots the asynchronous Kafka/Redis background threads.
         Phase 4: Hydrates physical SimPy limits based on the registry boundaries.
-        Phase 5: Spawns all registered `@arrival_loop` and `@telemetry_loop` generators.
+        Phase 5: Spawns all registered `@arrival_loop`, `@telemetry_loop` and
+                 `add_process` generators.
         Phase 6: Relinquishes the main thread to the SimPy environment execution clock.
 
         Args:
@@ -557,6 +593,8 @@ class SimulationContext:
         """
         if until is None:
             until = self._default_until
+        for setup in self._before_run:
+            setup()
 
         logger.info(f"Building SimulationContext for '{self.sim_id}'...")
 

@@ -2,13 +2,16 @@
 
 Every model forbids unknown keys, so a misspelt key is reported rather than ignored.
 Distributions and capacities reuse `DistributionConfig` and `CapacityConfig`, the
-dataclasses the builder already registers.
+dataclasses the builder already registers. Fields that take Python objects are
+filled by `!python` references and checked here, so a wrong reference fails when the
+file is loaded rather than during the run.
 """
 
+import inspect
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Type, Union
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from dynamic_des.models.params import CapacityConfig, DistributionConfig
 from dynamic_des.utils import time_to_seconds
@@ -24,6 +27,14 @@ def _seconds(value: Union[float, str]) -> float:
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         return float(value)
     raise ValueError("expected seconds or a duration such as '10 min'")
+
+
+def _generator_function(value: Any) -> Any:
+    if not inspect.isgeneratorfunction(value):
+        raise ValueError(
+            f"{value!r} must be a generator function, one that uses `yield`"
+        )
+    return value
 
 
 class _Model(BaseModel):
@@ -53,26 +64,50 @@ class Arrival(_Model):
 class Task(_Model):
     """A `tasks` entry, built with `SimulationContext.task`.
 
-    `payload` is the value of the `finished` event. `id_field` adds the task id to it
-    under that key.
+    `payload` is the value of the `finished` event: a mapping, or a `!python`
+    function called as `payload(task_id, context)`. `id_field` adds the task id to a
+    mapping payload under that key.
     """
 
     service: str
     resource: str
-    payload: Dict[str, Any]
+    payload: Union[Dict[str, Any], Callable[..., Any]]
     id_field: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _id_field_needs_a_mapping(self) -> "Task":
+        if self.id_field is not None and not isinstance(self.payload, dict):
+            raise ValueError("id_field applies only to a mapping payload")
+        return self
+
+
+class Process(_Model):
+    """A `processes` entry: a generator function and extra keyword arguments.
+
+    The function is called as `function(context, **kwargs)` when the run starts.
+    """
+
+    function: Callable[..., Any]
+    kwargs: Dict[str, Any] = Field(default_factory=dict)
+
+    _check_function = field_validator("function")(_generator_function)
 
 
 class Connector(_Model):
-    """An `ingress` entry: a connector type and its constructor arguments."""
+    """An `ingress` entry: a connector type and its constructor arguments.
 
-    type: str
+    `type` is a short name such as `Kafka`, or a `!python` class for a connector
+    from another package.
+    """
+
+    type: Union[str, Type[Any]]
     config: Dict[str, Any] = Field(default_factory=dict)
 
 
 class EgressConnector(Connector):
     """An `egress` entry, with the per-provider options of `add_egress`."""
 
+    when: Optional[Callable[[dict], bool]] = None
     batch_size: Optional[int] = None
     flush_interval: Optional[float] = None
 
@@ -90,17 +125,30 @@ class Telemetry(_Model):
     """A `telemetry` entry: metrics published every `interval` simulation seconds.
 
     `publish` maps a metric name to `<resource>.<stat>`, where the stat is one of
-    `capacity`, `in_use`, `queue_length` and `utilization`.
+    `capacity`, `in_use`, `queue_length` and `utilization`. `function` is a `!python`
+    function called as `function(context)` instead. Give one or the other.
     """
 
     interval: float
-    publish: Dict[str, str]
+    publish: Optional[Dict[str, str]] = None
+    function: Optional[Callable[..., Any]] = None
+
+    @model_validator(mode="after")
+    def _one_source(self) -> "Telemetry":
+        if (self.publish is None) == (self.function is None):
+            raise ValueError("give either publish or function")
+        return self
 
 
 class Run(_Model):
-    """The `run` section."""
+    """The `run` section.
+
+    `before` lists `!python` functions called with no arguments before the run
+    starts, for setup such as creating topics or tables.
+    """
 
     until: Optional[float] = None
+    before: List[Callable[[], Any]] = Field(default_factory=list)
 
     @field_validator("until", mode="before")
     @classmethod
@@ -119,7 +167,18 @@ class Blueprint(_Model):
     variables: Dict[str, Any] = Field(default_factory=dict)
     tasks: Dict[str, Task] = Field(default_factory=dict)
     telemetry: List[Telemetry] = Field(default_factory=list)
+    processes: List[Process] = Field(default_factory=list)
     ingress: List[Connector] = Field(default_factory=list)
     egress: List[EgressConnector] = Field(default_factory=list)
     batching: Optional[Batching] = None
     run: Run = Field(default_factory=Run)
+
+    @field_validator("processes", mode="before")
+    @classmethod
+    def _bare_functions(cls, value: Any) -> Any:
+        """Lets a process be written as a bare `!python` reference."""
+        if isinstance(value, list):
+            return [
+                item if isinstance(item, dict) else {"function": item} for item in value
+            ]
+        return value

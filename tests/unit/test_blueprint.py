@@ -222,3 +222,218 @@ def test_cli_prints_the_version():
     result = CliRunner().invoke(cli, ["--version"])
     assert result.exit_code == 0
     assert result.output.strip() == __version__
+
+
+# ---------------------------------------------------------------------------
+# !python references (#16)
+# ---------------------------------------------------------------------------
+LOGIC = """\
+import itertools
+
+calls = []
+
+
+def payload(task_id, context):
+    return {"task": task_id, "at": context.env.now}
+
+
+def ticker(context, step, label="tick"):
+    for count in itertools.count():
+        yield context.env.timeout(step)
+        context.publish(label, count)
+
+
+def not_a_generator(context):
+    return None
+
+
+def sample(context):
+    context.publish("sampled", 1)
+
+
+def keep_events(record):
+    return record["stream_type"] == "event"
+
+
+def setup():
+    calls.append("setup")
+
+
+class Sink:
+    def __init__(self, label):
+        self.label = label
+
+    async def run(self, egress_queue):
+        return None
+
+"""
+
+
+@pytest.fixture
+def logic(tmp_path, request):
+    """A module beside the blueprint, with a name unique to the test."""
+    name = f"logic_{request.node.name.replace('[', '_').replace(']', '_')}"
+    name = "".join(ch if ch.isalnum() or ch == "_" else "_" for ch in name)
+    (tmp_path / f"{name}.py").write_text(LOGIC, encoding="utf-8")
+    return name
+
+
+def test_python_payload_is_called_with_the_task_id_and_context(tmp_path, logic):
+    text = MINIMAL.replace(
+        "    payload: {status: finished}\n    id_field: part_id\n",
+        f"    payload: !python {logic}.payload\n",
+    )
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    capture = _Capture()
+    app.add_egress(capture)
+    app.run(until=10)
+
+    events = [r["value"] for r in capture.records if r["stream_type"] == "event"]
+    finished = [value for value in events if "task" in value]
+    assert finished and finished[0]["at"] > 0
+
+
+def test_processes_take_kwargs(tmp_path, logic):
+    text = MINIMAL + textwrap.dedent(f"""\
+        processes:
+          - function: !python {logic}.ticker
+            kwargs: {{step: 2}}
+          - function: !python {logic}.ticker
+            kwargs: {{step: 4, label: slow}}
+        """)
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    capture = _Capture()
+    app.add_egress(capture)
+    app.run(until=9)
+
+    ticks = [
+        (r["path_id"], r["sim_ts"])
+        for r in capture.records
+        if r["stream_type"] == "telemetry" and not r["path_id"].startswith("system")
+    ]
+    assert ("Line_A.tick", 2.0) in ticks and ("Line_A.tick", 8.0) in ticks
+    assert ("Line_A.slow", 4.0) in ticks and ("Line_A.slow", 8.0) in ticks
+
+
+def test_telemetry_takes_a_python_function(tmp_path, logic):
+    text = MINIMAL + textwrap.dedent(f"""\
+        telemetry:
+          - interval: 5
+            function: !python {logic}.sample
+        """)
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    capture = _Capture()
+    app.add_egress(capture)
+    app.run(until=10)
+    assert any(r.get("path_id") == "Line_A.sampled" for r in capture.records)
+
+
+def test_egress_type_and_when_take_python_objects(tmp_path, logic):
+    text = MINIMAL + textwrap.dedent(f"""\
+        egress:
+          - type: !python {logic}.Sink
+            config: {{label: one}}
+            when: !python {logic}.keep_events
+        """)
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    provider = app._egress_providers[0]
+    assert type(provider).__name__ == "Sink" and provider.label == "one"
+    assert app._egress_predicates[0]({"stream_type": "event"}) is True
+
+
+def test_run_before_is_called_before_the_run(tmp_path, logic):
+    import importlib
+
+    text = MINIMAL.replace(
+        "run:\n  until: 30\n",
+        f"run:\n  until: 1\n  before: [!python {logic}.setup]\n",
+    )
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    module = importlib.import_module(logic)
+    assert module.calls == []
+    app.run()
+    assert module.calls == ["setup"]
+
+
+def test_the_blueprint_folder_is_on_sys_path(tmp_path, logic, monkeypatch):
+    """A blueprint resolves the module beside it from any working directory."""
+    import sys
+
+    monkeypatch.chdir("/")
+    monkeypatch.setattr(sys, "path", [p for p in sys.path if p != str(tmp_path)])
+    text = (
+        MINIMAL + f"telemetry:\n  - interval: 1\n    function: !python {logic}.sample\n"
+    )
+    SimulationContext.from_yaml(write(tmp_path, text))
+    assert sys.path[0] == str(tmp_path.resolve())
+
+
+@pytest.mark.parametrize(
+    "reference,fragment",
+    [
+        ("no_such_module_xyz.func", "no module named 'no_such_module_xyz'"),
+        ("{logic}.missing", "has no attribute 'missing'"),
+        ("{logic}", "expected a dotted path"),
+        ("{logic}.not valid", "expected a dotted path"),
+    ],
+)
+def test_python_reference_failures_name_the_line(tmp_path, logic, reference, fragment):
+    text = MINIMAL + f"processes:\n  - !python {reference.format(logic=logic)}\n"
+    path = write(tmp_path, text)
+    with pytest.raises(BlueprintError) as error:
+        SimulationContext.from_yaml(path)
+
+    message = str(error.value)
+    assert message.startswith(f"{path}:20: !python"), message
+    assert fragment in message
+
+
+def test_python_reference_reports_an_import_failure_inside_the_module(tmp_path):
+    (tmp_path / "logic_fails_on_import.py").write_text(
+        "import no_such_dependency_xyz\n", encoding="utf-8"
+    )
+    path = write(
+        tmp_path, MINIMAL + "processes:\n  - !python logic_fails_on_import.run\n"
+    )
+    with pytest.raises(
+        BlueprintError, match=r"importing 'logic_fails_on_import' failed: No module"
+    ):
+        SimulationContext.from_yaml(path)
+
+
+def test_python_tag_on_a_mapping_is_rejected(tmp_path):
+    path = write(tmp_path, MINIMAL + "processes:\n  - !python {a: b}\n")
+    with pytest.raises(BlueprintError, match=rf"{path}:20: !python takes a dotted"):
+        SimulationContext.from_yaml(path)
+
+
+def test_a_process_must_be_a_generator_function(tmp_path, logic):
+    text = MINIMAL + f"processes:\n  - !python {logic}.not_a_generator\n"
+    path = write(tmp_path, text)
+    with pytest.raises(BlueprintError, match=rf"{path}:20: .*generator function"):
+        SimulationContext.from_yaml(path)
+
+
+def test_telemetry_needs_publish_or_function(tmp_path, logic):
+    text = MINIMAL + "telemetry:\n  - interval: 1\n"
+    path = write(tmp_path, text)
+    with pytest.raises(BlueprintError, match="give either publish or function"):
+        SimulationContext.from_yaml(path)
+
+
+def test_id_field_needs_a_mapping_payload(tmp_path, logic):
+    text = MINIMAL.replace(
+        "    payload: {status: finished}\n",
+        f"    payload: !python {logic}.payload\n",
+    )
+    path = write(tmp_path, text)
+    with pytest.raises(BlueprintError, match="id_field applies only to a mapping"):
+        SimulationContext.from_yaml(path)
+
+
+def test_plain_safe_load_is_unaffected():
+    """The tag is registered on the blueprint loader only."""
+    import yaml
+
+    with pytest.raises(yaml.constructor.ConstructorError):
+        yaml.safe_load("x: !python os.system\n")

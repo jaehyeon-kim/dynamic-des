@@ -353,3 +353,17 @@ def test_add_arrival_std_reaches_the_registry():
     app.run(until=1)
 
     assert app.env.registry.get("TestSim.arrival.batch.std").value == 0.5
+
+
+def test_add_process_starts_the_generator_with_the_context_and_kwargs():
+    seen = []
+
+    def drift(context, step):
+        while True:
+            yield context.env.timeout(step)
+            seen.append(context.env.now)
+
+    app = SimulationContext("TestSim", factor=0.0).add_process(drift, step=2.0)
+    app.run(until=7)
+
+    assert seen == [2.0, 4.0, 6.0]

@@ -115,7 +115,7 @@ def _check_references(blueprint: Blueprint, source: SourceMap) -> None:
             )
 
     for index, entry in enumerate(blueprint.telemetry):
-        for metric, reference in entry.publish.items():
+        for metric, reference in (entry.publish or {}).items():
             resource, _, stat = reference.rpartition(".")
             if resource not in blueprint.resources or stat not in RESOURCE_STATS:
                 raise source.error(
@@ -138,6 +138,7 @@ def _build_context(blueprint: Blueprint, source: SourceMap) -> SimulationContext
         provider = _connector(egress.type, egress.config, EGRESS_TYPES)
         context.add_egress(
             provider(source, ("egress", index)),
+            when=egress.when,
             batch_size=egress.batch_size,
             flush_interval=egress.flush_interval,
         )
@@ -174,8 +175,12 @@ def _build_context(blueprint: Blueprint, source: SourceMap) -> SimulationContext
         if arrival.spawn is not None:
             context.arrival_loop(name)(_spawn_loop(name, tasks[arrival.spawn]))
 
+    for process in blueprint.processes:
+        context.add_process(process.function, **process.kwargs)
+
     for entry in blueprint.telemetry:
-        context.telemetry_loop(entry.interval)(_publish_stats(entry.publish))
+        sample = entry.function or _publish_stats(entry.publish or {})
+        context.telemetry_loop(entry.interval)(sample)
 
     return context
 
@@ -186,11 +191,18 @@ def _set_fields(fields: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _connector(
-    kind: str, config: Dict[str, Any], types: Dict[str, Tuple[str, str, str]]
+    kind: Union[str, type],
+    config: Dict[str, Any],
+    types: Dict[str, Tuple[str, str, str]],
 ) -> Callable[[SourceMap, Tuple[Union[str, int], ...]], Any]:
-    """Returns a function that constructs the connector, reporting failures by line."""
+    """Returns a function that constructs the connector, reporting failures by line.
+
+    `kind` is a short name from `types`, or a class from a `!python` reference.
+    """
 
     def construct(source: SourceMap, location: Tuple[Union[str, int], ...]) -> Any:
+        if isinstance(kind, type):
+            return _instantiate(kind, config, source, location)
         if kind not in types:
             raise source.error(
                 location + ("type",),
@@ -207,18 +219,31 @@ def _connector(
                 location + ("type",),
                 f"{kind} needs a package that is missing: {exc}.{hint}",
             ) from None
-        try:
-            return cls(**config)
-        except TypeError as exc:
-            raise source.error(
-                location + ("config",), f"{class_name} rejected its config: {exc}"
-            ) from None
+        return _instantiate(cls, config, source, location)
 
     return construct
 
 
-def _payload(payload: Dict[str, Any], id_field: Union[str, None]) -> Callable:
-    """The task body: returns a copy of the payload, with the task id if asked."""
+def _instantiate(
+    cls: type,
+    config: Dict[str, Any],
+    source: SourceMap,
+    location: Tuple[Union[str, int], ...],
+) -> Any:
+    try:
+        return cls(**config)
+    except TypeError as exc:
+        raise source.error(
+            location + ("config",), f"{cls.__name__} rejected its config: {exc}"
+        ) from None
+
+
+def _payload(
+    payload: Union[Dict[str, Any], Callable[..., Any]], id_field: Union[str, None]
+) -> Callable:
+    """The task body: a `!python` payload function, or a copy of a mapping payload."""
+    if callable(payload):
+        return payload
 
     def body(task_id: int, context: SimulationContext) -> Dict[str, Any]:
         event = dict(payload)
