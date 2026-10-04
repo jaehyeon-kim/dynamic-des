@@ -77,6 +77,14 @@ nav:
           - Fast-Forward to Iceberg: examples/imperative/iceberg.md
           - Relational DB (Postgres): examples/imperative/postgres.md
           - In-Memory Store (Redis): examples/imperative/redis.md
+      - YAML Blueprints:
+          - Local Simulation: examples/yaml/local.md
+          - Kafka Digital Twin: examples/yaml/kafka.md
+          - Fast-Forward to Parquet: examples/yaml/parquet.md
+          - Fast-Forward to Iceberg: examples/yaml/iceberg.md
+          - Relational DB (Postgres): examples/yaml/postgres.md
+          - In-Memory Store (Redis): examples/yaml/redis.md
+          - Backfill Then Go Live: examples/yaml/backfill-live.md
   - Integration Guides:
       - Backfill Then Go Live in One Run: guides/backfill-then-live.md
       - Complex Routing (Kafka): guides/complex-routing.md

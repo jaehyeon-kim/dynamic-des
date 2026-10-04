@@ -21,13 +21,7 @@ ingress = LocalIngress(schedule=[(10.0, "Line_A.resources.lathe.current_cap", 3)
 Spawns a consumer in the background thread that listens to a Kafka control topic. External admin tools can write a command payload to the topic (e.g. updating the speed of a conveyor belt), and the connector automatically applies the change to the Registry in real time.
 
 ### Scenarios versus `LocalIngress`
-A YAML blueprint can carry a `scenario`: a list of registry changes, each with the simulation time it applies at.
-
-```yaml
-scenario:
-  - {at: 10, path: Line_A.resources.lathe.current_cap, value: 3}
-  - {at: 10 min, path: Line_A.arrival.standard.rate, value: 5.0}
-```
+A [YAML blueprint](yaml.md) can carry a `scenario`: a list of registry changes, each with the simulation time it applies at, such as `{at: 10, path: Line_A.resources.lathe.current_cap, value: 3}`. [Script an experiment](../guides/yaml-blueprints.md#2-script-an-experiment) shows a complete file.
 
 A scenario is not a connector. It is compiled into a SimPy process that waits on the simulation clock, so each change lands at exactly its `at`, on every run and at any `factor`, including `factor=0`. Every path is checked against the registry when the file is loaded, so a misspelt path stops the load with its line number. `LocalIngress` waits on the wall clock instead, and an unknown path is only logged as a warning when it is due.
 

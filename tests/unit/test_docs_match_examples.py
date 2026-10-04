@@ -16,7 +16,12 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-BLOCK = re.compile(r'```python title="(examples/[^"]+)"\n(.*?)\n```', re.S)
+# Python and YAML blocks labelled with a file from examples/ or docs/snippets/.
+BLOCK = re.compile(
+    r'```(?:python|yaml) title="((?:examples|docs/snippets)/[^"]+)"\n(.*?)\n```', re.S
+)
+# Every YAML block, labelled or not.
+YAML_BLOCK = re.compile(r"```yaml([^\n]*)\n")
 
 
 def _blocks():
@@ -42,3 +47,23 @@ def test_documented_source_matches_the_script(page, path, code):
         f"{page} has drifted from {path}. Copy the script in again rather than "
         f"editing the page."
     )
+
+
+def test_every_yaml_block_is_a_file():
+    """A YAML block typed into a page is never built, so nothing would catch it drifting."""
+    unlabelled = [
+        str(page.relative_to(ROOT))
+        for page in sorted((ROOT / "docs").rglob("*.md"))
+        for label in YAML_BLOCK.findall(page.read_text(encoding="utf-8"))
+        if 'title="examples/' not in label and 'title="docs/snippets/' not in label
+    ]
+    assert unlabelled == [], (
+        "These pages show YAML that is not a file. Put it under docs/snippets/ or "
+        "examples/yaml/ and label the block with its path."
+    )
+
+
+def test_yaml_pages_show_yaml_files():
+    """The YAML pages are what this test extends to, so a regex miss must fail."""
+    shown = {path for _, path, _ in _blocks() if path.endswith(".yaml")}
+    assert {f"examples/yaml/{p.name}" for p in (ROOT / "examples/yaml").glob("*.yaml")} <= shown
