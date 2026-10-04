@@ -7,7 +7,7 @@ script that make the same calls produce the same simulation.
 import importlib
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, List, Tuple, Union
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 
 import simpy
 from pydantic import ValidationError
@@ -120,6 +120,13 @@ def _check_references(blueprint: Blueprint, source: SourceMap) -> None:
                 f"defined under tasks",
             )
 
+    for index, egress in enumerate(blueprint.egress):
+        if isinstance(egress.when, str) and blueprint.simulation.go_live_at is None:
+            raise source.error(
+                ("egress", index, "when"),
+                f"when: {egress.when} needs simulation.go_live_at",
+            )
+
     for index, entry in enumerate(blueprint.telemetry):
         for metric, reference in (entry.publish or {}).items():
             resource, _, stat = reference.rpartition(".")
@@ -144,7 +151,7 @@ def _build_context(blueprint: Blueprint, source: SourceMap) -> SimulationContext
         provider = _connector(egress.type, egress.config, EGRESS_TYPES)
         context.add_egress(
             provider(source, ("egress", index)),
-            when=egress.when,
+            when=_when(egress.when, blueprint),
             batch_size=egress.batch_size,
             flush_interval=egress.flush_interval,
         )
@@ -246,6 +253,38 @@ def _run_scenario(
         if at > context.env.now:
             yield context.env.timeout(at - context.env.now)
         context.env.registry.update(path, value)
+
+
+def _when(
+    when: Union[str, Callable[[dict], bool], None], blueprint: Blueprint
+) -> Optional[Callable[[dict], bool]]:
+    """The egress predicate: a `!python` function, or one for `history` or `live`.
+
+    Records carry their logical time as an ISO string in one layout, so comparing the
+    text compares the times. The go-live instant is formatted in the same layout and,
+    when both times carry a time zone, in the zone of `logical_start_time`.
+    """
+    if not isinstance(when, str):
+        return when
+
+    go_live_at = blueprint.simulation.go_live_at
+    start = blueprint.simulation.logical_start_time
+    assert go_live_at is not None  # checked in _check_references
+    if go_live_at.tzinfo is not None and start is not None and start.tzinfo:
+        go_live_at = go_live_at.astimezone(start.tzinfo)
+    go_live_iso = go_live_at.isoformat(timespec="milliseconds")
+
+    if when == "history":
+
+        def is_history(record: dict) -> bool:
+            return record["timestamp"] < go_live_iso
+
+        return is_history
+
+    def is_live(record: dict) -> bool:
+        return record["timestamp"] >= go_live_iso
+
+    return is_live
 
 
 def _set_fields(fields: Dict[str, Any]) -> Dict[str, Any]:

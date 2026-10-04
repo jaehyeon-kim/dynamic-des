@@ -28,6 +28,9 @@ from dynamic_des.utils import time_to_seconds
 # What a `telemetry` entry can publish about a resource without any Python.
 RESOURCE_STATS = ("capacity", "in_use", "queue_length", "utilization")
 
+# The names an egress `when` takes instead of a `!python` function.
+WHEN_NAMES = ("history", "live")
+
 
 def _seconds(value: Union[float, str]) -> float:
     """Accepts a number of seconds or a duration such as `"10 min"`."""
@@ -157,11 +160,25 @@ class Connector(_Model):
 
 
 class EgressConnector(Connector):
-    """An `egress` entry, with the per-provider options of `add_egress`."""
+    """An `egress` entry, with the per-provider options of `add_egress`.
 
-    when: Optional[Callable[[dict], bool]] = None
+    `when` is `history`, `live` or a `!python` function taking one record. `history`
+    sends the records stamped before `simulation.go_live_at`, and `live` sends the
+    records stamped at or after it.
+    """
+
+    when: Optional[Union[Literal["history", "live"], Callable[[dict], bool]]] = None
     batch_size: Optional[int] = None
     flush_interval: Optional[float] = None
+
+    @field_validator("when", mode="before")
+    @classmethod
+    def _known_name(cls, value: Any) -> Any:
+        if isinstance(value, str) and value not in WHEN_NAMES:
+            raise ValueError(
+                f"'{value}' is not a when. Use history, live or a !python function"
+            )
+        return value
 
 
 class Batching(_Model):

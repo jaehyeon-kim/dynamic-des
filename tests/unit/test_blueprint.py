@@ -674,3 +674,61 @@ def test_a_bad_time_names_the_line(tmp_path, value, fragment):
         BlueprintError, match=rf"{path}:5: simulation.logical_start_time: .*{fragment}"
     ):
         SimulationContext.from_yaml(path)
+
+
+# ---------------------------------------------------------------------------
+# when: history and when: live
+# ---------------------------------------------------------------------------
+SPLIT = """\
+egress:
+  - type: Console
+    when: history
+  - type: Console
+    when: live
+telemetry:
+  - interval: 1
+    publish: {busy: lathe.in_use}
+"""
+
+
+def test_history_and_live_split_records_at_go_live(tmp_path):
+    text = _with_times("2026-01-01T00:00:00", "2026-01-01T00:00:10") + SPLIT
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    history, live = _Capture(), _Capture()
+    # The YAML providers are swapped for captures; the predicates stay as built.
+    app._egress_providers[:] = [history, live]
+    # Ten simulation seconds of history, then a short live tail in real time.
+    app.run(until=10.3)
+
+    assert history.records and live.records
+    assert all(r["timestamp"] < "2026-01-01T00:00:10.000" for r in history.records)
+    assert all(r["timestamp"] >= "2026-01-01T00:00:10.000" for r in live.records)
+    assert max(r["sim_ts"] for r in history.records) < 10
+    assert min(r["sim_ts"] for r in live.records) == 10
+
+
+def test_live_is_compared_in_the_zone_of_the_start_time(tmp_path):
+    text = _with_times("2026-01-01T00:00:00+00:00", "2026-01-01T10:00:10+10:00") + SPLIT
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    history, live = app._egress_predicates
+    record = {"timestamp": "2026-01-01T00:00:10.000+00:00"}
+    assert live(record) and not history(record)
+    record = {"timestamp": "2026-01-01T00:00:09.999+00:00"}
+    assert history(record) and not live(record)
+
+
+def test_history_needs_go_live_at(tmp_path):
+    path = write(tmp_path, MINIMAL + "egress:\n  - type: Console\n    when: history\n")
+    with pytest.raises(
+        BlueprintError, match=rf"{path}:21: when: history needs simulation.go_live_at"
+    ):
+        SimulationContext.from_yaml(path)
+
+
+def test_an_unknown_when_names_the_line(tmp_path):
+    path = write(tmp_path, MINIMAL + "egress:\n  - type: Console\n    when: later\n")
+    with pytest.raises(
+        BlueprintError,
+        match=rf"{path}:21: egress.0.when: .*'later' is not a when. Use history, live",
+    ):
+        SimulationContext.from_yaml(path)
