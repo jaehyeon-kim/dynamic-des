@@ -41,8 +41,25 @@ The fluent builder API allows chaining configurations:
 * `.add_arrival(name, dist, rate, mean, std)`: Configures an inter-arrival time distribution.
 * `.add_service(name, dist, rate, mean, std)`: Configures a task processing duration distribution.
 
+### Processes
+* `.add_process(func, **kwargs)`: Starts a generator function when the run starts, called as `func(context, **kwargs)`. Use it for a process that is not an arrival or telemetry loop, such as a drift engine. It is the builder form of `context.spawn()`, which only works once the run has started.
+* `.compile_parameters()`: Returns the `SimParameter` that `run()` registers, so the registry paths a configuration creates can be checked before the run.
+
 ### Connectors & Ingestion
 * `.add_ingress(provider)`: Attaches an ingress connector (e.g. `LocalIngress` or `KafkaIngress`) to stream live configuration updates into the switchboard.
 * `.add_egress(provider, when=None, batch_size=None, flush_interval=None)`: Attaches an egress connector (e.g. `ConsoleEgress` or `KafkaEgress`) to publish event and telemetry streams. Every attached provider receives every record, so a stream sink and a lake sink can be written in one pass. Pass `when` to give a provider a predicate and route records instead, for example the hot tail to Kafka and cold history to Parquet. Pass `batch_size` or `flush_interval` to give one provider its own cadence, so a stream sink can flush small and often while a lake sink writes large files.
 * `.with_batching(batch_size, flush_interval)`: Sets the default queue batching size and flush timeout for highly efficient I/O. Every provider uses these unless `add_egress` overrides them.
 * `.with_batching(..., max_queued_batches, drain_stall_seconds)`: Bounds the egress queue and sets how long teardown keeps waiting for it. The queue is bounded so a sink that cannot keep up slows the simulation instead of building a backlog, and teardown drains until the queue stops shrinking rather than abandoning it on a fixed deadline. A sink that stops consuming altogether raises `RuntimeError` rather than losing events silently.
+
+---
+
+## Building from YAML
+
+`SimulationContext.from_yaml(path)` builds a context from a [YAML blueprint](yaml.md). The file is validated first, and every error names the file and line. The context is then built with the builder methods above, in the order a script calls them, so the result is an ordinary `SimulationContext`.
+
+```python
+app = SimulationContext.from_yaml("examples/yaml/local.yaml")
+app.run()  # uses run.until from the file
+```
+
+`run()` calls the blueprint's `run.before` functions first, and uses `run.until` when no `until` is passed. The `dynamic-des run` command does the same from a shell.

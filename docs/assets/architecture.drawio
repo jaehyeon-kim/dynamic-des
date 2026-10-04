@@ -4,19 +4,22 @@
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="title" value="&lt;b style=&quot;font-size: 24px;&quot;&gt;Dynamic DES: Real-Time Switchboard Runtime&lt;/b&gt;&lt;br&gt;&lt;i&gt;Declarative and imperative APIs over one live simulation core&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                <mxCell id="title" value="&lt;b style=&quot;font-size: 24px;&quot;&gt;Dynamic DES: Real-Time Switchboard Runtime&lt;/b&gt;&lt;br&gt;&lt;i&gt;YAML, declarative and imperative APIs over one live simulation core&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;fontFamily=Comic Sans MS;" parent="1" vertex="1">
                     <mxGeometry x="300" y="10" width="600" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="api_group" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Authoring API (declarative and imperative, mix as needed)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#d79b00;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=10;fontFamily=Comic Sans MS;" parent="1" vertex="1">
-                    <mxGeometry x="334" y="73" width="540" height="126" as="geometry"/>
+                <mxCell id="api_group" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Authoring API (YAML, declarative or imperative, mix as needed)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#d79b00;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=10;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="244" y="73" width="720" height="126" as="geometry"/>
+                </mxCell>
+                <mxCell id="api_yaml" value="&lt;b&gt;YAML Blueprint&lt;/b&gt;&lt;br&gt;dynamic-des run · from_yaml&lt;br&gt;&lt;i&gt;config + !python logic&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                    <mxGeometry x="264" y="119" width="220" height="65" as="geometry"/>
                 </mxCell>
                 <mxCell id="api_decl" value="&lt;b&gt;Standard API (Declarative)&lt;/b&gt;&lt;br&gt;SimulationContext&lt;br&gt;&lt;i&gt;builder + decorators&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">
-                    <mxGeometry x="354" y="119" width="245" height="65" as="geometry"/>
+                    <mxGeometry x="494" y="119" width="220" height="65" as="geometry"/>
                 </mxCell>
                 <mxCell id="api_imp" value="&lt;b&gt;Low-Level API (Imperative)&lt;/b&gt;&lt;br&gt;Environment · Resources&lt;br&gt;&lt;i&gt;direct wiring&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">
-                    <mxGeometry x="609" y="120" width="245" height="64" as="geometry"/>
+                    <mxGeometry x="724" y="119" width="220" height="65" as="geometry"/>
                 </mxCell>
-                <mxCell id="runtime_group" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Real-Time Runtime (Switchboard core)&lt;/b&gt;&lt;br&gt;&lt;i&gt;DynamicRealtimeEnvironment · SimulationRegistry · built by either API&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#647687;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=10;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                <mxCell id="runtime_group" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Real-Time Runtime (Switchboard core)&lt;/b&gt;&lt;br&gt;&lt;i&gt;DynamicRealtimeEnvironment · SimulationRegistry · built by any of the three&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#647687;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=10;fontFamily=Comic Sans MS;" parent="1" vertex="1">
                     <mxGeometry x="334" y="234" width="540" height="534" as="geometry"/>
                 </mxCell>
                 <mxCell id="src_group" value="&lt;b style=&quot;font-size: 14px;&quot;&gt;Ingress Sources&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#666666;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=8;fontFamily=Comic Sans MS;" parent="1" vertex="1">

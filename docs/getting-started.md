@@ -145,6 +145,22 @@ Paths in that table are relative to the `examples/` folder. `declarative/local_e
 
 Guide: [Backfill then live](guides/backfill-then-live.md).
 
+### A YAML blueprint
+
+The same local simulation is also a YAML file, run with the `dynamic-des` command that the package installs. It needs no Python:
+
+```bash
+curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/local.yaml
+
+# With uv
+uv run --no-project --with dynamic-des dynamic-des run local.yaml
+
+# Or with pip, after `pip install dynamic-des`
+dynamic-des run local.yaml
+```
+
+Every declarative example has a [YAML twin](examples/yaml/local.md). [YAML Blueprints, from First File to Hybrid](guides/yaml-blueprints.md) shows how to write one.
+
 The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
 
 <div align="center">
@@ -156,6 +172,7 @@ The control dashboard lets you update simulation parameters live and watch the t
 Ready to build your own system? We have prepared a gallery of real-world use cases to demonstrate how to architect your simulation.
 
 - [Local Simulation](examples/declarative/local.md): A dependency-free approach to testing.
+- [Local Simulation in YAML](examples/yaml/local.md): The same simulation as a YAML blueprint, with no Python.
 - [Kafka Digital Twin](examples/declarative/kafka.md): A full manufacturing architecture with dynamic queues.
 - [Fast-Forward to Parquet](examples/declarative/parquet.md): Batch processing simulation data into Parquet.
 - [Fast-Forward to Iceberg](examples/declarative/iceberg.md): The same run, committed into an Iceberg table.

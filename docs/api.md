@@ -8,6 +8,22 @@
       heading_level: 3
       show_root_heading: true
 
+## YAML Blueprints
+
+`SimulationContext.from_yaml` is the usual entry point. `build` is what it calls, and returns the `run` section as well.
+
+<!-- prettier-ignore -->
+::: dynamic_des.blueprint.build.build
+    options:
+      heading_level: 3
+      show_root_heading: true
+
+<!-- prettier-ignore -->
+::: dynamic_des.blueprint.loader.BlueprintError
+    options:
+      heading_level: 3
+      show_root_heading: true
+
 ## Environment
 
 <!-- prettier-ignore -->

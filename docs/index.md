@@ -14,6 +14,7 @@ It bridges the gap between static discrete-event simulations and the live world 
 
 - **⚡ Real-Time Control**: Synchronize SimPy with the system clock using `DynamicRealtimeEnvironment`.
 - **🔗 Builder Pattern**: Construct digital twins declaratively with `SimulationContext` and decorators like `@app.task`.
+- **🧾 YAML Blueprints**: Declare parameters, connectors and timed experiments in a YAML file and run it with `dynamic-des run`, with logic kept in Python and referenced through `!python`.
 - **🔗 Dynamic Registry**: Dynamic, path-based updates (e.g., `Line_A.arrival.rate`) that trigger instant logic changes.
 - **🛡️ Enterprise Ready**: Native `**kwargs` passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.
 - **📦 Pluggable Serialization**: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded **Avro/Schema Registry** serializers.
@@ -32,15 +33,18 @@ It bridges the gap between static discrete-event simulations and the live world 
     * **[2. Adding Randomness and Rules](tutorials/02-distributions-resources.md)**: Add stochastic distributions and ingress scheduled capacity updates.
     * **[3. Going Distributed (Kafka)](tutorials/03-connecting-kafka.md)**: Connect standard simulation logic to live Kafka streams.
 * **Core Architecture**:
-    * **[Standard vs. Low-Level Paradigms](architecture/paradigms.md)**: Declarative vs. Imperative styles.
+    * **[Standard, Low-Level and YAML Paradigms](architecture/paradigms.md)**: The three ways to define a simulation, and when to choose each.
     * **[Simulation Context](architecture/context.md)**: Chained builder details and temporal factor control.
+    * **[YAML Blueprints](architecture/yaml.md)**: Every blueprint section, `!python` references, limitations and security.
     * **[Realtime Environment](architecture/environment.md)**: Temporal clocks and async background threads.
     * **[Ingress and Egress Connectors](architecture/connectors.md)**: Input and output flows, fan-out and tuning.
     * **[Resources and Containers](architecture/resources.md)**: Dynamic SimPy wrappers.
-* **Examples**, every script in the `examples/` folder, in both API styles:
+* **Examples**, every script in the `examples/` folder, in both API styles and as YAML blueprints:
     * **Standard API (Declarative)**: [Local](examples/declarative/local.md), [Kafka](examples/declarative/kafka.md), [Parquet](examples/declarative/parquet.md), [Iceberg](examples/declarative/iceberg.md), [Postgres](examples/declarative/postgres.md), [Redis](examples/declarative/redis.md).
     * **Low-Level API (Imperative)**: [Local](examples/imperative/local.md), [Kafka](examples/imperative/kafka.md), [Parquet](examples/imperative/parquet.md), [Iceberg](examples/imperative/iceberg.md), [Postgres](examples/imperative/postgres.md), [Redis](examples/imperative/redis.md).
+    * **YAML Blueprints**: [Local](examples/yaml/local.md), [Kafka](examples/yaml/kafka.md), [Parquet](examples/yaml/parquet.md), [Iceberg](examples/yaml/iceberg.md), [Postgres](examples/yaml/postgres.md), [Redis](examples/yaml/redis.md), [Backfill Then Go Live](examples/yaml/backfill-live.md).
 * **Integration Guides**, getting data in and out:
+    * **[YAML Blueprints, from First File to Hybrid](guides/yaml-blueprints.md)**: A first blueprint, a scenario, connectors, `!python` and lifting an existing twin.
     * **[Backfill Then Go Live in One Run](guides/backfill-then-live.md)**: History unpaced, then a real-time tail, from one call.
     * **[Complex Routing (Kafka)](guides/complex-routing.md)**: Send records to different topics from one run.
     * **[Advanced Serialization (Avro and Pydantic)](guides/avro-and-pydantic.md)**: Schema-validated binary payloads.

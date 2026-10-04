@@ -1,17 +1,25 @@
-# Standard vs. Low-Level Paradigms
+# Standard, Low-Level and YAML Paradigms
 
-Dynamic DES provides two ways to build your event-driven simulations, allowing you to choose between ease of use and raw control.
+Dynamic DES provides three ways to build your event-driven simulations, allowing you to choose between ease of use and raw control. A YAML blueprint holds only configuration, the Standard API adds Python logic through a builder, and the Low-Level API gives raw control.
 
 ---
 
-## Two Paradigms
+## Three Paradigms
 
-| Feature | Standard API (Declarative) | Low-Level API (Imperative) |
-|---|---|---|
-| **Entry Point** | `SimulationContext` | `DynamicRealtimeEnvironment` |
-| **Philosophy** | Define *what* the system looks like and use decorators for task lifecycles. | Define *how* every event and resource operates step-by-step. |
-| **Boilerplate** | Low (Automatic event emission, resource requesting, and sampling). | High (Manual queueing, starting, timing out, and releasing). |
-| **Typical Use Case** | Building standard digital twins, historical data generation, and forecasting pipelines. | Edge-case scenarios requiring dynamic topology changes mid-run. |
+| Feature | YAML Blueprint | Standard API (Declarative) | Low-Level API (Imperative) |
+|---|---|---|---|
+| **Entry Point** | `dynamic-des run` or `SimulationContext.from_yaml` | `SimulationContext` | `DynamicRealtimeEnvironment` |
+| **Philosophy** | Declare the configuration in a file, and reference Python for the logic. | Define *what* the system looks like and use decorators for task lifecycles. | Define *how* every event and resource operates step-by-step. |
+| **Boilerplate** | None for configuration. Logic is Python referenced with `!python`. | Low (Automatic event emission, resource requesting, and sampling). | High (Manual queueing, starting, timing out, and releasing). |
+| **Typical Use Case** | Varying parameters, connectors and timed experiments between runs without editing code. | Building standard digital twins, historical data generation, and forecasting pipelines. | Edge-case scenarios requiring dynamic topology changes mid-run. |
+
+The three are layers, not alternatives. A blueprint is built through the Standard API's builder methods, and the builder runs on the Low-Level API, so a blueprint can reference Python written for the builder, and a builder process can use the environment directly.
+
+### Which to choose
+
+* **YAML Blueprint** when the configuration is what changes between runs: rates, capacities, connectors, batching or a scripted experiment. The file is easy to review and diff, and it has a built-in scenario of timed changes on the simulation clock. Logic stays in a Python module beside the file.
+* **Standard API** when the logic is most of the program and you want it in one Python file, or when you build the configuration in code, for example from a loop.
+* **Low-Level API** when you need what the builder does not do, such as resources created mid-run or full control of every event.
 
 ---
 
@@ -86,4 +94,54 @@ def manual_generator(env, res):
             env.publish_event(task_key, {"status": "finished"})
 
         task_id += 1
+```
+
+---
+
+## 3. YAML Blueprint
+A blueprint declares the same configuration as the builder chain in a YAML file, and `dynamic-des run` builds and runs it. Simple tasks, arrival loops and resource telemetry are declared in the file. Processes, payload functions and routers are Python, referenced with `!python`. The [local example](../examples/yaml/local.md) needs no Python at all, and the [YAML Blueprints reference](yaml.md) covers every section.
+
+```yaml title="examples/yaml/local.yaml"
+# Local simulation in YAML, with no Python and no containers.
+#
+# The twin of examples/declarative/local_example.py. Factory_A writes to
+# ConsoleEgress, so events and telemetry are printed to the terminal, and the run
+# ends on its own after 60 simulation seconds.
+#
+# Run it with: dynamic-des run examples/yaml/local.yaml
+
+simulation:
+  sim_id: Factory_A
+  factor: 1.0
+
+egress:
+  - type: Console
+
+resources:
+  lathe: {current_cap: 2, max_cap: 5}
+
+services:
+  milling: {dist: normal, mean: 3.0, std: 0.5}
+
+arrivals:
+  # Each arrival spawns one process_part task.
+  standard: {dist: exponential, rate: 1.0, spawn: process_part}
+
+tasks:
+  process_part:
+    service: milling
+    resource: lathe
+    # The value of the task's finished event. id_field adds the task id as part_id.
+    payload: {event_type: part_produced, quality: A}
+    id_field: part_id
+
+telemetry:
+  # Samples the lathe every 2 simulation seconds.
+  - interval: 2.0
+    publish:
+      utilization: lathe.utilization
+      queue_length: lathe.queue_length
+
+run:
+  until: 60
 ```

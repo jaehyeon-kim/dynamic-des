@@ -61,8 +61,9 @@ nav:
       - 2. Adding Randomness and Rules: tutorials/02-distributions-resources.md
       - 3. Going Distributed (Kafka): tutorials/03-connecting-kafka.md
   - Core Architecture:
-      - Standard vs. Low-Level Paradigms: architecture/paradigms.md
+      - Standard, Low-Level and YAML Paradigms: architecture/paradigms.md
       - Simulation Context: architecture/context.md
+      - YAML Blueprints: architecture/yaml.md
       - Realtime Environment: architecture/environment.md
       - Ingress and Egress Connectors: architecture/connectors.md
       - Resources and Containers: architecture/resources.md
