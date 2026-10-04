@@ -27,7 +27,7 @@ EGRESS_TYPES: Dict[str, Tuple[str, str, str]] = {
         "ParquetStorageEgress",
         "parquet",
     ),
-    "Jsonl": ("dynamic_des.connectors.egress.storage", "JsonlStorageEgress", ""),
+    "Jsonl": ("dynamic_des.connectors.egress.storage", "JsonlStorageEgress", "parquet"),
     "Iceberg": (
         "dynamic_des.connectors.egress.iceberg",
         "IcebergStorageEgress",
