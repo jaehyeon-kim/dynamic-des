@@ -120,6 +120,18 @@ def _check_references(blueprint: Blueprint, source: SourceMap) -> None:
                 f"defined under tasks",
             )
 
+    go_live_at = blueprint.simulation.go_live_at
+    start = blueprint.simulation.logical_start_time
+    # The run starts at datetime.now(), which is naive, when no start time is given
+    if go_live_at is not None and (go_live_at.tzinfo is None) != (
+        start is None or start.tzinfo is None
+    ):
+        raise source.error(
+            ("simulation", "go_live_at"),
+            "go_live_at and logical_start_time must both have a time zone or both "
+            "have none, and a run with no logical_start_time starts without one",
+        )
+
     for index, egress in enumerate(blueprint.egress):
         if isinstance(egress.when, str) and blueprint.simulation.go_live_at is None:
             raise source.error(
@@ -176,13 +188,6 @@ def _build_context(blueprint: Blueprint, source: SourceMap) -> SimulationContext
         )
         for name, task in blueprint.tasks.items()
     }
-    for name, capacity in blueprint.resources.items():
-        for field in ("current_cap", "max_cap"):
-            if not float(getattr(capacity, field)).is_integer():
-                raise source.error(
-                    ("resources", name, field),
-                    f"resource '{name}' needs a whole number for {field}",
-                )
 
     for name, arrival in blueprint.arrivals.items():
         if arrival.spawn is not None:
@@ -315,7 +320,9 @@ def _connector(
             cls = getattr(importlib.import_module(module_name), class_name)
         except ImportError as exc:
             hint = (
-                f" Install it with `pip install dynamic-des[{extra}]`." if extra else ""
+                f' Install it with `pip install "dynamic-des[{extra}]"`.'
+                if extra
+                else ""
             )
             raise source.error(
                 location + ("type",),
@@ -334,7 +341,7 @@ def _instantiate(
 ) -> Any:
     try:
         return cls(**config)
-    except TypeError as exc:
+    except (TypeError, ValueError) as exc:
         raise source.error(
             location + ("config",), f"{cls.__name__} rejected its config: {exc}"
         ) from None

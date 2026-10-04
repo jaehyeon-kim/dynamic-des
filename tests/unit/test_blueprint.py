@@ -783,3 +783,88 @@ def test_telemetry_publishes_capacity_and_in_use(tmp_path):
     assert all(s["cap"] == 2 for s in samples.values())
     assert all(s["busy"] / s["cap"] * 100 == s["util"] for s in samples.values())
     assert any(s["busy"] > 0 for s in samples.values())
+
+
+# ---------------------------------------------------------------------------
+# Containers, positive settings, connector errors and time zones
+# ---------------------------------------------------------------------------
+def test_container_capacity_keeps_fractions(tmp_path):
+    text = MINIMAL + textwrap.dedent("""\
+        containers:
+          tank: {current_cap: 50.5, max_cap: 100}
+        scenario:
+          - {at: 5, path: Line_A.containers.tank.current_cap, value: 62.5}
+        """)
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    app.run(until=10)
+
+    assert app.env.registry.get("Line_A.containers.tank.current_cap").value == 62.5
+    assert app.env.registry.get("Line_A.containers.tank.max_cap").value == 100
+
+
+@pytest.mark.parametrize(
+    "extra,line,fragment",
+    [
+        (
+            "telemetry:\n  - interval: 0\n    publish: {cap: lathe.capacity}\n",
+            20,
+            "interval",
+        ),
+        ("batching: {batch_size: 0, flush_interval: 1}\n", 19, "batch_size"),
+        ("batching: {batch_size: 10, flush_interval: 0}\n", 19, "flush_interval"),
+        ("egress:\n  - type: Console\n    flush_interval: 0\n", 21, "flush_interval"),
+    ],
+)
+def test_zero_intervals_and_sizes_are_rejected(tmp_path, extra, line, fragment):
+    path = write(tmp_path, MINIMAL + extra)
+    with pytest.raises(BlueprintError) as error:
+        SimulationContext.from_yaml(path)
+
+    message = str(error.value)
+    assert message.startswith(f"{path}:{line}:"), message
+    assert fragment in message
+
+
+def test_zero_until_is_rejected(tmp_path):
+    path = write(tmp_path, MINIMAL.replace("until: 30", "until: 0"))
+    with pytest.raises(BlueprintError, match=rf"{path}:18: .*run.until"):
+        SimulationContext.from_yaml(path)
+
+
+def test_a_connector_value_error_names_the_line(tmp_path):
+    pytest.importorskip("pyiceberg")
+    text = MINIMAL + textwrap.dedent("""\
+        egress:
+          - type: Iceberg
+            config:
+              catalog: {type: rest, uri: "http://localhost:8181"}
+        """)
+    path = write(tmp_path, text)
+    with pytest.raises(BlueprintError) as error:
+        SimulationContext.from_yaml(path)
+
+    message = str(error.value)
+    assert message.startswith(f"{path}:21:"), message
+    assert "IcebergStorageEgress rejected its config" in message
+
+
+@pytest.mark.parametrize(
+    "times",
+    [
+        "  go_live_at: 2026-01-01T00:00:10+00:00\n",
+        "  logical_start_time: 2026-01-01T00:00:00\n"
+        "  go_live_at: 2026-01-01T00:00:10+00:00\n",
+        "  logical_start_time: 2026-01-01T00:00:00+00:00\n"
+        "  go_live_at: 2026-01-01T00:00:10\n",
+    ],
+)
+def test_mixed_time_zones_name_the_line(tmp_path, times):
+    path = write(
+        tmp_path, MINIMAL.replace("  random_seed: 7\n", "  random_seed: 7\n" + times)
+    )
+    with pytest.raises(BlueprintError) as error:
+        SimulationContext.from_yaml(path)
+
+    message = str(error.value)
+    assert message.startswith(f"{path}:"), message
+    assert "both have a time zone or both have none" in message

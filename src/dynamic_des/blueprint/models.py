@@ -178,8 +178,8 @@ class EgressConnector(Connector):
     """
 
     when: Optional[Union[Literal["history", "live"], Callable[[dict], bool]]] = None
-    batch_size: Optional[int] = None
-    flush_interval: Optional[float] = None
+    batch_size: Optional[int] = Field(default=None, gt=0)
+    flush_interval: Optional[float] = Field(default=None, gt=0)
 
     @field_validator("when", mode="before")
     @classmethod
@@ -194,10 +194,10 @@ class EgressConnector(Connector):
 class Batching(_Model):
     """The `batching` section: the arguments of `with_batching`."""
 
-    batch_size: int
-    flush_interval: float
-    max_queued_batches: Optional[int] = None
-    drain_stall_seconds: Optional[float] = None
+    batch_size: int = Field(gt=0)
+    flush_interval: float = Field(gt=0)
+    max_queued_batches: Optional[int] = Field(default=None, gt=0)
+    drain_stall_seconds: Optional[float] = Field(default=None, gt=0)
 
 
 class Telemetry(_Model):
@@ -208,7 +208,7 @@ class Telemetry(_Model):
     function called as `function(context)` instead. Give one or the other.
     """
 
-    interval: float
+    interval: float = Field(gt=0)
     publish: Optional[Dict[str, str]] = None
     function: Optional[Callable[..., Any]] = None
 
@@ -242,7 +242,7 @@ class Run(_Model):
     starts, for setup such as creating topics or tables.
     """
 
-    until: Optional[float] = None
+    until: Optional[float] = Field(default=None, gt=0)
     before: List[Callable[[], Any]] = Field(default_factory=list)
 
     @field_validator("until", mode="before")

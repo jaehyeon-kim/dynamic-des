@@ -92,8 +92,8 @@ Every section is optional except `simulation`. Unknown keys are rejected, so a m
 |---|---|---|
 | `simulation` | `SimulationContext(...)` | `sim_id` (required), `factor`, `random_seed`, `logical_start_time`, `go_live_at` |
 | `ingress` | `add_ingress` | A list of connectors, each `type` and `config` |
-| `egress` | `add_egress` | A list of connectors, each `type`, `config`, and optionally `when`, `batch_size`, `flush_interval` |
-| `batching` | `with_batching` | `batch_size`, `flush_interval`, and optionally `max_queued_batches`, `drain_stall_seconds` |
+| `egress` | `add_egress` | A list of connectors, each `type`, `config`, and optionally `when`, `batch_size`, `flush_interval`, both greater than 0 |
+| `batching` | `with_batching` | `batch_size`, `flush_interval`, and optionally `max_queued_batches`, `drain_stall_seconds`, all greater than 0 |
 | `resources` | `add_resource` | `name: {current_cap, max_cap}`, whole numbers |
 | `containers` | `add_container` | `name: {current_cap, max_cap}` |
 | `variables` | `add_variable` | `name: value`, any YAML value |
@@ -101,13 +101,13 @@ Every section is optional except `simulation`. Unknown keys are rejected, so a m
 | `arrivals` | `add_arrival` | `name: {dist, mean, std, rate, spawn}` |
 | `tasks` | `task` | `name: {service, resource, payload, id_field}` |
 | `processes` | `add_process` | A list of Python generator functions, each optionally with `kwargs` |
-| `telemetry` | `telemetry_loop` | A list of `{interval, publish}` or `{interval, function}` |
+| `telemetry` | `telemetry_loop` | A list of `{interval, publish}` or `{interval, function}`, with `interval` greater than 0 |
 | `scenario` | `add_process` | A list of `{at, path, value}` |
-| `run` | `run()` | `until`, and `before`, a list of Python functions |
+| `run` | `run()` | `until`, greater than 0, and `before`, a list of Python functions |
 
 `dist` is `exponential`, `normal` or `lognormal`. An exponential distribution reads `rate`, and the other two read `mean` and `std`. A field left out takes the builder's default, so a blueprint registers exactly what the equivalent Python call registers.
 
-`logical_start_time` and `go_live_at` take `now`, a signed duration from now such as `-1d` or `-10m`, or an ISO datetime such as `2026-01-01T00:00:00`. Both are read against one moment, when the file is loaded, so `-10m` and `now` are exactly ten minutes apart. `run.until` takes seconds or a duration string such as `11m`.
+`logical_start_time` and `go_live_at` take `now`, a signed duration from now such as `-1d` or `-10m`, or an ISO datetime such as `2026-01-01T00:00:00`. Both are read against one moment, when the file is loaded, so `-10m` and `now` are exactly ten minutes apart. `now` and the relative forms have no time zone. `go_live_at` and `logical_start_time` must both have a time zone or both have none, and a file with no `logical_start_time` starts without one. `run.until` takes seconds or a duration string such as `11m`.
 
 ### Environment variables
 
