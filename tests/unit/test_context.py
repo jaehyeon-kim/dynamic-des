@@ -367,3 +367,39 @@ def test_add_process_starts_the_generator_with_the_context_and_kwargs():
     app.run(until=7)
 
     assert seen == [2.0, 4.0, 6.0]
+
+
+def test_a_task_without_service_or_resource_emits_its_payload_at_once():
+    records = []
+
+    class Capture:
+        async def run(self, egress_queue):
+            while True:
+                try:
+                    records.extend(egress_queue.get_nowait())
+                except queue.Empty:
+                    await asyncio.sleep(0.01)
+
+    app = SimulationContext("TestSim", factor=0.0).add_egress(Capture())
+
+    @app.task()
+    def tick(task_id):
+        return {"tick": task_id}
+
+    def spawner(context):
+        yield context.env.timeout(3.0)
+        context.spawn(tick(7))
+
+    app.add_process(spawner)
+    app.run(until=5)
+
+    events = [r for r in records if r["stream_type"] == "event"]
+    assert [(r["sim_ts"], r["key"], r["value"]) for r in events] == [
+        (3.0, "task-7", {"tick": 7})
+    ]
+
+
+@pytest.mark.parametrize("kwargs", [{"service_id": "s"}, {"resource_id": "r"}])
+def test_a_task_needs_both_service_and_resource_or_neither(kwargs):
+    with pytest.raises(ValueError, match="give both service_id and resource_id"):
+        SimulationContext("TestSim").task(**kwargs)

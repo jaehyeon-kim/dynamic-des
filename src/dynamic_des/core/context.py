@@ -372,7 +372,9 @@ class SimulationContext:
     # DECORATORS (Execution Logic)
     # ==========================================
 
-    def task(self, service_id: str, resource_id: str) -> Callable:
+    def task(
+        self, service_id: Optional[str] = None, resource_id: Optional[str] = None
+    ) -> Callable:
         """
         Transforms a standard Python function into an event-driven SimPy task.
 
@@ -387,9 +389,16 @@ class SimulationContext:
         5. Samples the live `service_id` distribution and yields the temporal timeout.
         6. Emits a strict `finished` event containing the user's custom payload.
 
+        A task with neither `service_id` nor `resource_id` takes no time and holds no
+        resource. When spawned it emits the payload at once, with no `queued` or
+        `started` event, which suits an arrival that only records that it happened.
+
         Args:
             service_id: The ID of the configured distribution dictating the execution time.
             resource_id: The ID of the configured resource this task exclusively requires.
+
+        Raises:
+            ValueError: If only one of `service_id` and `resource_id` is given.
 
         Returns:
             Callable: A decorator that wraps the target function into a SimPy generator.
@@ -401,6 +410,26 @@ class SimulationContext:
                 return {"status": "success", "part_id": task_id}
             ```
         """
+
+        if (service_id is None) != (resource_id is None):
+            raise ValueError(
+                "give both service_id and resource_id, or neither for a task that "
+                "emits its payload at once"
+            )
+
+        def emit(user_func):
+            def wrapper(task_id: int, *args, **kwargs):
+                if not self._env:
+                    raise RuntimeError("Simulation has not been built yet.")
+                payload = user_func(task_id, *args, **kwargs)
+                self._env.publish_event(f"task-{task_id}", payload)
+                # Makes this a generator, which `spawn` needs, without waiting.
+                yield from ()
+
+            return wrapper
+
+        if service_id is None or resource_id is None:
+            return emit
 
         def decorator(user_func):
             def wrapper(task_id: int, *args, **kwargs):

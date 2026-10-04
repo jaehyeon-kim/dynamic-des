@@ -732,3 +732,29 @@ def test_an_unknown_when_names_the_line(tmp_path):
         match=rf"{path}:21: egress.0.when: .*'later' is not a when. Use history, live",
     ):
         SimulationContext.from_yaml(path)
+
+
+# ---------------------------------------------------------------------------
+# Tasks with no service and no resource
+# ---------------------------------------------------------------------------
+def test_a_task_without_service_or_resource_emits_at_once(tmp_path):
+    text = MINIMAL.replace("    service: milling\n    resource: lathe\n", "")
+    app = SimulationContext.from_yaml(write(tmp_path, text))
+    capture = _Capture()
+    app.add_egress(capture)
+    app.run(until=10)
+
+    events = [r for r in capture.records if r["stream_type"] == "event"]
+    assert events
+    # Only the payload: no queued or started event, and no time in service.
+    assert all(set(r["value"]) == {"status", "part_id"} for r in events)
+    assert [r["value"]["part_id"] for r in events] == list(range(len(events)))
+
+
+@pytest.mark.parametrize("drop", ["    service: milling\n", "    resource: lathe\n"])
+def test_a_task_needs_service_and_resource_together(tmp_path, drop):
+    path = write(tmp_path, MINIMAL.replace(drop, ""))
+    with pytest.raises(
+        BlueprintError, match=rf"{path}:12: tasks.part: .*give both service and"
+    ):
+        SimulationContext.from_yaml(path)

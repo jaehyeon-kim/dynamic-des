@@ -121,13 +121,23 @@ class Task(_Model):
 
     `payload` is the value of the `finished` event: a mapping, or a `!python`
     function called as `payload(task_id, context)`. `id_field` adds the task id to a
-    mapping payload under that key.
+    mapping payload under that key. A task with neither `service` nor `resource`
+    emits its payload as soon as it is spawned.
     """
 
-    service: str
-    resource: str
+    service: Optional[str] = None
+    resource: Optional[str] = None
     payload: Union[Dict[str, Any], Callable[..., Any]]
     id_field: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _service_and_resource_together(self) -> "Task":
+        if (self.service is None) != (self.resource is None):
+            raise ValueError(
+                "give both service and resource, or neither for a task that emits "
+                "its payload at once"
+            )
+        return self
 
     @model_validator(mode="after")
     def _id_field_needs_a_mapping(self) -> "Task":

@@ -91,13 +91,13 @@ def _validation_error(exc: ValidationError, source: SourceMap) -> BlueprintError
 def _check_references(blueprint: Blueprint, source: SourceMap) -> None:
     """Checks that every name one section uses is defined in another."""
     for name, task in blueprint.tasks.items():
-        if task.service not in blueprint.services:
+        if task.service is not None and task.service not in blueprint.services:
             raise source.error(
                 ("tasks", name, "service"),
                 f"task '{name}' uses service '{task.service}', which is not "
                 f"defined under services",
             )
-        if task.resource not in blueprint.resources:
+        if task.resource is not None and task.resource not in blueprint.resources:
             raise source.error(
                 ("tasks", name, "resource"),
                 f"task '{name}' uses resource '{task.resource}', which is not "
