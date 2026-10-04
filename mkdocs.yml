@@ -1,5 +1,5 @@
 site_name: Dynamic DES
-site_description: Real-time SimPy control plane for event-driven digital twins.
+site_description: Real-time SimPy simulations that take parameter changes while they run and write their events and telemetry to streams, databases, files and Iceberg tables.
 repo_url: https://github.com/jaehyeon-kim/dynamic-des
 repo_name: dynamic-des
 
@@ -58,10 +58,7 @@ nav:
   - Getting Started: getting-started.md
   - Tutorials:
       - "Part 1: Low-level API": tutorials/low-level.md
-      - "Part 2: Declarative API":
-          - 1. Your First Factory (Local): tutorials/01-first-factory.md
-          - 2. Adding Randomness and Rules: tutorials/02-distributions-resources.md
-          - 3. Going Distributed (Kafka): tutorials/03-connecting-kafka.md
+      - "Part 2: Declarative API": tutorials/declarative.md
       - "Part 3: YAML": tutorials/yaml.md
   - Core Architecture:
       - Overview: architecture/overview.md

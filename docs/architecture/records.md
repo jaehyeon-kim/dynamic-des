@@ -25,7 +25,7 @@ Events, from `@app.task` or `publish_event`, are used for discrete task lifecycl
 ## Field Values
 
 * `sim_ts` is rounded to three decimal places and is always a float, so simulation time 0 is published as `0.0`.
-* `key` and `path_id` are converted to strings.
+* `key` and `path_id` must be strings. Anything else raises a Pydantic `ValidationError`.
 * `value` is converted to plain JSON values before any egress sees it. A Pydantic V2 model becomes a dictionary, a datetime becomes an ISO string, and a NaN or an infinity becomes `None`.
 
 ---

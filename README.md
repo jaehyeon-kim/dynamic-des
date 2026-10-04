@@ -6,13 +6,15 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/dynamic-des.svg)](https://pypi.org/project/dynamic-des/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Real-time SimPy control plane for event-driven digital twins.**
+**Real-time SimPy simulations that take parameter changes while they run and write their events and telemetry to streams, databases, files and Iceberg tables.**
 
 <div align="center">
   <img src="https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/docs/assets/architecture.png" alt="Dynamic DES architecture" width="900" />
 </div>
 
-Dynamic DES bridges the gap between static discrete-event simulations and the live world. It allows you to update simulation parameters (arrivals, service times, capacities) and stream telemetry via **Kafka**, **Redis**, or **PostgreSQL** without stopping the simulation. Beyond live streaming, it transforms static models into **synchronized forecasting engines**, enabling rapid historical data generation and future state prediction. Export compressed, chunked datasets (Parquet, JSONL) directly to local storage or **S3-compatible storage such as AWS S3 or SeaweedFS** using PyArrow VFS, complete with strict schema drift prevention. Or commit the same run into an **Apache Iceberg** table, so what comes out is queryable rather than a folder someone still has to register.
+Dynamic DES runs [SimPy](https://simpy.readthedocs.io/) discrete-event simulations in step with the system clock, or as fast as the machine allows. A running simulation takes parameter changes (arrival rates, service times, capacities) from **Kafka**, **Redis**, **PostgreSQL** or a timed scenario, without stopping. Its task events and telemetry go to the sinks you attach: **Kafka**, **Redis**, **PostgreSQL**, **Parquet** or **JSONL** files on local disk or **S3-compatible storage** such as AWS S3 or SeaweedFS, or an **Apache Iceberg** table through a REST catalog.
+
+A simulation can be written three ways: with the low-level `DynamicRealtimeEnvironment`, with the declarative `SimulationContext` builder, or as a plain **YAML blueprint** run with the `ddes` command. One run can generate backdated history at full speed and then continue in real time, so the same model can fill a data lake and then feed a live system.
 
 ## Key Features
 
@@ -28,6 +30,7 @@ Dynamic DES bridges the gap between static discrete-event simulations and the li
 - **🗄️ Data Lake Ingestion**: Native PyArrow VFS integration for fast chunked writing (Parquet/JSONL) directly to object storage, with built-in schema inference and drift enforcement.
 - **🧊 Lakehouse Ingestion**: Append straight into an Apache Iceberg table through an Iceberg REST catalog, with one commit per flush so the snapshot count stays under your control.
 - **🦆 Pydantic Duck-Typing**: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.
+- **📊 System Observability**: Built-in lag monitoring to track simulation drift from real-world time.
 - **🌍 Domain Agnostic**: Perfect for factory floors, crypto trading bots, or RPG game state management.
 
 ## Installation
@@ -155,7 +158,7 @@ The control dashboard lets you update simulation parameters live and watch the t
 
 ## Three Ways to Write a Simulation
 
-A simulation can be written with the low-level API, with the declarative API, or as a YAML blueprint. All three build the same `SimParameter` and run on the same `DynamicRealtimeEnvironment`, so the registry paths, the records and the connectors are the same whichever way you choose. [Ways to write a simulation](https://jaehyeon.me/dynamic-des/latest/architecture/overview/) compares them, and the tutorials build one factory in each: [Part 1: Low-level API](https://jaehyeon.me/dynamic-des/latest/tutorials/low-level/), [Part 2: Declarative API](https://jaehyeon.me/dynamic-des/latest/tutorials/01-first-factory/) and [Part 3: YAML](https://jaehyeon.me/dynamic-des/latest/tutorials/yaml/).
+A simulation can be written with the low-level API, with the declarative API, or as a YAML blueprint. All three build the same `SimParameter` and run on the same `DynamicRealtimeEnvironment`, so the registry paths, the records and the connectors are the same whichever way you choose. [Ways to write a simulation](https://jaehyeon.me/dynamic-des/latest/architecture/overview/) compares them, and the tutorials build one factory in each: [Part 1: Low-level API](https://jaehyeon.me/dynamic-des/latest/tutorials/low-level/), [Part 2: Declarative API](https://jaehyeon.me/dynamic-des/latest/tutorials/declarative/) and [Part 3: YAML](https://jaehyeon.me/dynamic-des/latest/tutorials/yaml/).
 
 ### Declarative API
 
@@ -320,7 +323,7 @@ Used for discrete task lifecycle events (e.g., a part arriving, entering a queue
 
 ## More Examples
 
-For more examples, including implementations using **Kafka** providers, please explore the [examples](./examples/) folder, which has its own README naming what to install and which odctl profile each one needs.
+The [examples](./examples/) folder has the examples written three ways, in `imperative/`, `declarative/` and `yaml/`. Backfill then live has no `imperative/` version, and `yaml/advanced/` has one YAML-only example. Its README names what to install and which odctl profile each one needs.
 
 ## Core Concepts
 
@@ -330,7 +333,7 @@ For more examples, including implementations using **Kafka** providers, please e
 
 Instead of resources polling Kafka directly, the architecture is split into three layers:
 
-1.  **Connectors (Ingress/Egress)**: Background threads handle heavy I/O (Kafka, Redis).
+1.  **Connectors (Ingress/Egress)**: Background threads handle the I/O: Kafka, Redis and PostgreSQL in both directions, and Parquet, JSONL and Iceberg for egress.
 2.  **Registry (Switchboard)**: A centralized state manager that flattens data into dot-notation paths.
 3.  **Resources (SimPy Objects)**: Passive observers that "wake up" only when the Registry signals a change.
 
@@ -353,7 +356,7 @@ To handle high throughput, the `EgressMixIn` uses:
 For full documentation, architecture details, and API reference, visit:
 [https://jaehyeon.me/dynamic-des/](https://jaehyeon.me/dynamic-des/).
 
-- **Tutorials**: [Part 1: Low-level API](https://jaehyeon.me/dynamic-des/latest/tutorials/low-level/), [Part 2: Declarative API](https://jaehyeon.me/dynamic-des/latest/tutorials/01-first-factory/), [Part 3: YAML](https://jaehyeon.me/dynamic-des/latest/tutorials/yaml/).
+- **Tutorials**: [Part 1: Low-level API](https://jaehyeon.me/dynamic-des/latest/tutorials/low-level/), [Part 2: Declarative API](https://jaehyeon.me/dynamic-des/latest/tutorials/declarative/), [Part 3: YAML](https://jaehyeon.me/dynamic-des/latest/tutorials/yaml/).
 - **Core Architecture**: [Overview](https://jaehyeon.me/dynamic-des/latest/architecture/overview/), [Low-level API](https://jaehyeon.me/dynamic-des/latest/architecture/low-level/), [Declarative API](https://jaehyeon.me/dynamic-des/latest/architecture/context/), [YAML Blueprints](https://jaehyeon.me/dynamic-des/latest/architecture/yaml/), and the runtime: [Realtime Environment](https://jaehyeon.me/dynamic-des/latest/architecture/environment/), [Registry and Live Parameters](https://jaehyeon.me/dynamic-des/latest/architecture/registry/), [Time](https://jaehyeon.me/dynamic-des/latest/architecture/time/), [Resources and Containers](https://jaehyeon.me/dynamic-des/latest/architecture/resources/), [Connectors](https://jaehyeon.me/dynamic-des/latest/architecture/connectors/), [Records and Telemetry](https://jaehyeon.me/dynamic-des/latest/architecture/records/), [Batching and Delivery](https://jaehyeon.me/dynamic-des/latest/architecture/batching/).
 - **Guides**: [Backfill Then Go Live](https://jaehyeon.me/dynamic-des/latest/guides/backfill-then-live/), [Change Parameters While a Simulation Runs](https://jaehyeon.me/dynamic-des/latest/guides/live-parameters/), [YAML Blueprints](https://jaehyeon.me/dynamic-des/latest/guides/yaml-blueprints/), and the connector guides.
 - **Examples**: one page per example, with the declarative, low-level and YAML versions in tabs, starting with the [local example](https://jaehyeon.me/dynamic-des/latest/examples/local/).
@@ -365,9 +368,12 @@ Blog posts that use this library:
 - [Building a Real-Time Industrial Digital Twin with Apache Flink and Online Machine Learning](https://jaehyeon.me/blog/2026-04-21-digital-twin-online-machine-learning/): a Flink and Kotlin pipeline that detects concept drift in a hot strip mill and corrects for roller wear.
 - [Why Digital Twins Are Rewiring Industry 4.0](https://jaehyeon.me/blog/2026-04-23-digital-twin-industry-4-0/): the architectural layers that separate traditional simulations, operational twins and event-driven hybrid pipelines.
 - [Building an Event-Driven Hybrid Digital Twin with dynamic-des](https://jaehyeon.me/blog/2026-04-28-digital-twin-dynamic-des/): the Switchboard pattern, mutable resources and dynamic topic routing behind this library.
-- [One Simulation, Two Pipelines: Batch Training and Live Inference with Dynamic DES v0.8.1](https://jaehyeon.me/blog/2026-05-25-dynamic-des-parquet-support/): one SimPy codebase that writes batch Parquet for training and streams live Kafka events for inference.
-- [Dynamic DES v0.11.1: A Declarative API with Postgres and Redis Connectors](https://jaehyeon.me/blog/2026-07-17-dynamic-des-declarative-connectors/): what the declarative `SimulationContext` API changed, and the Postgres and Redis connectors it added.
+- [One Simulation, Two Pipelines: Batch Training and Live Inference with Dynamic DES](https://jaehyeon.me/blog/2026-05-25-dynamic-des-parquet-support/): one SimPy codebase that writes batch Parquet for training and streams live Kafka events for inference.
+- [Dynamic DES: A Declarative API with Postgres and Redis Connectors](https://jaehyeon.me/blog/2026-07-17-dynamic-des-declarative-connectors/): what the declarative `SimulationContext` API changed, and the Postgres and Redis connectors it added.
 - [Building an Agentic Analytics System over an Iceberg Lakehouse](https://jaehyeon.me/blog/2026-07-18-agentic-analytics-system/): a local analytics stack that uses this library to generate the lakehouse data an agent queries.
+- [Change Data Capture on a Simulated Online Shop with Debezium and Kafka Connect](https://jaehyeon.me/blog/2026-10-01-ecommerce-cdc-debezium-kafka-connect/): a simulated shop writes to PostgreSQL, and Debezium streams every change to Kafka and S3.
+- [Keeping Game Leaderboards Up to Date in Real Time with Kafka and Flink SQL](https://jaehyeon.me/blog/2026-10-02-game-leaderboard-flink-sql/): a simulated mobile game sends scores to Kafka, and Flink SQL keeps top 10 leaderboards in PostgreSQL.
+- [Defining Data-Streaming Simulations in YAML, Without Writing Python](https://jaehyeon.me/blog/2026-10-06-simulations-in-yaml-dynamic-des/): YAML blueprints, the `ddes` command and the three ways to write a simulation.
 
 ## License
 

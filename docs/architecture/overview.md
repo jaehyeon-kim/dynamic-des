@@ -9,15 +9,15 @@ Dynamic DES provides three ways to build your event-driven simulations, allowing
 | Feature | YAML Blueprint | Standard API (Declarative) | Low-Level API (Imperative) |
 |---|---|---|---|
 | **Entry Point** | `ddes run` or `SimulationContext.from_yaml` | `SimulationContext` | `DynamicRealtimeEnvironment` |
-| **Philosophy** | Declare the configuration in a file, and reference Python for the logic. | Define *what* the system looks like and use decorators for task lifecycles. | Define *how* every event and resource operates step-by-step. |
-| **Boilerplate** | None for configuration. Logic is Python referenced with `!python`. | Low (Automatic event emission, resource requesting, and sampling). | High (Manual queueing, starting, timing out, and releasing). |
+| **Philosophy** | Declare the simulation in a file. Python is referenced with `!python` only for logic YAML cannot express. | Define *what* the system looks like and use decorators for task lifecycles. | Define *how* every event and resource operates step-by-step. |
+| **Boilerplate** | None. Logic YAML cannot express is Python referenced with `!python`. | Low (Automatic event emission, resource requesting, and sampling). | High (Manual queueing, starting, timing out, and releasing). |
 | **Typical Use Case** | Varying parameters, connectors and timed experiments between runs without editing code. | Building standard digital twins, historical data generation, and forecasting pipelines. | Edge-case scenarios requiring dynamic topology changes mid-run. |
 
 The three are layers, not alternatives. A blueprint is built through the Standard API's builder methods, and the builder runs on the Low-Level API, so a blueprint can reference Python written for the builder, and a builder process can use the environment directly.
 
 ### Which to choose
 
-* **YAML Blueprint** when the configuration is what changes between runs: rates, capacities, connectors, batching or a scripted experiment. The file is easy to review and diff, and it has a built-in scenario of timed changes on the simulation clock. Logic stays in a Python module beside the file.
+* **YAML Blueprint** when the configuration is what changes between runs: rates, capacities, connectors, batching or a scripted experiment. The file is easy to review and diff, and it has a built-in scenario of timed changes on the simulation clock. Logic that YAML cannot express goes in a Python module beside the file.
 * **Standard API** when the logic is most of the program and you want it in one Python file, or when you build the configuration in code, for example from a loop.
 * **Low-Level API** when you need what the builder does not do, such as resources created mid-run or full control of every event.
 

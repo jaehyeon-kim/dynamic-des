@@ -10,7 +10,7 @@
                 <mxCell id="api_group" value="&lt;b style=&quot;font-size: 15px;&quot;&gt;Authoring API (YAML, declarative or imperative, mix as needed)&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=none;strokeColor=#d79b00;strokeWidth=2;dashed=1;align=center;verticalAlign=top;spacingTop=10;fontFamily=Comic Sans MS;" parent="1" vertex="1">
                     <mxGeometry x="244" y="73" width="720" height="126" as="geometry"/>
                 </mxCell>
-                <mxCell id="api_yaml" value="&lt;b&gt;YAML Blueprint&lt;/b&gt;&lt;br&gt;dynamic-des run · from_yaml&lt;br&gt;&lt;i&gt;config + !python logic&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">
+                <mxCell id="api_yaml" value="&lt;b&gt;YAML Blueprint&lt;/b&gt;&lt;br&gt;ddes run · from_yaml&lt;br&gt;&lt;i&gt;plain YAML, !python optional&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">
                     <mxGeometry x="264" y="119" width="220" height="65" as="geometry"/>
                 </mxCell>
                 <mxCell id="api_decl" value="&lt;b&gt;Standard API (Declarative)&lt;/b&gt;&lt;br&gt;SimulationContext&lt;br&gt;&lt;i&gt;builder + decorators&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;sketch=1;curveFitting=1;jiggle=2;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=2;fontFamily=Comic Sans MS;" parent="1" vertex="1">

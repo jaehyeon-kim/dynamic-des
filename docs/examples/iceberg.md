@@ -32,7 +32,7 @@ A day of a production line, generated at `factor=0.0` and appended to an Apache 
     odctl down catalog --volumes
     ```
 
-    `ICEBERG_URI`, `ICEBERG_WAREHOUSE`, `ICEBERG_NAMESPACE`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY` override the catalog and credentials.
+    `ICEBERG_URI`, `ICEBERG_WAREHOUSE`, `ICEBERG_NAMESPACE`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` and `S3_REGION` override the catalog and credentials.
 
     Running it twice appends to the same table rather than replacing it, which is what an Iceberg table is for. Use `odctl down catalog --volumes` to start from nothing.
 
@@ -250,7 +250,7 @@ A day of a production line, generated at `factor=0.0` and appended to an Apache 
     odctl down catalog --volumes
     ```
 
-    `ICEBERG_URI`, `ICEBERG_WAREHOUSE`, `ICEBERG_NAMESPACE`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY` override the catalog and credentials.
+    `ICEBERG_URI`, `ICEBERG_WAREHOUSE`, `ICEBERG_NAMESPACE`, `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` and `S3_REGION` override the catalog and credentials.
 
     Running it twice appends to the same table rather than replacing it, which is what an Iceberg table is for. Use `odctl down catalog --volumes` to start from nothing.
 

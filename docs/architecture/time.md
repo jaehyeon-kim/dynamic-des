@@ -79,7 +79,7 @@ Three cases are worth stating explicitly.
 * **`go_live_at` in the past but after `logical_start_time`**: the normal backfill case, and also what you get if the history takes a while to generate. The logical clock keeps whatever offset from the wall clock it had at the switch, and holds it for the rest of the run. Simulated seconds pass at one per real second, but the timestamps stay behind the wall clock by that offset.
 * **A run that ends before `go_live_at`**: nothing happens, the run stays unpaced and ends as it would have. `go_live_at` schedules no event of its own, so it never holds a finished simulation open.
 
-`go_live_at` is read against the same clock as `logical_start_time`, so both must be naive datetimes or both timezone-aware. Mixing them raises a `ValueError` when the environment is built, rather than failing later: at construction for `DynamicRealtimeEnvironment`, and at `run()` for `SimulationContext`.
+`go_live_at` is read against the same clock as `logical_start_time`, so both must be naive datetimes or both timezone-aware. Mixing them raises a `ValueError` when the environment is built, rather than failing later: at construction for `DynamicRealtimeEnvironment`, and at `run()` for `SimulationContext`. A YAML blueprint is rejected when the file is loaded, with the line of `go_live_at`.
 
 ---
 

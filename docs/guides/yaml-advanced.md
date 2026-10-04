@@ -25,7 +25,7 @@ A setting that is a value needs no Python. Environment variables, relative times
 
 `!python module.attribute` imports `module` and returns its `attribute`. The reference can name anything: a function, a class, a dictionary or a constant.
 
-The longest prefix that is a module is imported, and the rest is read as attributes, so `pkg.module.func` and `module.Class.attribute` both work. The folder of the YAML file is put at the front of `sys.path` before anything is resolved, so a module beside the blueprint is found from any working directory. Other modules are found on the normal `sys.path`, which includes installed packages. `${VAR}` is replaced inside a reference too, so `!python ${LOGIC}.ticker` picks the module from the environment.
+The longest prefix that is a module is imported, and the rest is read as attributes, so `pkg.module.func` and `module.Class.attribute` both work. The folder of the YAML file is added to the front of `sys.path`, unless it is already on it, before anything is resolved, so a module beside the blueprint is found from any working directory. Other modules are found on the normal `sys.path`, which includes installed packages. `${VAR}` is replaced inside a reference too, so `!python ${LOGIC}.ticker` picks the module from the environment.
 
 Every reference is resolved and checked when the file is loaded, so a wrong reference fails before the run starts, with the file and line.
 
@@ -145,7 +145,7 @@ def arrivals(context, product):
 
 ## 3. Routers, serializers and connector classes
 
-A router replaces the default destination of every record. `topic_router` on Kafka, `path_router` on Parquet and JSONL, and `table_router` on Iceberg each take a function that receives a record and returns its destination, or None to drop it. With a router, records are written as the router leaves them, so flattening events and dropping telemetry become the router's job. Kafka also leaves topic creation to the caller, because only the router knows which topics it uses. The hot rolling twin below sends every record to one of four topics with `topic_router: !python routing.custom_topic_router`.
+A router replaces the default destination of every record. `path_router` on Parquet and JSONL and `table_router` on Iceberg each take a function that receives a record and returns its destination, or None to drop it. `topic_router` on Kafka must always return a topic. To drop records before Kafka, give the sink a `when` predicate. With a router, records are written as the router leaves them, so flattening events and dropping telemetry become the router's job. Kafka also leaves topic creation to the caller, because only the router knows which topics it uses. The hot rolling twin below sends every record to one of four topics with `topic_router: !python routing.custom_topic_router`.
 
 A serializer is an object, so it is built in a module and referenced. `KafkaEgress` takes `default_serializer` and `topic_serializers`, for example `default_serializer: !python serializers.AVRO`, where `serializers.py` builds a `ConfluentAvroSerializer` with the registry URL and the schema.
 

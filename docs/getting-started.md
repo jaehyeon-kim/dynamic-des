@@ -166,14 +166,20 @@ Every declarative example has a YAML twin, in the YAML tab of its [example page]
 The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
 
 <div align="center">
-  <img src="assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
+  <img src="../assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
 </div>
 
 ## Build Your Own
 
-Ready to build your own system? We have prepared a gallery of real-world use cases to demonstrate how to architect your simulation.
+Each example is written three ways: with the low-level API, with the declarative API and as a YAML blueprint. Its page shows the versions in tabs. Backfill Then Go Live has no low-level version, and the advanced orders example exists only as YAML.
 
-- [Local Simulation](examples/local.md): A dependency-free approach to testing, also as a YAML blueprint with no Python.
-- [Kafka Digital Twin](examples/kafka.md): A full manufacturing architecture with dynamic queues.
-- [Fast-Forward to Parquet](examples/parquet.md): Batch processing simulation data into Parquet.
-- [Fast-Forward to Iceberg](examples/iceberg.md): The same run, committed into an Iceberg table.
+| Example | What it shows | Low-level | Declarative | YAML |
+|---|---|---|---|---|
+| [Local Simulation](examples/local.md) | prints events and telemetry, with no container | [`local_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/local_example.py) | [`local_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/local_example.py) | [`local.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/local.yaml) |
+| [Kafka Digital Twin](examples/kafka.md) | takes updates from Kafka and publishes events and telemetry to Kafka | [`kafka_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/kafka_example.py) | [`kafka_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/kafka_example.py) | [`kafka.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/kafka.yaml) |
+| [Fast-Forward to Parquet](examples/parquet.md) | a week generated at `factor=0.0`, written to Parquet | [`parquet_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/parquet_example.py) | [`parquet_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/parquet_example.py) | [`parquet.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/parquet.yaml) |
+| [Fast-Forward to Iceberg](examples/iceberg.md) | a day generated at `factor=0.0`, appended to an Iceberg table | [`iceberg_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/iceberg_example.py) | [`iceberg_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/iceberg_example.py) | [`iceberg.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/iceberg.yaml) |
+| [Relational DB (Postgres)](examples/postgres.md) | writes orders to PostgreSQL and takes updates from a table | [`postgres_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/postgres_example.py) | [`postgres_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/postgres_example.py) | [`postgres.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/postgres.yaml) |
+| [In-Memory Store (Redis)](examples/redis.md) | writes to a Redis Stream and takes updates from Pub/Sub | [`redis_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/imperative/redis_example.py) | [`redis_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/redis_example.py) | [`redis.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/redis.yaml) |
+| [Backfill Then Go Live](examples/backfill-live.md) | backdated history to Parquet, then live to Kafka | no | [`backfill_live_example.py`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/declarative/backfill_live_example.py) | [`backfill_live.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/backfill_live.yaml) |
+| [Orders with Line Items (Advanced YAML)](examples/advanced-postgres-orders.md) | orders with line items, from a blueprint with one Python function | no | no | [`postgres_orders.yaml`](https://github.com/jaehyeon-kim/dynamic-des/blob/main/examples/yaml/advanced/postgres_orders.yaml) |
