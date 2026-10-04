@@ -48,6 +48,9 @@ dependencies = [
     "typer>=0.12.0"
 ]
 
+[project.scripts]
+dynamic-des = "dynamic_des.blueprint.cli:app"
+
 [project.urls]
 Homepage = "https://jaehyeon.me/dynamic-des/"
 Repository = "https://github.com/jaehyeon-kim/dynamic-des"
@@ -115,6 +118,7 @@ dev = [
     "odctl>=0.5.1",
     "pytest-cov>=5.0.0",
     "types-redis>=4.6.0",
+    "types-pyyaml>=6.0.12",
 ]
 
 [tool.pytest.ini_options]

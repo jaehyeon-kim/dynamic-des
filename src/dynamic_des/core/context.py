@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
 
@@ -104,6 +105,40 @@ class SimulationContext:
         self.sampler: Optional[Sampler] = None
         self._resources_map: Dict[str, DynamicResource] = {}
         self._startup_loops: List[Tuple[Callable, Optional[str]]] = []
+
+        # Set by from_yaml from the blueprint's `run` section.
+        self._default_until: Any = None
+
+    @classmethod
+    def from_yaml(cls, path: Union[str, Path]) -> "SimulationContext":
+        """
+        Builds a context from a YAML blueprint file.
+
+        The blueprint is validated before anything is built, and every error names
+        the file and line. The context is built through the same builder methods a
+        Python script calls, so the result is the same simulation.
+
+        Args:
+            path: The blueprint file.
+
+        Returns:
+            SimulationContext: The built context. Its `run()` uses the blueprint's
+                `run.until` when no `until` is passed.
+
+        Raises:
+            BlueprintError: If the blueprint is invalid.
+
+        Example:
+            ```python
+            app = SimulationContext.from_yaml("examples/yaml/local.yaml")
+            app.run()
+            ```
+        """
+        from dynamic_des.blueprint.build import build
+
+        context, run = build(path)
+        context._default_until = run.until
+        return context
 
     # ==========================================
     # BUILDER METHODS (Fluent API)
@@ -516,9 +551,13 @@ class SimulationContext:
         Args:
             until: The absolute simulation termination time. Can be a numeric float
                 (representing base seconds) or a human-readable string parsed by
-                the utility module (e.g., "1 week", "8 hours"). If None, the
-                simulation runs infinitely.
+                the utility module (e.g., "1 week", "8 hours"). If None, a context
+                built by `from_yaml` uses the blueprint's `run.until`, and otherwise
+                the simulation runs infinitely.
         """
+        if until is None:
+            until = self._default_until
+
         logger.info(f"Building SimulationContext for '{self.sim_id}'...")
 
         env_kwargs: Dict[str, Any] = {"factor": self.factor}

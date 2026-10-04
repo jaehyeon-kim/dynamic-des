@@ -25,7 +25,7 @@ repos:
     rev: v1.19.1
     hooks:
       - id: mypy
-        additional_dependencies: [types-orjson, types-redis]
+        additional_dependencies: [types-orjson, types-redis, types-PyYAML]
         args: [--ignore-missing-imports]
         # The examples are scripts run by path, not an importable package, so they
         # carry no __init__.py. mypy then sees examples/declarative/parquet_example.py
