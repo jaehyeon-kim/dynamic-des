@@ -161,7 +161,7 @@ uv run --no-project --with dynamic-des ddes run local.yaml
 ddes run local.yaml
 ```
 
-Every declarative example has a [YAML twin](examples/yaml/local.md). [YAML Blueprints, from First File to Connectors](guides/yaml-blueprints.md) shows how to write one.
+Every declarative example has a YAML twin, in the YAML tab of its [example page](examples/local.md). [YAML Blueprints, from First File to Connectors](guides/yaml-blueprints.md) shows how to write one.
 
 The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
 
@@ -173,8 +173,7 @@ The control dashboard lets you update simulation parameters live and watch the t
 
 Ready to build your own system? We have prepared a gallery of real-world use cases to demonstrate how to architect your simulation.
 
-- [Local Simulation](examples/declarative/local.md): A dependency-free approach to testing.
-- [Local Simulation in YAML](examples/yaml/local.md): The same simulation as a YAML blueprint, with no Python.
-- [Kafka Digital Twin](examples/declarative/kafka.md): A full manufacturing architecture with dynamic queues.
-- [Fast-Forward to Parquet](examples/declarative/parquet.md): Batch processing simulation data into Parquet.
-- [Fast-Forward to Iceberg](examples/declarative/iceberg.md): The same run, committed into an Iceberg table.
+- [Local Simulation](examples/local.md): A dependency-free approach to testing, also as a YAML blueprint with no Python.
+- [Kafka Digital Twin](examples/kafka.md): A full manufacturing architecture with dynamic queues.
+- [Fast-Forward to Parquet](examples/parquet.md): Batch processing simulation data into Parquet.
+- [Fast-Forward to Iceberg](examples/iceberg.md): The same run, committed into an Iceberg table.

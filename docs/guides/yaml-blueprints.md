@@ -128,7 +128,7 @@ The telemetry entry shows the change land:
 
 The steps run on the simulation clock, so the experiment repeats exactly on every run and works at `factor: 0`. Every path is checked when the file is loaded. A misspelt path such as `Workshop.resources.dril.current_cap` stops the load with its line, rather than being ignored at the moment it is due.
 
-A path names one value in the registry: `<sim_id>.resources.<name>.current_cap`, `<sim_id>.arrival.<name>.rate` for an exponential arrival, `<sim_id>.service.<name>.mean`, or `<sim_id>.variables.<name>`. A scenario can run beside an ingress connector, so a scripted baseline can run while an operator steers over Kafka. [Scenarios versus `LocalIngress`](../architecture/connectors.md#scenarios-versus-localingress) explains why a scenario is not a `LocalIngress` schedule.
+A path names one value in the registry: `<sim_id>.resources.<name>.current_cap`, `<sim_id>.arrival.<name>.rate` for an exponential arrival, `<sim_id>.service.<name>.mean`, or `<sim_id>.variables.<name>`. A scenario can run beside an ingress connector, so a scripted baseline can run while an operator steers over Kafka. [Scenarios versus `LocalIngress`](../architecture/registry.md#scenarios-versus-localingress) explains why a scenario is not a `LocalIngress` schedule.
 
 ---
 
@@ -176,7 +176,7 @@ tasks:
     id_field: part_id
 ```
 
-The other options of `add_egress` sit beside `config`: `when` routes records, and `batch_size` and `flush_interval` give one sink its own cadence. `when: history` sends the records stamped before `simulation.go_live_at`, and `when: live` sends the rest. `batching` sets the defaults, as `with_batching` does. The [YAML examples](../examples/yaml/local.md) cover every connector the declarative examples use: Console, Kafka, Parquet, Iceberg, Postgres and Redis, and the backfill-then-live run that sends history to Parquet and the live tail to Kafka.
+The other options of `add_egress` sit beside `config`: `when` routes records, and `batch_size` and `flush_interval` give one sink its own cadence. `when: history` sends the records stamped before `simulation.go_live_at`, and `when: live` sends the rest. `batching` sets the defaults, as `with_batching` does. The [YAML examples](../examples/local.md) cover every connector the declarative examples use: Console, Kafka, Parquet, Iceberg, Postgres and Redis, and the backfill-then-live run that sends history to Parquet and the live tail to Kafka.
 
 Settings that the Python API takes as objects are plain values in `config`:
 
@@ -189,9 +189,9 @@ Settings that the Python API takes as objects are plain values in `config`:
 
 ## 4. Change settings per environment
 
-`${VAR}` in a value is replaced with the environment variable, and `${VAR:-default}` uses the default when the variable is unset or empty. An unquoted value is read as YAML reads it after the replacement, so `port: ${PG_PORT:-5432}` is the number 5432. `$${` writes a literal `${`. The Kafka example reads its broker this way, as `bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}`, and the [Parquet example](../examples/yaml/parquet.md) switches from the local disk to S3 with five variables.
+`${VAR}` in a value is replaced with the environment variable, and `${VAR:-default}` uses the default when the variable is unset or empty. An unquoted value is read as YAML reads it after the replacement, so `port: ${PG_PORT:-5432}` is the number 5432. `$${` writes a literal `${`. The Kafka example reads its broker this way, as `bootstrap_servers: ${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}`, and the [Parquet example](../examples/parquet.md) switches from the local disk to S3 with five variables.
 
-`logical_start_time` and `go_live_at` take `now`, a signed duration from now such as `-1d` or `-10m`, or an ISO datetime. Both are read against one moment, when the file is loaded, so `-10m` and `now` are exactly ten minutes apart. The [backfill-then-live example](../examples/yaml/backfill-live.md) uses both, with `when: history` and `when: live`.
+`logical_start_time` and `go_live_at` take `now`, a signed duration from now such as `-1d` or `-10m`, or an ISO datetime. Both are read against one moment, when the file is loaded, so `-10m` and `now` are exactly ten minutes apart. The [backfill-then-live example](../examples/backfill-live.md) uses both, with `when: history` and `when: live`.
 
 ---
 

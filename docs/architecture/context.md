@@ -1,6 +1,42 @@
-# Simulation Context
+# Declarative API
 
 The `SimulationContext` acts as the entry point and configuration builder for standard Dynamic DES simulations. It implements the **Builder Pattern** to construct the simulation environment and register resources, statistical samplers, and ingress/egress connectors.
+
+## Example
+
+The Standard API uses the `SimulationContext` builder to configure the twin's resources, distributions, ingress/egress parameters, and I/O connectors.
+
+All execution logic is declared using clean Python decorators:
+
+```python
+from dynamic_des import SimulationContext, ConsoleEgress
+
+app = (
+    SimulationContext(sim_id="Line_A", factor=1.0)
+    .add_resource("lathe", current_cap=2, max_cap=5)
+    .add_arrival("standard", dist="exponential", rate=1.0)
+    .add_service("milling", dist="normal", mean=3.0, std=0.5)
+    .add_egress(ConsoleEgress())
+)
+
+@app.arrival_loop("standard")
+def generate(context: SimulationContext):
+    task_id = 0
+    while True:
+        yield context.wait_for_arrival("standard")
+        context.spawn(run_task(task_id))
+        task_id += 1
+
+@app.task(service_id="milling", resource_id="lathe")
+def run_task(task_id: int):
+    # This function is automatically wrapped with:
+    # 1. Emission of a "queued" event to Kafka/Console.
+    # 2. Block until the "lathe" resource is acquired.
+    # 3. Emission of a "started" event.
+    # 4. Yield of the "milling" timeout (sampled from the distribution).
+    # 5. Emission of a "finished" event with the dictionary returned below.
+    return {"part_id": task_id}
+```
 
 ---
 
@@ -48,27 +84,13 @@ The fluent builder API allows chaining configurations:
 
 ### Processes
 * `.add_process(func, **kwargs)`: Starts a generator function when the run starts, called as `func(context, **kwargs)`. Use it for a process that is not an arrival or telemetry loop, such as a drift engine. It is the builder form of `context.spawn()`, which only works once the run has started.
-* `.compile_parameters()`: Returns the `SimParameter` that `run()` registers, so the registry paths a configuration creates can be checked before the run.
+* `.compile_parameters()`: Returns the `SimParameter` that `run()` registers, so the registry paths a configuration creates can be checked before the run. [Registry paths](registry.md#registry-paths) lists them.
 
 ### Connectors & Ingestion
 * `.add_ingress(provider)`: Attaches an ingress connector (e.g. `LocalIngress` or `KafkaIngress`) to stream live configuration updates into the switchboard.
 * `.add_egress(provider, when=None, batch_size=None, flush_interval=None)`: Attaches an egress connector (e.g. `ConsoleEgress` or `KafkaEgress`) to publish event and telemetry streams. Every attached provider receives every record, so a stream sink and a lake sink can be written in one pass. Pass `when` to give a provider a predicate and route records instead, for example the hot tail to Kafka and cold history to Parquet. Pass `batch_size` or `flush_interval` to give one provider its own cadence, so a stream sink can flush small and often while a lake sink writes large files.
 * `.with_batching(batch_size, flush_interval)`: Sets the default queue batching size and flush timeout for highly efficient I/O. Every provider uses these unless `add_egress` overrides them.
 * `.with_batching(..., max_queued_batches, drain_stall_seconds)`: Bounds the egress queue and sets how long teardown keeps waiting for it. The queue is bounded so a sink that cannot keep up slows the simulation instead of building a backlog, and teardown drains until the queue stops shrinking rather than abandoning it on a fixed deadline. A sink that stops consuming altogether raises `RuntimeError` rather than losing events silently.
-
----
-
-## Registry Paths
-
-`run()` flattens the configuration into the registry, and every path an ingress message, a scenario or `registry.get` names has one of these forms:
-
-| Builder call | Paths |
-|---|---|
-| `add_arrival(name, ...)`, `add_service(name, ...)` | `<sim_id>.arrival.<name>.rate` and `<sim_id>.service.<name>.rate` for an exponential distribution, otherwise `.mean` and `.std` |
-| `add_resource(name, ...)`, `add_container(name, ...)` | `<sim_id>.resources.<name>.current_cap` and `.max_cap`, `<sim_id>.containers.<name>.current_cap` and `.max_cap` |
-| `add_variable(name, value)` | `<sim_id>.variables.<name>` |
-
-Stores, registered through `SimParameter(stores=...)` on the low-level API, take `<sim_id>.stores.<name>.current_cap` and `.max_cap`. An update to a path that does not exist is logged as a warning and ignored.
 
 ---
 

@@ -28,30 +28,21 @@ It bridges the gap between static discrete-event simulations and the live world 
 ## Documentation Layout
 
 * **[Getting Started](getting-started.md)**: Install, download the examples, and start the containers they need.
-* **Basics (Tutorials)**:
-    * **[1. Your First Factory (Local)](tutorials/01-first-factory.md)**: Define a local factory lifecycle.
-    * **[2. Adding Randomness and Rules](tutorials/02-distributions-resources.md)**: Add stochastic distributions and ingress scheduled capacity updates.
-    * **[3. Going Distributed (Kafka)](tutorials/03-connecting-kafka.md)**: Connect standard simulation logic to live Kafka streams.
+* **Tutorials**, one factory written three ways:
+    * **[Part 1: Low-level API](tutorials/low-level.md)**: Build the factory on `DynamicRealtimeEnvironment`, with SimPy processes started by `env.process`.
+    * **Part 2: Declarative API**:
+        * **[1. Your First Factory (Local)](tutorials/01-first-factory.md)**: Define a local factory lifecycle.
+        * **[2. Adding Randomness and Rules](tutorials/02-distributions-resources.md)**: Add stochastic distributions and ingress scheduled capacity updates.
+        * **[3. Going Distributed (Kafka)](tutorials/03-connecting-kafka.md)**: Connect standard simulation logic to live Kafka streams.
+    * **[Part 3: YAML](tutorials/yaml.md)**: Write the same factory as a blueprint and run it with `ddes run`.
 * **Core Architecture**:
-    * **[Standard, Low-Level and YAML Paradigms](architecture/paradigms.md)**: The three ways to define a simulation, and when to choose each.
-    * **[Simulation Context](architecture/context.md)**: Chained builder details and temporal factor control.
-    * **[YAML Blueprints](architecture/yaml.md)**: Every blueprint section, connector settings, limitations and security.
-    * **[Realtime Environment](architecture/environment.md)**: Temporal clocks and async background threads.
-    * **[Ingress and Egress Connectors](architecture/connectors.md)**: Input and output flows, fan-out and tuning.
-    * **[Resources and Containers](architecture/resources.md)**: Dynamic SimPy wrappers.
-* **Integration Guides**, getting data in and out:
-    * **[YAML Blueprints, from First File to Connectors](guides/yaml-blueprints.md)**: A first blueprint, a scenario, connectors and settings per environment.
-    * **[Advanced YAML: Custom Logic with `!python`](guides/yaml-advanced.md)**: Python processes, payloads, routers and serializers, and lifting an existing twin.
-    * **[Backfill Then Go Live in One Run](guides/backfill-then-live.md)**: History unpaced, then a real-time tail, from one call.
-    * **[Complex Routing (Kafka)](guides/complex-routing.md)**: Send records to different topics from one run.
-    * **[Advanced Serialization (Avro and Pydantic)](guides/avro-and-pydantic.md)**: Schema-validated binary payloads.
-    * **[Connecting to Secure Kafka](guides/kafka-security.md)**: SASL, mTLS, OAuth and AWS IAM.
-* **Modelling Patterns**, shaping what the simulation does:
-    * **[Multi-Resource Handoffs](guides/multi-resource-handoffs.md)**: One task holding several resources.
-    * **[Preemptive Machine Breakdowns](guides/preemptive-breakdowns.md)**: Interrupting work already in progress.
-    * **[Absolute Edge Cases (Dynamic Topology)](guides/dynamic-topology.md)**: Changing the model while it runs.
-* **Examples**, every script in the `examples/` folder, in both API styles and as YAML blueprints:
-    * **Standard API (Declarative)**: [Local](examples/declarative/local.md), [Kafka](examples/declarative/kafka.md), [Parquet](examples/declarative/parquet.md), [Iceberg](examples/declarative/iceberg.md), [Postgres](examples/declarative/postgres.md), [Redis](examples/declarative/redis.md).
-    * **Low-Level API (Imperative)**: [Local](examples/imperative/local.md), [Kafka](examples/imperative/kafka.md), [Parquet](examples/imperative/parquet.md), [Iceberg](examples/imperative/iceberg.md), [Postgres](examples/imperative/postgres.md), [Redis](examples/imperative/redis.md).
-    * **YAML Blueprints**: [Local](examples/yaml/local.md), [Kafka](examples/yaml/kafka.md), [Parquet](examples/yaml/parquet.md), [Iceberg](examples/yaml/iceberg.md), [Postgres](examples/yaml/postgres.md), [Redis](examples/yaml/redis.md), [Backfill Then Go Live](examples/yaml/backfill-live.md), [Orders with Line Items (Advanced)](examples/yaml/advanced-postgres-orders.md).
+    * **[Overview](architecture/overview.md)**: The three ways to write a simulation, and the parameters and environment they share.
+    * **Writing a simulation**: [Low-level API](architecture/low-level.md), [Declarative API](architecture/context.md), [YAML Blueprints](architecture/yaml.md).
+    * **Runtime**: [Realtime Environment](architecture/environment.md), [Registry and Live Parameters](architecture/registry.md), [Time](architecture/time.md), [Resources and Containers](architecture/resources.md), [Connectors](architecture/connectors.md), [Records and Telemetry](architecture/records.md), [Batching and Delivery](architecture/batching.md).
+* **Guides**:
+    * **Connectors**: [Complex Routing (Kafka)](guides/complex-routing.md), [Advanced Serialization (Avro and Pydantic)](guides/avro-and-pydantic.md), [Connecting to Secure Kafka](guides/kafka-security.md).
+    * **Features**: [Backfill Then Go Live in One Run](guides/backfill-then-live.md), [Change Parameters While a Simulation Runs](guides/live-parameters.md).
+    * **YAML**: [YAML Blueprints, from First File to Connectors](guides/yaml-blueprints.md).
+* **Advanced**: [Advanced YAML: Custom Logic with `!python`](guides/yaml-advanced.md), [Multi-Resource Handoffs](guides/multi-resource-handoffs.md), [Preemptive Machine Breakdowns](guides/preemptive-breakdowns.md), [Absolute Edge Cases (Dynamic Topology)](guides/dynamic-topology.md).
+* **Examples**, every script in the `examples/` folder, one page each with a tab for the declarative API, the low-level API and the YAML blueprint: [Local](examples/local.md), [Kafka](examples/kafka.md), [Parquet](examples/parquet.md), [Iceberg](examples/iceberg.md), [Postgres](examples/postgres.md), [Redis](examples/redis.md), [Backfill Then Go Live](examples/backfill-live.md), [Orders with Line Items (Advanced YAML)](examples/advanced-postgres-orders.md).
 * **[API Reference](api.md)**: Technical reference for all public classes.

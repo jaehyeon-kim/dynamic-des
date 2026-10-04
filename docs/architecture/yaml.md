@@ -2,9 +2,60 @@
 
 A YAML blueprint is a third way to define a simulation, beside the `SimulationContext` builder and the low-level `DynamicRealtimeEnvironment`. The file holds the configuration: parameters, connectors, batching, simple tasks, telemetry and a scenario of timed changes. Logic that YAML cannot express is Python, which a blueprint references with `!python`, as [Advanced YAML: Custom Logic with `!python`](../guides/yaml-advanced.md) explains.
 
-A blueprint is built through the same public builder methods a Python script calls, such as `add_resource`, `add_egress`, `task` and `arrival_loop`. There is no second build path, so a blueprint and a script that make the same calls produce the same simulation. The tests build and run each [YAML example](../examples/yaml/local.md) and check the records it produces.
+A blueprint is built through the same public builder methods a Python script calls, such as `add_resource`, `add_egress`, `task` and `arrival_loop`. There is no second build path, so a blueprint and a script that make the same calls produce the same simulation. The tests build and run each [YAML example](../examples/local.md) and check the records it produces.
 
 For a walk from a first blueprint to live connectors, see [YAML Blueprints, from First File to Connectors](../guides/yaml-blueprints.md). This page is the reference.
+
+---
+
+## Example
+
+A blueprint declares the same configuration as the builder chain in a YAML file, and `ddes run` builds and runs it. Simple tasks, arrival loops and resource telemetry are declared in the file. Processes, payload functions and routers are Python, referenced with `!python`. The [local example](../examples/local.md) needs no Python at all.
+
+```yaml title="examples/yaml/local.yaml"
+# Local simulation in YAML, with no Python and no containers.
+#
+# The twin of examples/declarative/local_example.py. Factory_A writes to
+# ConsoleEgress, so events and telemetry are printed to the terminal, and the run
+# ends on its own after 60 simulation seconds.
+#
+# Run it with: ddes run examples/yaml/local.yaml
+
+simulation:
+  sim_id: Factory_A
+  factor: 1.0
+
+egress:
+  - type: Console
+
+resources:
+  lathe: {current_cap: 2, max_cap: 5}
+
+services:
+  milling: {dist: normal, mean: 3.0, std: 0.5}
+
+arrivals:
+  # Each arrival spawns one process_part task.
+  standard: {dist: exponential, rate: 1.0, spawn: process_part}
+
+tasks:
+  process_part:
+    service: milling
+    resource: lathe
+    # The value of the task's finished event. id_field adds the task id as part_id.
+    payload: {event_type: part_produced, quality: A}
+    id_field: part_id
+
+telemetry:
+  # Samples the lathe every 2 simulation seconds.
+  - interval: 2.0
+    publish:
+      utilization: lathe.utilization
+      queue_length: lathe.queue_length
+
+run:
+  until: 60
+```
 
 ---
 
@@ -136,7 +187,7 @@ An ISO time string bound for a timestamp or date column of Iceberg or Postgres i
 
 A scenario sets registry paths to new values at given simulation times. Each step is a mapping such as `{at: 30, path: Workshop.resources.drill.current_cap, value: 2}`.
 
-`at` is seconds from the start of the run, or a duration string. The steps are applied in time order by a SimPy process that waits on the simulation clock, so a scenario repeats exactly on every run and works at `factor: 0`. Every `path` is checked when the file is loaded, against a registry built from the blueprint with the same code the run uses, and the `value` must convert to the type the path holds. [Scenarios versus `LocalIngress`](connectors.md#scenarios-versus-localingress) compares the two. The [guide](../guides/yaml-blueprints.md#2-script-an-experiment) has a complete file.
+`at` is seconds from the start of the run, or a duration string. The steps are applied in time order by a SimPy process that waits on the simulation clock, so a scenario repeats exactly on every run and works at `factor: 0`. Every `path` is checked when the file is loaded, against a registry built from the blueprint with the same code the run uses, and the `value` must convert to the type the path holds. [Scenarios versus `LocalIngress`](registry.md#scenarios-versus-localingress) compares the two. The [guide](../guides/yaml-blueprints.md#2-script-an-experiment) has a complete file.
 
 A resource follows a capacity change within the same simulation instant, but after the step that made it. A telemetry sample taken at exactly that instant can therefore still show the old capacity.
 
@@ -146,7 +197,7 @@ A resource follows a capacity change within the same simulation instant, but aft
 
 A blueprint covers configuration. Anything that is logic stays in Python.
 
-- **No expression language for field values.** A mapping payload is a constant, apart from the task id that `id_field` adds. Weighted or Zipf choices, fields derived from other fields, values drawn from distributions, Markov walks and state carried from one event to the next are all Python, which the [advanced guide](../guides/yaml-advanced.md) covers. The [advanced Postgres example](../examples/yaml/advanced-postgres-orders.md) is like this: its generator draws random values, so it is a process in Python.
+- **No expression language for field values.** A mapping payload is a constant, apart from the task id that `id_field` adds. Weighted or Zipf choices, fields derived from other fields, values drawn from distributions, Markov walks and state carried from one event to the next are all Python, which the [advanced guide](../guides/yaml-advanced.md) covers. The [advanced Postgres example](../examples/advanced-postgres-orders.md) is like this: its generator draws random values, so it is a process in Python.
 - **Containers and stores exist only in the registry.** `containers` registers capacities, as `add_container` does, but no SimPy container is created for them. A process that needs one builds a `DynamicContainer` itself, or reads and writes the registry path directly, as the hot rolling twin does with its wear levels. `SimParameter.stores` has no builder method, so neither the builder nor a blueprint can register stores.
 - **Built-in telemetry reads resources only.** Container levels, variables or derived metrics need a telemetry `function`.
 - **A task uses at most one service and one resource.** Multi-stage routing, several resources per task, priorities and preemption are processes in Python.
