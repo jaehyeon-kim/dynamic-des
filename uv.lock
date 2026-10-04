@@ -1004,7 +1004,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.1" },
     { name = "redis", marker = "extra == 'redis'", specifier = ">=5.0.0" },
     { name = "simpy", specifier = ">=4.0.0" },
-    { name = "typer", specifier = ">=0.12.0" },
+    { name = "typer", specifier = ">=0.16.0" },
 ]
 provides-extras = ["kafka", "redis", "postgres", "confluent", "glue", "parquet", "iceberg", "all"]
 
