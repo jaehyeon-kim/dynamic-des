@@ -14,12 +14,20 @@ class BaseDynamicResource:
         self._max_cap_val: DynamicValue = env.registry.get(f"{path}.max_cap")
 
         self.env.process(self._watch_capacity())
+        self.env.process(self._watch_max_capacity())
 
     def _watch_capacity(self):
         while True:
             # Wakes up immediately if a signal is in the Store
             yield self._current_cap_val.wait_for_change()
-            self._handle_capacity_change(int(self._current_cap_val.value))
+            # Each subclass converts the value, so a container keeps a fractional capacity
+            self._handle_capacity_change(self._current_cap_val.value)
 
-    def _handle_capacity_change(self, new_target: int):
+    def _watch_max_capacity(self):
+        while True:
+            # A new max_cap re-applies current_cap, so a lower limit takes effect at once
+            yield self._max_cap_val.wait_for_change()
+            self._handle_capacity_change(self._current_cap_val.value)
+
+    def _handle_capacity_change(self, new_target: float):
         pass  # To be implemented by subclasses

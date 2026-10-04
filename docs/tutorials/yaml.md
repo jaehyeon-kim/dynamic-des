@@ -1,6 +1,6 @@
 # Part 3: YAML
 
-This tutorial writes the factory from [Part 1](low-level.md) and [Part 2](01-first-factory.md) as a YAML blueprint, and runs it with the `ddes` command. The file holds only configuration, and no Python is written.
+This tutorial writes the factory from [Part 1](low-level.md) and [Part 2](declarative.md) as a YAML blueprint, and runs it with the `ddes` command. The file holds only configuration, and no Python is written.
 
 ---
 

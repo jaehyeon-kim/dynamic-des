@@ -91,13 +91,13 @@ class DynamicStore(BaseDynamicResource):
         """
         return self._store.get()
 
-    def _handle_capacity_change(self, new_target: int):
+    def _handle_capacity_change(self, new_target: float):
         """
         Internal callback triggered when the Registry capacity value changes.
         Updates the physical SimPy store and processes pending events.
 
         Args:
-            new_target (int): The new slot capacity limit dictated by the control plane.
+            new_target (float): The new slot capacity limit, rounded down to a whole number.
         """
         # Safely bind the new target to absolute physical limits [0, max_cap]
         max_cap = int(self._max_cap_val.value)

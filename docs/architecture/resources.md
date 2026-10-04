@@ -1,6 +1,6 @@
 # Resources and Containers
 
-Standard SimPy objects are static. Dynamic DES introduces dynamic wrapper classes that subscribe directly to the Registry to update their capacity, consumption, or contents in real time.
+Standard SimPy objects are static. Dynamic DES wraps SimPy objects so their capacity follows the registry in real time.
 
 ---
 
@@ -20,9 +20,8 @@ When capacity increases, tokens are immediately added to the pool. When capacity
 
 `DynamicContainer` wraps a SimPy `Container` and represents continuous quantities (e.g. fuel tank levels, conveyor queues, or concept drift/physical wear).
 
-Continuous states are updated dynamically via:
-* **Level**: The current fluid level or quantity of material.
-* **Capacity**: The physical size limit of the tank/container.
+* **Capacity**: The physical size limit of the tank or container. It follows the registry.
+* **Level**: The current fluid level or quantity of material. It changes only through `put` and `get`.
 
 ---
 
@@ -34,11 +33,10 @@ Continuous states are updated dynamically via:
 
 ## Creating Them
 
-`SimulationContext.run()` creates a `DynamicResource` for every `add_resource`. It does not create containers or stores: `add_container` registers the capacity paths only. A process that needs a container builds it from the registered paths. `DynamicContainer` and `DynamicStore` are not exported from `dynamic_des`, so import them from `dynamic_des.resources.container` and `dynamic_des.resources.store`. Stores have no builder method; register them with `SimParameter(stores=...)` on the low-level API.
+`SimulationContext.run()` creates a `DynamicResource` for every `add_resource`. It does not create containers or stores: `add_container` registers the capacity paths only. A process that needs a container builds it from the registered paths. `DynamicContainer` and `DynamicStore` are imported from `dynamic_des`, like `DynamicResource`. Stores have no builder method; register them with `SimParameter(stores=...)` on the low-level API.
 
 ```python
-from dynamic_des import SimulationContext
-from dynamic_des.resources.container import DynamicContainer
+from dynamic_des import DynamicContainer, SimulationContext
 
 # Declare resources and containers in SimulationContext
 app = (

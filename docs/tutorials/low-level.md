@@ -1,6 +1,6 @@
 # Part 1: Low-level API
 
-This tutorial builds a small factory directly on `DynamicRealtimeEnvironment`: one lathe, parts arriving about every 2 seconds, and 1.5 seconds of machining per part. Every step is written by hand, with plain SimPy processes started by `env.process`. [Part 2](01-first-factory.md) builds the same factory with the declarative API, which does these steps for you, and [Part 3](yaml.md) builds it as a YAML blueprint.
+This tutorial builds a small factory directly on `DynamicRealtimeEnvironment`: one lathe, parts arriving about every 2 seconds, and 1.5 seconds of machining per part. Every step is written by hand, with plain SimPy processes started by `env.process`. [Part 2](declarative.md) builds the same factory with the declarative API, which does these steps for you, and [Part 3](yaml.md) builds it as a YAML blueprint.
 
 ---
 
@@ -229,4 +229,4 @@ if __name__ == "__main__":
     run()
 ```
 
-[Part 2](01-first-factory.md) builds the same factory with the declarative API.
+[Part 2](declarative.md) builds the same factory with the declarative API.

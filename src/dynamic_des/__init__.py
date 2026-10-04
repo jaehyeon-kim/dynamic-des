@@ -48,7 +48,9 @@ from dynamic_des.core.registry import SimulationRegistry
 from dynamic_des.core.sampler import Sampler
 from dynamic_des.models.params import CapacityConfig, DistributionConfig, SimParameter
 from dynamic_des.models.schemas import EventPayload, TelemetryPayload
+from dynamic_des.resources.container import DynamicContainer
 from dynamic_des.resources.resource import DynamicResource
+from dynamic_des.resources.store import DynamicStore
 from dynamic_des.utils import time_to_seconds
 
 try:
@@ -65,6 +67,8 @@ __all__ = [
     "SimulationContext",
     "SimulationRegistry",
     "DynamicResource",
+    "DynamicContainer",
+    "DynamicStore",
     "SimParameter",
     "DistributionConfig",
     "CapacityConfig",

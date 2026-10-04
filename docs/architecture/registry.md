@@ -36,8 +36,8 @@ Ingress connectors run on a background thread, so they do not call `update` them
 ## What Follows a Change
 
 * **Arrival and service distributions.** A `Sampler` reads the configuration object each time it draws, so the next draw uses the new value. `context.wait_for_arrival` draws when it is called, so the arrival already being waited for keeps its old gap. `@app.task` draws the service time once the resource is acquired, so a task still in the queue uses the new value.
-* **Resource capacity.** A `DynamicResource` follows `current_cap`, limited to between 0 and the `max_cap` it was created with. A later change to `max_cap` does not change that limit. [Resources and Containers](resources.md#shrinking-safety-guarantee) describes what happens when the capacity shrinks below the number of tasks in progress.
-* **Container capacity.** A `DynamicContainer` follows `current_cap`, rounded down to a whole number when it changes, and limited to the `max_cap` the registry holds at the moment of the change.
+* **Resource capacity.** A `DynamicResource` follows `current_cap`, rounded down to a whole number and limited to between 0 and the `max_cap` the registry holds. A change to `max_cap` applies `current_cap` again under the new limit. [Resources and Containers](resources.md#shrinking-safety-guarantee) describes what happens when the capacity shrinks below the number of tasks in progress.
+* **Container capacity.** A `DynamicContainer` follows `current_cap`, fractions included even when the starting value is a whole number, limited to between 0 and the `max_cap` the registry holds. A change to `max_cap` applies `current_cap` again under the new limit. A `DynamicStore` does the same with whole numbers.
 * **Variables.** The new value is stored. A process reads it with `env.registry.get(path).value`.
 
 ---
@@ -59,4 +59,4 @@ A scenario and an ingress connector can be used together. Both write to the same
 
 ## Waiting for a Change
 
-`env.registry.get(path).wait_for_change()` returns a SimPy event that fires when the value at that path changes. Each value has one change signal, and the first process waiting takes it. `DynamicResource` and `DynamicContainer` already wait on their `current_cap`, so wait only on paths that nothing else waits on, such as variables.
+`env.registry.get(path).wait_for_change()` returns a SimPy event that fires when the value at that path changes. Each value has one change signal, and the first process waiting takes it. `DynamicResource`, `DynamicContainer` and `DynamicStore` already wait on their `current_cap` and `max_cap`, so wait only on paths that nothing else waits on, such as variables.
