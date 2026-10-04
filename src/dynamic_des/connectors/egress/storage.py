@@ -1,7 +1,9 @@
 import asyncio
 import logging
+import posixpath
 import queue
 import uuid
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
@@ -30,6 +32,85 @@ def _generate_chunk_filename(base_path: str) -> str:
     return f"{path_obj.parent / path_obj.stem}_{chunk_id}{path_obj.suffix}"
 
 
+# The `type` values a filesystem mapping can name, and the PyArrow class each builds.
+_FILESYSTEM_TYPES = {"local": "LocalFileSystem", "s3": "S3FileSystem"}
+
+
+def _check_filesystem(filesystem: Any) -> None:
+    """
+    Rejects a filesystem mapping with an unknown `type` before the run starts.
+
+    Args:
+        filesystem (Any): The `filesystem` argument of a storage egress.
+
+    Raises:
+        ValueError: If a mapping names a type other than `local` or `s3`.
+    """
+    if isinstance(filesystem, Mapping):
+        kind = str(filesystem.get("type", "local")).lower()
+        if kind not in _FILESYSTEM_TYPES:
+            raise ValueError(
+                f"Unknown filesystem type '{kind}'; the supported types are "
+                f"{', '.join(_FILESYSTEM_TYPES)}"
+            )
+
+
+def _build_filesystem(filesystem: Any, fs: Any) -> Any:
+    """
+    Returns the PyArrow FileSystem a storage egress writes through.
+
+    Args:
+        filesystem (Any): None for the local disk, a PyArrow FileSystem, which is
+            returned as it is, or a mapping. A mapping's `type` (`local`, the
+            default, or `s3`) picks the class, and its other keys are passed to that
+            class's constructor, so an S3 mapping takes `S3FileSystem` arguments
+            such as `endpoint_override`, `access_key`, `secret_key`, `region` and
+            `scheme`. An `endpoint_override` that starts with `http://` or
+            `https://` also sets `scheme`, unless `scheme` is given.
+        fs (Any): Injected reference to the `pyarrow.fs` module.
+
+    Returns:
+        Any: The FileSystem instance.
+    """
+    if filesystem is None:
+        return fs.LocalFileSystem()
+    if not isinstance(filesystem, Mapping):
+        return filesystem
+    _check_filesystem(filesystem)
+    options = dict(filesystem)
+    kind = str(options.pop("type", "local")).lower()
+    endpoint = options.get("endpoint_override")
+    if kind == "s3" and isinstance(endpoint, str) and "://" in endpoint:
+        scheme, _, address = endpoint.partition("://")
+        options["endpoint_override"] = address
+        options.setdefault("scheme", scheme)
+    return getattr(fs, _FILESYSTEM_TYPES[kind])(**options)
+
+
+def _ensure_folder(filesystem: Any, file_path: str, created: set) -> None:
+    """
+    Creates the folder that holds `file_path`, once per folder.
+
+    A local disk needs the folder before a file can be written into it. On S3 this
+    creates the prefix. If the folder cannot be created the write still goes ahead,
+    because object storage accepts a key under a prefix that was never created, and
+    a local write then fails with the underlying error.
+
+    Args:
+        filesystem (Any): The PyArrow FileSystem written through.
+        file_path (str): The file about to be written.
+        created (set): The folders already handled by this writer.
+    """
+    folder = posixpath.dirname(file_path)
+    if not folder or folder in created:
+        return
+    created.add(folder)
+    try:
+        filesystem.create_dir(folder, recursive=True)
+    except OSError as error:
+        logger.warning(f"Could not create the folder '{folder}': {error}")
+
+
 class JsonlStorageEgress(BaseEgress):
     """
     High-throughput JSONL batch writer for local file systems or object storage.
@@ -48,7 +129,8 @@ class JsonlStorageEgress(BaseEgress):
 
     Attributes:
         default_path (Optional[str]): The fallback destination path if no router is provided.
-        filesystem (Optional[Any]): A PyArrow `FileSystem` instance. Defaults to local disk.
+        filesystem (Optional[Any]): A PyArrow `FileSystem` instance, or the mapping it
+            is built from when the run starts. Defaults to local disk.
         path_router (Optional[Callable]): Optional logic to dynamically route or drop payloads.
 
     Examples:
@@ -83,14 +165,19 @@ class JsonlStorageEgress(BaseEgress):
             default_path: The target file path prefix (e.g., "data/logs.jsonl"),
                 used when no router is given. Only events are written there, with
                 their `value` mapping unpacked into top-level fields.
-            filesystem: An instantiated PyArrow FileSystem (e.g., `fs.S3FileSystem()`).
-                If None, defaults to `fs.LocalFileSystem()`.
+            filesystem: An instantiated PyArrow FileSystem (e.g., `fs.S3FileSystem()`),
+                or a mapping such as `{"type": "s3", "endpoint_override": ...}` that
+                is built into one when the run starts. If None, defaults to
+                `fs.LocalFileSystem()`. The destination folder is created on the
+                first write to it.
             path_router: A function taking a dict payload and returning a string path,
                 or None to drop the record.
         """
+        _check_filesystem(filesystem)
         self.default_path = default_path
         self.filesystem = filesystem
         self.path_router = path_router
+        self._folders: set = set()
 
     async def run(self, egress_queue: queue.Queue) -> None:
         """
@@ -116,7 +203,7 @@ class JsonlStorageEgress(BaseEgress):
         except ImportError:
             raise ImportError("pyarrow is required. pip install dynamic-des[parquet]")
 
-        self.filesystem = self.filesystem or fs.LocalFileSystem()
+        self.filesystem = _build_filesystem(self.filesystem, fs)
         batches_processed = 0
 
         try:
@@ -160,6 +247,7 @@ class JsonlStorageEgress(BaseEgress):
 
         for target_path, records in grouped_batches.items():
             chunk_path = _generate_chunk_filename(target_path)
+            _ensure_folder(self.filesystem, chunk_path, self._folders)
             with self.filesystem.open_output_stream(chunk_path) as stream:
                 for payload in records:
                     stream.write(
@@ -187,7 +275,8 @@ class ParquetStorageEgress(BaseEgress):
 
     Attributes:
         default_path (Optional[str]): The fallback destination path.
-        filesystem (Optional[Any]): A PyArrow `FileSystem` instance. Defaults to local.
+        filesystem (Optional[Any]): A PyArrow `FileSystem` instance, or the mapping it
+            is built from when the run starts. Defaults to local.
         path_router (Optional[Callable]): Optional logic to dynamically route or drop payloads.
         schemas (Dict[str, Any]): Internal registry of inferred PyArrow schemas per file path.
 
@@ -225,14 +314,19 @@ class ParquetStorageEgress(BaseEgress):
             default_path: The target file path prefix (e.g., "data/events.parquet"),
                 used when no router is given. Only events are written there, with
                 their `value` mapping unpacked into columns.
-            filesystem: An instantiated PyArrow FileSystem (e.g., `fs.S3FileSystem()`).
-                If None, defaults to `fs.LocalFileSystem()`.
+            filesystem: An instantiated PyArrow FileSystem (e.g., `fs.S3FileSystem()`),
+                or a mapping such as `{"type": "s3", "endpoint_override": ...}` that
+                is built into one when the run starts. If None, defaults to
+                `fs.LocalFileSystem()`. The destination folder is created on the
+                first write to it.
             path_router: A function taking a dict payload and returning a string path,
                 or None to drop the record.
         """
+        _check_filesystem(filesystem)
         self.default_path = default_path
         self.filesystem = filesystem
         self.path_router = path_router
+        self._folders: set = set()
         self.schemas: Dict[str, Any] = {}
 
     async def run(self, egress_queue: queue.Queue) -> None:
@@ -261,7 +355,7 @@ class ParquetStorageEgress(BaseEgress):
         except ImportError:
             raise ImportError("pyarrow is required. pip install dynamic-des[parquet]")
 
-        self.filesystem = self.filesystem or fs.LocalFileSystem()
+        self.filesystem = _build_filesystem(self.filesystem, fs)
         batches_processed = 0
 
         try:
@@ -322,5 +416,6 @@ class ParquetStorageEgress(BaseEgress):
                 table = table.cast(expected_schema)
 
             chunk_path = _generate_chunk_filename(target_path)
+            _ensure_folder(self.filesystem, chunk_path, self._folders)
 
             pq.write_table(table, chunk_path, filesystem=self.filesystem)

@@ -216,3 +216,100 @@ def test_parse_iso_time_handles_each_kind():
     assert parse_iso_time("2026-01-01T10:00:00", "date") == date(2026, 1, 1)
     assert parse_iso_time("not a time", "timestamp") == "not a time"
     assert parse_iso_time(5, "timestamp") == 5
+
+
+def test_filesystem_mapping_builds_an_s3_filesystem():
+    """An S3 mapping passes its keys to S3FileSystem; an http endpoint sets the scheme."""
+    from dynamic_des.connectors.egress.storage import _build_filesystem
+
+    built = _build_filesystem(
+        {
+            "type": "s3",
+            "endpoint_override": "http://localhost:8333",
+            "access_key": "user",
+            "secret_key": "password",
+            "region": "us-east-1",
+        },
+        fs,
+    )
+
+    assert isinstance(built, fs.S3FileSystem)
+    options = built.__reduce__()[1][0]
+    assert options["endpoint_override"] == "localhost:8333"
+    assert options["scheme"] == "http"
+    assert options["access_key"] == "user"
+    assert options["region"] == "us-east-1"
+
+
+def test_filesystem_defaults_and_objects():
+    """None is the local disk, a mapping without a type is local, an object is kept."""
+    from dynamic_des.connectors.egress.storage import _build_filesystem
+
+    given = fs.LocalFileSystem()
+    assert isinstance(_build_filesystem(None, fs), fs.LocalFileSystem)
+    assert isinstance(_build_filesystem({}, fs), fs.LocalFileSystem)
+    assert _build_filesystem(given, fs) is given
+
+
+def test_unknown_filesystem_type_is_refused_at_construction():
+    """A misspelt type fails when the egress is built, not on the first write."""
+    with pytest.raises(ValueError, match="'gs'"):
+        ParquetStorageEgress(default_path="x.parquet", filesystem={"type": "gs"})
+    with pytest.raises(ValueError, match="'gs'"):
+        JsonlStorageEgress(default_path="x.jsonl", filesystem={"type": "gs"})
+
+
+@pytest.mark.asyncio
+async def test_run_builds_the_mapping_and_creates_the_folder(tmp_path: Path):
+    """With a mapping and a folder that does not exist, the first write still lands."""
+    import asyncio
+    import queue
+
+    target = tmp_path / "new" / "deeper" / "events.parquet"
+    egress = ParquetStorageEgress(
+        default_path=str(target), filesystem={"type": "local"}
+    )
+    q: queue.Queue = queue.Queue()
+    q.put([EVENT])
+
+    task = asyncio.create_task(egress.run(q))
+    for _ in range(50):
+        await asyncio.sleep(0.05)
+        if list(target.parent.glob("events_*.parquet")):
+            break
+    task.cancel()
+    await asyncio.gather(task, return_exceptions=True)
+
+    assert isinstance(egress.filesystem, fs.LocalFileSystem)
+    [chunk] = target.parent.glob("events_*.parquet")
+    assert pq.read_table(chunk).to_pylist()[0]["status"] == "finished"
+
+
+def test_jsonl_creates_the_folder_once(tmp_path: Path):
+    """The folder is created on the first write and not asked for again."""
+    from unittest.mock import MagicMock
+
+    local = fs.LocalFileSystem()
+    spy = MagicMock(wraps=local)
+    egress = JsonlStorageEgress(default_path=str(tmp_path / "a" / "events.jsonl"))
+    egress.filesystem = spy
+
+    egress._write_batch([EVENT])
+    egress._write_batch([EVENT])
+
+    spy.create_dir.assert_called_once_with(str(tmp_path / "a"), recursive=True)
+    assert len(list((tmp_path / "a").glob("events_*.jsonl"))) == 2
+
+
+def test_a_folder_that_cannot_be_created_does_not_stop_the_write():
+    """Object storage takes a key under a prefix that was never created."""
+    from unittest.mock import MagicMock
+
+    store = MagicMock()
+    store.create_dir.side_effect = OSError("bucket creation is disabled")
+    egress = JsonlStorageEgress(default_path="bucket/events.jsonl")
+    egress.filesystem = store
+
+    egress._write_batch([EVENT])
+
+    store.open_output_stream.assert_called_once()
