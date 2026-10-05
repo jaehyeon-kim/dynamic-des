@@ -251,8 +251,8 @@ jobs:
       - name: Build and Deploy Docs (Versioned)
         run: |
           # Configure Git for the bot commit
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "jaehyeon-kim"
+          git config --global user.email "1023748+jaehyeon-kim@users.noreply.github.com"
 
           # Dynamically extract the version string from pyproject.toml
           VERSION=$(grep -m 1 '^version = ' pyproject.toml | cut -d '"' -f 2)
