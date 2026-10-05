@@ -1,0 +1,2550 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Real-time SimPy simulations that take parameter changes while they run and write their events and telemetry to streams, databases, files and Iceberg tables.">
+      
+      
+      
+      
+        <link rel="prev" href="../context/">
+      
+      
+        <link rel="next" href="../environment/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+    
+    
+      
+        <title>YAML Blueprints - Dynamic DES</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-076N8WCGWZ"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-076N8WCGWZ",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-076N8WCGWZ",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#yaml-blueprints" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Dynamic DES" class="md-header__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
+      
+  <img src="../../assets/favicon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Dynamic DES
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              YAML Blueprints
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="light-blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jaehyeon-kim/dynamic-des" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dynamic-des
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Dynamic DES" class="md-nav__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
+      
+  <img src="../../assets/favicon.png" alt="logo">
+
+    </a>
+    Dynamic DES
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jaehyeon-kim/dynamic-des" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dynamic-des
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/low-level/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part 1: Low-level API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/declarative/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part 2: Declarative API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part 3: YAML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Core Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writing a Simulation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Writing a Simulation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../low-level/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Low-level API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Declarative API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML Blueprints
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML Blueprints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-a-blueprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running a Blueprint
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sections
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tasks-and-arrivals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tasks and arrivals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Telemetry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Realtime Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry and Live Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../time/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Time
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resources and Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../connectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../records/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Records and Telemetry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../batching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Batching and Delivery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connectors
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Connectors
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/complex-routing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complex Routing (Kafka)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/avro-and-pydantic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Serialization (Avro and Pydantic)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/kafka-security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connecting to Secure Kafka
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/backfill-then-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live in One Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/live-parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Change Parameters While a Simulation Runs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    YAML
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/yaml-blueprints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML Blueprints, from First File to Connectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/yaml-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced YAML: Custom Logic with !python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/multi-resource-handoffs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Resource Handoffs (Hybrid Pattern)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/preemptive-breakdowns/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preemptive Machine Breakdowns (Hybrid Pattern)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dynamic-topology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Absolute Edge Cases (Dynamic Topology)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/local/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/kafka/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kafka Digital Twin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/parquet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fast-Forward to Parquet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/iceberg/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fast-Forward to Iceberg
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/postgres/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relational DB (Postgres)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/redis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    In-Memory Store (Redis)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/backfill-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/advanced-postgres-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orders with Line Items (Advanced YAML)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-a-blueprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running a Blueprint
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sections
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Sections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tasks-and-arrivals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tasks and arrivals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Telemetry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#connectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scenario" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Errors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="yaml-blueprints">YAML Blueprints</h1>
+<p>A YAML blueprint is a third way to define a simulation, beside the <code>SimulationContext</code> builder and the low-level <code>DynamicRealtimeEnvironment</code>. The file holds the configuration: parameters, connectors, batching, simple tasks, telemetry and a scenario of timed changes. Logic that YAML cannot express is Python, which a blueprint references with <code>!python</code>, as <a href="../../guides/yaml-advanced/">Advanced YAML: Custom Logic with <code>!python</code></a> explains.</p>
+<p>A blueprint is built through the same public builder methods a Python script calls, such as <code>add_resource</code>, <code>add_egress</code>, <code>task</code> and <code>arrival_loop</code>. There is no second build path, so a blueprint and a script that make the same calls produce the same simulation. The tests build and run each <a href="../../examples/local/">YAML example</a> and check the records it produces.</p>
+<p>For a walk from a first blueprint to live connectors, see <a href="../../guides/yaml-blueprints/">YAML Blueprints, from First File to Connectors</a>. This page is the reference.</p>
+<hr />
+<h2 id="example">Example</h2>
+<p>A blueprint declares the same configuration as the builder chain in a YAML file, and <code>ddes run</code> builds and runs it. Simple tasks, arrival loops and resource telemetry are declared in the file. Processes, payload functions and routers are Python, referenced with <code>!python</code>. The <a href="../../examples/local/">local example</a> needs no Python at all.</p>
+<div class="language-yaml highlight"><span class="filename">examples/yaml/local.yaml</span><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Local simulation in YAML, with no Python and no containers.</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="c1">#</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># The twin of examples/declarative/local_example.py. Factory_A writes to</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># ConsoleEgress, so events and telemetry are printed to the terminal, and the run</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># ends on its own after 60 simulation seconds.</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1">#</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Run it with: ddes run examples/yaml/local.yaml</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nt">simulation</span><span class="p">:</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="nt">sim_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Factory_A</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nt">factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="nt">egress</span><span class="p">:</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Console</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="nt">resources</span><span class="p">:</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="nt">lathe</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">current_cap</span><span class="p">:</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="nt"> max_cap</span><span class="p">:</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="nt">milling</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">dist</span><span class="p">:</span><span class="w"> </span><span class="nv">normal</span><span class="p p-Indicator">,</span><span class="nt"> mean</span><span class="p">:</span><span class="w"> </span><span class="nv">3.0</span><span class="p p-Indicator">,</span><span class="nt"> std</span><span class="p">:</span><span class="w"> </span><span class="nv">0.5</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="nt">arrivals</span><span class="p">:</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">  </span><span class="c1"># Each arrival spawns one process_part task.</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">  </span><span class="nt">standard</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">dist</span><span class="p">:</span><span class="w"> </span><span class="nv">exponential</span><span class="p p-Indicator">,</span><span class="nt"> rate</span><span class="p">:</span><span class="w"> </span><span class="nv">1.0</span><span class="p p-Indicator">,</span><span class="nt"> spawn</span><span class="p">:</span><span class="w"> </span><span class="nv">process_part</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">  </span><span class="nt">process_part</span><span class="p">:</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">    </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">milling</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">    </span><span class="nt">resource</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lathe</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">    </span><span class="c1"># The value of the task&#39;s finished event. id_field adds the task id as part_id.</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">    </span><span class="nt">payload</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">event_type</span><span class="p">:</span><span class="w"> </span><span class="nv">part_produced</span><span class="p p-Indicator">,</span><span class="nt"> quality</span><span class="p">:</span><span class="w"> </span><span class="nv">A</span><span class="p p-Indicator">}</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">    </span><span class="nt">id_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">part_id</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="nt">telemetry</span><span class="p">:</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">  </span><span class="c1"># Samples the lathe every 2 simulation seconds.</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.0</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">    </span><span class="nt">publish</span><span class="p">:</span>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">      </span><span class="nt">utilization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lathe.utilization</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a><span class="w">      </span><span class="nt">queue_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lathe.queue_length</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="w">  </span><span class="nt">until</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
+</span></code></pre></div>
+<hr />
+<h2 id="running-a-blueprint">Running a Blueprint</h2>
+<p>From a shell, with the <code>ddes</code> command that the package installs:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ddes<span class="w"> </span>run<span class="w"> </span>blueprint.yaml<span class="w">               </span><span class="c1"># runs until run.until, or forever</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ddes<span class="w"> </span>run<span class="w"> </span>blueprint.yaml<span class="w"> </span>--until<span class="w"> </span>10min<span class="w"> </span><span class="c1"># overrides run.until</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>ddes<span class="w"> </span>--version
+</span></code></pre></div>
+<p><code>--until</code> takes seconds or a duration such as <code>10 min</code>, <code>2 hours</code> or <code>1 week</code>, the forms <code>time_to_seconds</code> accepts. The command logs at INFO level, so <code>ConsoleEgress</code> output is visible. An invalid file prints its errors and exits with code 1.</p>
+<p>From Python:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dynamic_des</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationContext</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">app</span> <span class="o">=</span> <span class="n">SimulationContext</span><span class="o">.</span><span class="n">from_yaml</span><span class="p">(</span><span class="s2">&quot;blueprint.yaml&quot;</span><span class="p">)</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>  <span class="c1"># calls run.before, then runs until run.until</span>
+</span></code></pre></div>
+<p><code>from_yaml</code> returns an ordinary <code>SimulationContext</code>, so the builder methods and decorators still work on it. Passing <code>until</code> to <code>run()</code> overrides <code>run.until</code>.</p>
+<hr />
+<h2 id="sections">Sections</h2>
+<p>Every section is optional except <code>simulation</code>. Unknown keys are rejected, so a misspelt key is reported rather than ignored.</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Builds with</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>simulation</code></td>
+<td><code>SimulationContext(...)</code></td>
+<td><code>sim_id</code> (required), <code>factor</code>, <code>random_seed</code>, <code>logical_start_time</code>, <code>go_live_at</code></td>
+</tr>
+<tr>
+<td><code>ingress</code></td>
+<td><code>add_ingress</code></td>
+<td>A list of connectors, each <code>type</code> and <code>config</code></td>
+</tr>
+<tr>
+<td><code>egress</code></td>
+<td><code>add_egress</code></td>
+<td>A list of connectors, each <code>type</code>, <code>config</code>, and optionally <code>when</code>, <code>batch_size</code>, <code>flush_interval</code>, both greater than 0</td>
+</tr>
+<tr>
+<td><code>batching</code></td>
+<td><code>with_batching</code></td>
+<td><code>batch_size</code>, <code>flush_interval</code>, and optionally <code>max_queued_batches</code>, <code>drain_stall_seconds</code>, all greater than 0</td>
+</tr>
+<tr>
+<td><code>resources</code></td>
+<td><code>add_resource</code></td>
+<td><code>name: {current_cap, max_cap}</code>, whole numbers</td>
+</tr>
+<tr>
+<td><code>containers</code></td>
+<td><code>add_container</code></td>
+<td><code>name: {current_cap, max_cap}</code></td>
+</tr>
+<tr>
+<td><code>variables</code></td>
+<td><code>add_variable</code></td>
+<td><code>name: value</code>, any YAML value</td>
+</tr>
+<tr>
+<td><code>services</code></td>
+<td><code>add_service</code></td>
+<td><code>name: {dist, mean, std, rate}</code></td>
+</tr>
+<tr>
+<td><code>arrivals</code></td>
+<td><code>add_arrival</code></td>
+<td><code>name: {dist, mean, std, rate, spawn}</code></td>
+</tr>
+<tr>
+<td><code>tasks</code></td>
+<td><code>task</code></td>
+<td><code>name: {service, resource, payload, id_field}</code></td>
+</tr>
+<tr>
+<td><code>processes</code></td>
+<td><code>add_process</code></td>
+<td>A list of Python generator functions, each optionally with <code>kwargs</code></td>
+</tr>
+<tr>
+<td><code>telemetry</code></td>
+<td><code>telemetry_loop</code></td>
+<td>A list of <code>{interval, publish}</code> or <code>{interval, function}</code>, with <code>interval</code> greater than 0</td>
+</tr>
+<tr>
+<td><code>scenario</code></td>
+<td><code>add_process</code></td>
+<td>A list of <code>{at, path, value}</code></td>
+</tr>
+<tr>
+<td><code>run</code></td>
+<td><code>run()</code></td>
+<td><code>until</code>, greater than 0, and <code>before</code>, a list of Python functions</td>
+</tr>
+</tbody>
+</table>
+<p><code>dist</code> is <code>exponential</code>, <code>normal</code> or <code>lognormal</code>. An exponential distribution reads <code>rate</code>, and the other two read <code>mean</code> and <code>std</code>. A field left out takes the builder's default, so a blueprint registers exactly what the equivalent Python call registers.</p>
+<p><code>logical_start_time</code> and <code>go_live_at</code> take <code>now</code>, a signed duration from now such as <code>-1d</code> or <code>-10m</code>, or an ISO datetime such as <code>2026-01-01T00:00:00</code>. Both are read against one moment, when the file is loaded, so <code>-10m</code> and <code>now</code> are exactly ten minutes apart. <code>now</code> and the relative forms have no time zone. <code>go_live_at</code> and <code>logical_start_time</code> must both have a time zone or both have none, and a file with no <code>logical_start_time</code> starts without one. <code>run.until</code> takes seconds or a duration string such as <code>11m</code>.</p>
+<h3 id="environment-variables">Environment variables</h3>
+<p><code>${VAR}</code> in a value is replaced with the environment variable, so one file can serve several environments. <code>${VAR:-default}</code> uses the default when the variable is unset or empty, as in a shell, and <code>$${</code> writes a literal <code>${</code>. An unquoted value is read as YAML reads it after the replacement, so <code>port: ${PG_PORT:-5432}</code> is the number 5432. A quoted value stays a string. A variable without a default that is unset stops the load with its line.</p>
+<h3 id="tasks-and-arrivals">Tasks and arrivals</h3>
+<p>A task is the <code>@app.task</code> decorator in YAML. Each run of the task emits <code>queued</code>, waits for the resource, emits <code>started</code>, waits for a service time sampled from the service, and emits a finished event whose value is the <code>payload</code>.</p>
+<ul>
+<li><code>payload</code> is a mapping, published as it is. A payload computed for each task is a Python function, described in the <a href="../../guides/yaml-advanced/">advanced guide</a>.</li>
+<li><code>id_field</code> adds the task id to a mapping payload under that key. It is the only part of a mapping payload that changes from one task to the next.</li>
+<li>A task with neither <code>service</code> nor <code>resource</code> takes no time and holds no resource. It emits its payload as soon as it is spawned, with no <code>queued</code> or <code>started</code> event.</li>
+</ul>
+<p><code>spawn</code> on an arrival names the task that each arrival starts. It is the loop a declarative example writes by hand:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nd">@app</span><span class="o">.</span><span class="n">arrival_loop</span><span class="p">(</span><span class="s2">&quot;standard&quot;</span><span class="p">)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">arrival_generator</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">task_id</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>        <span class="k">yield</span> <span class="n">context</span><span class="o">.</span><span class="n">wait_for_arrival</span><span class="p">(</span><span class="s2">&quot;standard&quot;</span><span class="p">)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        <span class="n">context</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">process_part</span><span class="p">(</span><span class="n">task_id</span><span class="p">,</span> <span class="n">context</span><span class="p">))</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>        <span class="n">task_id</span> <span class="o">+=</span> <span class="mi">1</span>
+</span></code></pre></div>
+<p>An arrival without <code>spawn</code> registers only its distribution, for a process to sample with <code>context.wait_for_arrival</code>.</p>
+<h3 id="telemetry">Telemetry</h3>
+<p>A telemetry entry runs every <code>interval</code> simulation seconds. <code>publish</code> maps a metric name to <code>&lt;resource&gt;.&lt;stat&gt;</code>, where the stat is one of:</p>
+<table>
+<thead>
+<tr>
+<th>Stat</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>capacity</code></td>
+<td>The resource's current capacity</td>
+</tr>
+<tr>
+<td><code>in_use</code></td>
+<td>Tokens held</td>
+</tr>
+<tr>
+<td><code>queue_length</code></td>
+<td>Requests waiting</td>
+</tr>
+<tr>
+<td><code>utilization</code></td>
+<td><code>in_use / capacity * 100</code>, or 0 when the capacity is 0</td>
+</tr>
+</tbody>
+</table>
+<p>Each metric is published as <code>&lt;sim_id&gt;.&lt;metric name&gt;</code>. For anything else, <code>function</code> takes a Python function instead of <code>publish</code>, as the <a href="../../guides/yaml-advanced/">advanced guide</a> describes.</p>
+<h3 id="connectors">Connectors</h3>
+<p><code>type</code> is one of the short names below, or a connector class from another package, as the <a href="../../guides/yaml-advanced/">advanced guide</a> describes. <code>config</code> holds the constructor's keyword arguments, so it takes exactly what the class takes.</p>
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th><code>type</code></th>
+<th>Class</th>
+<th>Extra</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>egress</td>
+<td><code>Console</code></td>
+<td><code>ConsoleEgress</code></td>
+<td>none</td>
+</tr>
+<tr>
+<td>egress</td>
+<td><code>Kafka</code></td>
+<td><code>KafkaEgress</code></td>
+<td><code>kafka</code></td>
+</tr>
+<tr>
+<td>egress</td>
+<td><code>Parquet</code></td>
+<td><code>ParquetStorageEgress</code></td>
+<td><code>parquet</code></td>
+</tr>
+<tr>
+<td>egress</td>
+<td><code>Jsonl</code></td>
+<td><code>JsonlStorageEgress</code></td>
+<td><code>parquet</code></td>
+</tr>
+<tr>
+<td>egress</td>
+<td><code>Iceberg</code></td>
+<td><code>IcebergStorageEgress</code></td>
+<td><code>iceberg</code></td>
+</tr>
+<tr>
+<td>egress</td>
+<td><code>Postgres</code></td>
+<td><code>PostgresEgress</code></td>
+<td><code>postgres</code></td>
+</tr>
+<tr>
+<td>egress</td>
+<td><code>Redis</code></td>
+<td><code>RedisEgress</code></td>
+<td><code>redis</code></td>
+</tr>
+<tr>
+<td>ingress</td>
+<td><code>Local</code></td>
+<td><code>LocalIngress</code></td>
+<td>none</td>
+</tr>
+<tr>
+<td>ingress</td>
+<td><code>Kafka</code></td>
+<td><code>KafkaIngress</code></td>
+<td><code>kafka</code></td>
+</tr>
+<tr>
+<td>ingress</td>
+<td><code>Postgres</code></td>
+<td><code>PostgresIngress</code></td>
+<td><code>postgres</code></td>
+</tr>
+<tr>
+<td>ingress</td>
+<td><code>Redis</code></td>
+<td><code>RedisIngress</code></td>
+<td><code>redis</code></td>
+</tr>
+</tbody>
+</table>
+<p>A connector module is imported only when a blueprint names it, so a blueprint that uses Kafka does not need the Postgres driver. When a connector's package is missing, the load stops with the line and the <code>pip install</code> command. Parquet and JSONL are the exception: they import PyArrow only when they start writing, so a missing <code>parquet</code> extra is reported when the run starts.</p>
+<p>Settings that the Python API takes as objects are plain values:</p>
+<table>
+<thead>
+<tr>
+<th><code>type</code></th>
+<th>Setting</th>
+<th>Plain value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Kafka</code></td>
+<td>topics</td>
+<td>Without a <code>topic_router</code>, <code>event_topic</code> and <code>telemetry_topic</code> are created when the run starts, with one partition each, if they do not exist.</td>
+</tr>
+<tr>
+<td><code>Parquet</code>, <code>Jsonl</code></td>
+<td><code>filesystem</code></td>
+<td>A mapping. <code>type</code> is <code>local</code> (the default) or <code>s3</code>, and the other keys are passed to PyArrow's <code>S3FileSystem</code>, such as <code>endpoint_override</code>, <code>access_key</code>, <code>secret_key</code> and <code>region</code>. An <code>endpoint_override</code> starting with <code>http://</code> sets the scheme. A key whose value is empty is left out, so <code>${S3_ENDPOINT:-}</code> with the variable unset takes the default.</td>
+</tr>
+<tr>
+<td><code>Parquet</code>, <code>Jsonl</code></td>
+<td><code>default_path</code></td>
+<td>Without a <code>path_router</code>, each event is written there as one flat row, with its <code>value</code> mapping unpacked into columns, and telemetry is left out. The folder is created on the first write.</td>
+</tr>
+<tr>
+<td><code>Iceberg</code></td>
+<td><code>catalog</code></td>
+<td>A mapping of PyIceberg catalog properties, such as <code>type</code>, <code>uri</code>, <code>warehouse</code> and <code>s3.endpoint</code>, passed to <code>load_catalog</code> on the first write. An optional <code>name</code> key names the catalog.</td>
+</tr>
+<tr>
+<td><code>Iceberg</code></td>
+<td><code>default_table</code>, <code>schemas</code></td>
+<td>Without a <code>table_router</code>, each event is written to <code>default_table</code> as one flat row. <code>schemas</code> maps a table to its columns, each with a type: <code>string</code>, <code>int</code>, <code>long</code>, <code>float</code>, <code>double</code>, <code>boolean</code>, <code>timestamp</code>, <code>timestamptz</code>, <code>date</code> or <code>binary</code>.</td>
+</tr>
+<tr>
+<td><code>Postgres</code></td>
+<td><code>tables</code></td>
+<td>Tables created when the run starts, if they do not exist. Each maps to <code>columns</code>, a mapping of column name to SQL type, and an optional <code>primary_key</code>. <code>table_name</code> defaults to the table when <code>tables</code> names one.</td>
+</tr>
+</tbody>
+</table>
+<p>An ISO time string bound for a timestamp or date column of Iceberg or Postgres is converted before the write.</p>
+<p><code>when</code> on an egress entry is <code>history</code>, which sends the records stamped before <code>simulation.go_live_at</code>, or <code>live</code>, which sends the records stamped at or after it. Both need <code>go_live_at</code>.</p>
+<h3 id="scenario">Scenario</h3>
+<p>A scenario sets registry paths to new values at given simulation times. Each step is a mapping such as <code>{at: 30, path: Workshop.resources.drill.current_cap, value: 2}</code>.</p>
+<p><code>at</code> is seconds from the start of the run, or a duration string. The steps are applied in time order by a SimPy process that waits on the simulation clock, so a scenario repeats exactly on every run and works at <code>factor: 0</code>. Every <code>path</code> is checked when the file is loaded, against a registry built from the blueprint with the same code the run uses, and the <code>value</code> must convert to the type the path holds. <a href="../registry/#scenarios-versus-localingress">Scenarios versus <code>LocalIngress</code></a> compares the two. The <a href="../../guides/yaml-blueprints/#2-script-an-experiment">guide</a> has a complete file.</p>
+<p>A resource follows a capacity change within the same simulation instant, but after the step that made it. A telemetry sample taken at exactly that instant can therefore still show the old capacity.</p>
+<hr />
+<h2 id="limitations">Limitations</h2>
+<p>A blueprint covers configuration. Anything that is logic stays in Python.</p>
+<ul>
+<li><strong>No expression language for field values.</strong> A mapping payload is a constant, apart from the task id that <code>id_field</code> adds. Weighted or Zipf choices, fields derived from other fields, values drawn from distributions, Markov walks and state carried from one event to the next are all Python, which the <a href="../../guides/yaml-advanced/">advanced guide</a> covers. The <a href="../../examples/advanced-postgres-orders/">advanced Postgres example</a> is like this: its generator draws random values, so it is a process in Python.</li>
+<li><strong>Containers and stores exist only in the registry.</strong> <code>containers</code> registers capacities, as <code>add_container</code> does, but no SimPy container is created for them. A process that needs one builds a <code>DynamicContainer</code> itself, or reads and writes the registry path directly, as the hot rolling twin does with its wear levels. <code>SimParameter.stores</code> has no builder method, so neither the builder nor a blueprint can register stores.</li>
+<li><strong>Built-in telemetry reads resources only.</strong> Container levels, variables or derived metrics need a telemetry <code>function</code>.</li>
+<li><strong>A task uses at most one service and one resource.</strong> Multi-stage routing, several resources per task, priorities and preemption are processes in Python.</li>
+<li><strong>One simulation per file.</strong> A blueprint has one <code>sim_id</code>.</li>
+</ul>
+<hr />
+<h2 id="errors">Errors</h2>
+<p>Every error names the file and the line, and <code>ddes run</code> prints it after <code>Error:</code>. Validation errors are all reported at once:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Error: err.yaml:3: simulation.speed: Extra inputs are not permitted
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>err.yaml:9: arrivals.standard.dist: Input should be &#39;exponential&#39;, &#39;normal&#39; or &#39;lognormal&#39;
+</span></code></pre></div>
+<p>Cross-references are checked after validation: a task's <code>service</code> and <code>resource</code>, an arrival's <code>spawn</code>, each telemetry <code>publish</code> entry, and each scenario <code>path</code> and <code>value</code>.</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Error: err.yaml:11: task &#39;part&#39; uses service &#39;drilling&#39;, which is not defined under services
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Error: err.yaml:6: &#39;Line_A.resources.press.current_cap&#39; is not a registry path. Paths look like Line_A.resources.&lt;name&gt;.current_cap or Line_A.arrival.&lt;name&gt;.rate
+</span></code></pre></div>
+<hr />
+<h2 id="security">Security</h2>
+<p>A blueprint with no Python references is read entirely by <code>yaml.SafeLoader</code>, and loading it imports only the connector modules its <code>type</code> entries name. A file that references Python runs the imports it names, so it is as trusted as a Python script. The <a href="../../guides/yaml-advanced/#7-security">advanced guide</a> explains.</p>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2217 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Real-time SimPy simulations that take parameter changes while they run and write their events and telemetry to streams, databases, files and Iceberg tables.">
+      
+      
+      
+      
+        <link rel="prev" href="../../guides/dynamic-topology/">
+      
+      
+        <link rel="next" href="../kafka/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+    
+    
+      
+        <title>Local Simulation - Dynamic DES</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config","G-076N8WCGWZ"),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","G-076N8WCGWZ",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=G-076N8WCGWZ",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>"undefined"!=typeof __md_analytics&&__md_analytics()</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="light-blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#local-simulation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Dynamic DES" class="md-header__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
+      
+  <img src="../../assets/favicon.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Dynamic DES
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Local Simulation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="light-blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="light-blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jaehyeon-kim/dynamic-des" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dynamic-des
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Dynamic DES" class="md-nav__button md-logo" aria-label="Dynamic DES" data-md-component="logo">
+      
+  <img src="../../assets/favicon.png" alt="logo">
+
+    </a>
+    Dynamic DES
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jaehyeon-kim/dynamic-des" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dynamic-des
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/low-level/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part 1: Low-level API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/declarative/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part 2: Declarative API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Part 3: YAML
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Core Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Writing a Simulation
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Writing a Simulation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/low-level/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Low-level API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/context/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Declarative API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/yaml/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML Blueprints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Runtime
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Realtime Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry and Live Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/time/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Time
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resources and Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/connectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/records/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Records and Telemetry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/batching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Batching and Delivery
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connectors
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Connectors
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/complex-routing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Complex Routing (Kafka)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/avro-and-pydantic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Serialization (Avro and Pydantic)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/kafka-security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Connecting to Secure Kafka
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_2" id="__nav_5_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Features
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/backfill-then-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live in One Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/live-parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Change Parameters While a Simulation Runs
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    YAML
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/yaml-blueprints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    YAML Blueprints, from First File to Connectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/yaml-advanced/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced YAML: Custom Logic with !python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/multi-resource-handoffs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Resource Handoffs (Hybrid Pattern)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/preemptive-breakdowns/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Preemptive Machine Breakdowns (Hybrid Pattern)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/dynamic-topology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Absolute Edge Cases (Dynamic Topology)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Examples
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Local Simulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kafka/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kafka Digital Twin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parquet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fast-Forward to Parquet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../iceberg/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fast-Forward to Iceberg
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../postgres/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Relational DB (Postgres)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../redis/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    In-Memory Store (Redis)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backfill-live/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backfill Then Go Live
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced-postgres-orders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Orders with Line Items (Advanced YAML)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="local-simulation">Local Simulation</h1>
+<p>A production line that prints its events and telemetry to the terminal. It needs no container, so it is the place to start. Each tab shows the example written one way: with the declarative API, with the low-level API, or as a YAML blueprint. <a href="../../architecture/overview/">Ways to write a simulation</a> compares the three.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Declarative</label><label for="__tabbed_1_2">Low-level</label><label for="__tabbed_1_3">YAML</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>This example demonstrates how to build a dynamic simulation using the declarative <strong>Standard API (<code>SimulationContext</code>)</strong> and <strong>Local Connectors</strong>.</p>
+<p>Local connectors do not require Docker, Kafka, or any external data stores. They are perfect for testing and benchmarking. This example adds <code>ConsoleEgress</code> and no ingress, so the lathe keeps the capacity it starts with for the whole run. Its low-level twin, in the Low-level tab, shows how <code>LocalIngress</code> schedules parameter changes at set times.</p>
+<p><strong>Quick Start</strong></p>
+<p>Download the script, then run it. This example needs no container.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/local_example.py
+</span></code></pre></div>
+<p><strong>With uv</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 1. Run the declarative simulation</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span>dynamic-des<span class="w"> </span>local_example.py
+</span></code></pre></div>
+<p><strong>With pip</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 1. Install the package</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>pip<span class="w"> </span>install<span class="w"> </span>dynamic-des
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 2. Run the declarative simulation</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>python<span class="w"> </span>local_example.py
+</span></code></pre></div>
+<p><strong>Full Source Code</strong></p>
+<p>This script initializes a production line, runs it for 60 simulation seconds, and streams events and telemetry directly to your terminal.</p>
+<p>Scripts live in the <a href="https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples"><code>examples/</code> folder</a> of the repository, and the label on the block below is this one's path there.</p>
+<div class="language-python highlight"><span class="filename">examples/declarative/local_example.py</span><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="sd">&quot;&quot;&quot;Local simulation, declarative API, no containers.</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="sd">The smallest complete example. `Factory_A` is built with `SimulationContext` and writes</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="sd">to `ConsoleEgress`, so events and telemetry are printed to the terminal and nothing</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="sd">external is involved.</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="sd">Start here. It needs no broker, no database and no object store, and it ends on its own</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="sd">after 60 simulation seconds.</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dynamic_des</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConsoleEgress</span><span class="p">,</span> <span class="n">SimulationContext</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="c1"># Logging is configured here rather than in a wrapper, because this script is run</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="c1"># directly. Without it the run produces no output at all.</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> [</span><span class="si">%(levelname)s</span><span class="s2">] </span><span class="si">%(name)s</span><span class="s2">: </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>    <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;%H:%M:%S&quot;</span><span class="p">,</span>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="p">)</span>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="c1"># ==========================================</span>
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a><span class="c1"># 1. Declarative Infrastructure Builder</span>
+</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a><span class="c1"># ==========================================</span>
+</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a><span class="n">app</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>    <span class="n">SimulationContext</span><span class="p">(</span><span class="n">sim_id</span><span class="o">=</span><span class="s2">&quot;Factory_A&quot;</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>    <span class="o">.</span><span class="n">add_egress</span><span class="p">(</span><span class="n">ConsoleEgress</span><span class="p">())</span>
+</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>    <span class="o">.</span><span class="n">add_resource</span><span class="p">(</span><span class="s2">&quot;lathe&quot;</span><span class="p">,</span> <span class="n">current_cap</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_cap</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>    <span class="o">.</span><span class="n">add_service</span><span class="p">(</span><span class="s2">&quot;milling&quot;</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</span><span id="__span-3-33"><a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>    <span class="o">.</span><span class="n">add_arrival</span><span class="p">(</span><span class="s2">&quot;standard&quot;</span><span class="p">,</span> <span class="n">dist</span><span class="o">=</span><span class="s2">&quot;exponential&quot;</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</span><span id="__span-3-34"><a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a><span class="p">)</span>
+</span><span id="__span-3-35"><a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>
+</span><span id="__span-3-36"><a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>
+</span><span id="__span-3-37"><a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a><span class="c1"># ==========================================</span>
+</span><span id="__span-3-38"><a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a><span class="c1"># 2. Simulation Logic (Decorators)</span>
+</span><span id="__span-3-39"><a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a><span class="c1"># ==========================================</span>
+</span><span id="__span-3-40"><a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a><span class="nd">@app</span><span class="o">.</span><span class="n">task</span><span class="p">(</span><span class="n">service_id</span><span class="o">=</span><span class="s2">&quot;milling&quot;</span><span class="p">,</span> <span class="n">resource_id</span><span class="o">=</span><span class="s2">&quot;lathe&quot;</span><span class="p">)</span>
+</span><span id="__span-3-41"><a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a><span class="k">def</span><span class="w"> </span><span class="nf">process_part</span><span class="p">(</span><span class="n">task_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+</span><span id="__span-3-42"><a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Executes the milling service and returns the custom payload.&quot;&quot;&quot;</span>
+</span><span id="__span-3-43"><a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;event_type&quot;</span><span class="p">:</span> <span class="s2">&quot;part_produced&quot;</span><span class="p">,</span> <span class="s2">&quot;part_id&quot;</span><span class="p">:</span> <span class="n">task_id</span><span class="p">,</span> <span class="s2">&quot;quality&quot;</span><span class="p">:</span> <span class="s2">&quot;A&quot;</span><span class="p">}</span>
+</span><span id="__span-3-44"><a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a>
+</span><span id="__span-3-45"><a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a>
+</span><span id="__span-3-46"><a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a><span class="nd">@app</span><span class="o">.</span><span class="n">arrival_loop</span><span class="p">(</span><span class="s2">&quot;standard&quot;</span><span class="p">)</span>
+</span><span id="__span-3-47"><a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a><span class="k">def</span><span class="w"> </span><span class="nf">arrival_generator</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+</span><span id="__span-3-48"><a id="__codelineno-3-48" name="__codelineno-3-48" href="#__codelineno-3-48"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Continuously spawns new parts based on the &#39;standard&#39; arrival distribution.&quot;&quot;&quot;</span>
+</span><span id="__span-3-49"><a id="__codelineno-3-49" name="__codelineno-3-49" href="#__codelineno-3-49"></a>    <span class="n">task_id</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-3-50"><a id="__codelineno-3-50" name="__codelineno-3-50" href="#__codelineno-3-50"></a>    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span id="__span-3-51"><a id="__codelineno-3-51" name="__codelineno-3-51" href="#__codelineno-3-51"></a>        <span class="k">yield</span> <span class="n">context</span><span class="o">.</span><span class="n">wait_for_arrival</span><span class="p">(</span><span class="s2">&quot;standard&quot;</span><span class="p">)</span>
+</span><span id="__span-3-52"><a id="__codelineno-3-52" name="__codelineno-3-52" href="#__codelineno-3-52"></a>        <span class="n">context</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">process_part</span><span class="p">(</span><span class="n">task_id</span><span class="p">))</span>
+</span><span id="__span-3-53"><a id="__codelineno-3-53" name="__codelineno-3-53" href="#__codelineno-3-53"></a>        <span class="n">task_id</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-3-54"><a id="__codelineno-3-54" name="__codelineno-3-54" href="#__codelineno-3-54"></a>
+</span><span id="__span-3-55"><a id="__codelineno-3-55" name="__codelineno-3-55" href="#__codelineno-3-55"></a>
+</span><span id="__span-3-56"><a id="__codelineno-3-56" name="__codelineno-3-56" href="#__codelineno-3-56"></a><span class="nd">@app</span><span class="o">.</span><span class="n">telemetry_loop</span><span class="p">(</span><span class="n">interval</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+</span><span id="__span-3-57"><a id="__codelineno-3-57" name="__codelineno-3-57" href="#__codelineno-3-57"></a><span class="k">def</span><span class="w"> </span><span class="nf">telemetry_generator</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+</span><span id="__span-3-58"><a id="__codelineno-3-58" name="__codelineno-3-58" href="#__codelineno-3-58"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Samples the hidden state of the resources every 2 simulation seconds.&quot;&quot;&quot;</span>
+</span><span id="__span-3-59"><a id="__codelineno-3-59" name="__codelineno-3-59" href="#__codelineno-3-59"></a>    <span class="n">res</span> <span class="o">=</span> <span class="n">context</span><span class="o">.</span><span class="n">get_resource</span><span class="p">(</span><span class="s2">&quot;lathe&quot;</span><span class="p">)</span>
+</span><span id="__span-3-60"><a id="__codelineno-3-60" name="__codelineno-3-60" href="#__codelineno-3-60"></a>    <span class="n">util</span> <span class="o">=</span> <span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">in_use</span> <span class="o">/</span> <span class="n">res</span><span class="o">.</span><span class="n">capacity</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span> <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">capacity</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+</span><span id="__span-3-61"><a id="__codelineno-3-61" name="__codelineno-3-61" href="#__codelineno-3-61"></a>
+</span><span id="__span-3-62"><a id="__codelineno-3-62" name="__codelineno-3-62" href="#__codelineno-3-62"></a>    <span class="n">context</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;utilization&quot;</span><span class="p">,</span> <span class="n">util</span><span class="p">)</span>
+</span><span id="__span-3-63"><a id="__codelineno-3-63" name="__codelineno-3-63" href="#__codelineno-3-63"></a>    <span class="n">context</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="s2">&quot;queue_length&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">items</span><span class="p">))</span>
+</span><span id="__span-3-64"><a id="__codelineno-3-64" name="__codelineno-3-64" href="#__codelineno-3-64"></a>
+</span><span id="__span-3-65"><a id="__codelineno-3-65" name="__codelineno-3-65" href="#__codelineno-3-65"></a>
+</span><span id="__span-3-66"><a id="__codelineno-3-66" name="__codelineno-3-66" href="#__codelineno-3-66"></a><span class="c1"># ==========================================</span>
+</span><span id="__span-3-67"><a id="__codelineno-3-67" name="__codelineno-3-67" href="#__codelineno-3-67"></a><span class="c1"># 3. Execution</span>
+</span><span id="__span-3-68"><a id="__codelineno-3-68" name="__codelineno-3-68" href="#__codelineno-3-68"></a><span class="c1"># ==========================================</span>
+</span><span id="__span-3-69"><a id="__codelineno-3-69" name="__codelineno-3-69" href="#__codelineno-3-69"></a><span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">():</span>
+</span><span id="__span-3-70"><a id="__codelineno-3-70" name="__codelineno-3-70" href="#__codelineno-3-70"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Starts the local simulation for a fixed duration.&quot;&quot;&quot;</span>
+</span><span id="__span-3-71"><a id="__codelineno-3-71" name="__codelineno-3-71" href="#__codelineno-3-71"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting Declarative Local Example. Running for 60 seconds...&quot;</span><span class="p">)</span>
+</span><span id="__span-3-72"><a id="__codelineno-3-72" name="__codelineno-3-72" href="#__codelineno-3-72"></a>    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+</span><span id="__span-3-73"><a id="__codelineno-3-73" name="__codelineno-3-73" href="#__codelineno-3-73"></a>
+</span><span id="__span-3-74"><a id="__codelineno-3-74" name="__codelineno-3-74" href="#__codelineno-3-74"></a>
+</span><span id="__span-3-75"><a id="__codelineno-3-75" name="__codelineno-3-75" href="#__codelineno-3-75"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span id="__span-3-76"><a id="__codelineno-3-76" name="__codelineno-3-76" href="#__codelineno-3-76"></a>    <span class="n">run</span><span class="p">()</span>
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>This example demonstrates how to build a dynamic simulation using the low-level <strong>Imperative API</strong> and <strong>Local Connectors</strong>.</p>
+<p>Local connectors do not require Docker, Kafka, or any external data stores. They are perfect for testing, benchmarking, or scenarios where parameter changes need to occur at specific wall-clock intervals.</p>
+<p><strong>Quick Start</strong></p>
+<p>Download the script, then run it. This example needs no container.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/imperative/local_example.py
+</span></code></pre></div>
+<p><strong>With uv</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 1. Run the imperative simulation</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span>dynamic-des<span class="w"> </span>local_example.py
+</span></code></pre></div>
+<p><strong>With pip</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># 1. Install the package</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>pip<span class="w"> </span>install<span class="w"> </span>dynamic-des
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># 2. Run the imperative simulation</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>python<span class="w"> </span>local_example.py
+</span></code></pre></div>
+<p><strong>Full Source Code</strong></p>
+<p>This script initializes a production line and runs it for 30 simulation seconds. <code>LocalIngress</code> schedules two capacity changes: the lathe goes from 1 to 3 at t=10s, then down to 2 at t=20s. Events and telemetry stream directly to your terminal, driven by raw SimPy generators.</p>
+<p>Scripts live in the <a href="https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples"><code>examples/</code> folder</a> of the repository, and the label on the block below is this one's path there.</p>
+<div class="language-python highlight"><span class="filename">examples/imperative/local_example.py</span><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="sd">&quot;&quot;&quot;Local simulation with scheduled parameter changes, imperative API.</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="sd">The low-level twin of `declarative/local_example.py`, built on</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="sd">`DynamicRealtimeEnvironment` directly. It adds what the declarative version does not</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="sd">have: `LocalIngress` schedules two capacity changes, so the lathe goes from 1 to 3 at</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="sd">t=10s and down to 2 at t=20s, and the telemetry shows the effect.</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="sd">Needs no containers. Ends on its own after 30 simulation seconds.</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dynamic_des</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>    <span class="n">CapacityConfig</span><span class="p">,</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>    <span class="n">ConsoleEgress</span><span class="p">,</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>    <span class="n">DistributionConfig</span><span class="p">,</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>    <span class="n">DynamicRealtimeEnvironment</span><span class="p">,</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>    <span class="n">DynamicResource</span><span class="p">,</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>    <span class="n">LocalIngress</span><span class="p">,</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>    <span class="n">Sampler</span><span class="p">,</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>    <span class="n">SimParameter</span><span class="p">,</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="p">)</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> [</span><span class="si">%(asctime)s</span><span class="s2">] </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="p">)</span>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;local_example&quot;</span><span class="p">)</span>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>
+</span><span id="__span-7-31"><a id="__codelineno-7-31" name="__codelineno-7-31" href="#__codelineno-7-31"></a>
+</span><span id="__span-7-32"><a id="__codelineno-7-32" name="__codelineno-7-32" href="#__codelineno-7-32"></a><span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">():</span>
+</span><span id="__span-7-33"><a id="__codelineno-7-33" name="__codelineno-7-33" href="#__codelineno-7-33"></a>    <span class="c1"># 1. Define the system schema</span>
+</span><span id="__span-7-34"><a id="__codelineno-7-34" name="__codelineno-7-34" href="#__codelineno-7-34"></a>    <span class="c1"># Line_A starts with 1 lathe, but has a physical ceiling of 5.</span>
+</span><span id="__span-7-35"><a id="__codelineno-7-35" name="__codelineno-7-35" href="#__codelineno-7-35"></a>    <span class="n">line_a_params</span> <span class="o">=</span> <span class="n">SimParameter</span><span class="p">(</span>
+</span><span id="__span-7-36"><a id="__codelineno-7-36" name="__codelineno-7-36" href="#__codelineno-7-36"></a>        <span class="n">sim_id</span><span class="o">=</span><span class="s2">&quot;Line_A&quot;</span><span class="p">,</span>
+</span><span id="__span-7-37"><a id="__codelineno-7-37" name="__codelineno-7-37" href="#__codelineno-7-37"></a>        <span class="n">arrival</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;standard&quot;</span><span class="p">:</span> <span class="n">DistributionConfig</span><span class="p">(</span><span class="n">dist</span><span class="o">=</span><span class="s2">&quot;exponential&quot;</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)},</span>
+</span><span id="__span-7-38"><a id="__codelineno-7-38" name="__codelineno-7-38" href="#__codelineno-7-38"></a>        <span class="n">service</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;milling&quot;</span><span class="p">:</span> <span class="n">DistributionConfig</span><span class="p">(</span><span class="n">dist</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">std</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)},</span>
+</span><span id="__span-7-39"><a id="__codelineno-7-39" name="__codelineno-7-39" href="#__codelineno-7-39"></a>        <span class="n">resources</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;lathe&quot;</span><span class="p">:</span> <span class="n">CapacityConfig</span><span class="p">(</span><span class="n">current_cap</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_cap</span><span class="o">=</span><span class="mi">5</span><span class="p">)},</span>
+</span><span id="__span-7-40"><a id="__codelineno-7-40" name="__codelineno-7-40" href="#__codelineno-7-40"></a>    <span class="p">)</span>
+</span><span id="__span-7-41"><a id="__codelineno-7-41" name="__codelineno-7-41" href="#__codelineno-7-41"></a>
+</span><span id="__span-7-42"><a id="__codelineno-7-42" name="__codelineno-7-42" href="#__codelineno-7-42"></a>    <span class="c1"># 2. Setup Environment with Local Connectors</span>
+</span><span id="__span-7-43"><a id="__codelineno-7-43" name="__codelineno-7-43" href="#__codelineno-7-43"></a>    <span class="c1"># Schedule capacity updates: jump to 3 at t=10s, then drop to 2 at t=20s</span>
+</span><span id="__span-7-44"><a id="__codelineno-7-44" name="__codelineno-7-44" href="#__codelineno-7-44"></a>    <span class="n">ingress</span> <span class="o">=</span> <span class="n">LocalIngress</span><span class="p">(</span>
+</span><span id="__span-7-45"><a id="__codelineno-7-45" name="__codelineno-7-45" href="#__codelineno-7-45"></a>        <span class="n">schedule</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-7-46"><a id="__codelineno-7-46" name="__codelineno-7-46" href="#__codelineno-7-46"></a>            <span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="s2">&quot;Line_A.resources.lathe.current_cap&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+</span><span id="__span-7-47"><a id="__codelineno-7-47" name="__codelineno-7-47" href="#__codelineno-7-47"></a>            <span class="p">(</span><span class="mf">20.0</span><span class="p">,</span> <span class="s2">&quot;Line_A.resources.lathe.current_cap&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+</span><span id="__span-7-48"><a id="__codelineno-7-48" name="__codelineno-7-48" href="#__codelineno-7-48"></a>        <span class="p">]</span>
+</span><span id="__span-7-49"><a id="__codelineno-7-49" name="__codelineno-7-49" href="#__codelineno-7-49"></a>    <span class="p">)</span>
+</span><span id="__span-7-50"><a id="__codelineno-7-50" name="__codelineno-7-50" href="#__codelineno-7-50"></a>    <span class="n">egress</span> <span class="o">=</span> <span class="n">ConsoleEgress</span><span class="p">()</span>
+</span><span id="__span-7-51"><a id="__codelineno-7-51" name="__codelineno-7-51" href="#__codelineno-7-51"></a>
+</span><span id="__span-7-52"><a id="__codelineno-7-52" name="__codelineno-7-52" href="#__codelineno-7-52"></a>    <span class="n">env</span> <span class="o">=</span> <span class="n">DynamicRealtimeEnvironment</span><span class="p">(</span><span class="n">factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</span><span id="__span-7-53"><a id="__codelineno-7-53" name="__codelineno-7-53" href="#__codelineno-7-53"></a>    <span class="n">env</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">register_sim_parameter</span><span class="p">(</span><span class="n">line_a_params</span><span class="p">)</span>
+</span><span id="__span-7-54"><a id="__codelineno-7-54" name="__codelineno-7-54" href="#__codelineno-7-54"></a>    <span class="n">env</span><span class="o">.</span><span class="n">setup_ingress</span><span class="p">([</span><span class="n">ingress</span><span class="p">])</span>
+</span><span id="__span-7-55"><a id="__codelineno-7-55" name="__codelineno-7-55" href="#__codelineno-7-55"></a>    <span class="n">env</span><span class="o">.</span><span class="n">setup_egress</span><span class="p">([</span><span class="n">egress</span><span class="p">])</span>
+</span><span id="__span-7-56"><a id="__codelineno-7-56" name="__codelineno-7-56" href="#__codelineno-7-56"></a>
+</span><span id="__span-7-57"><a id="__codelineno-7-57" name="__codelineno-7-57" href="#__codelineno-7-57"></a>    <span class="c1"># 3. Initialize Resources and Sampler</span>
+</span><span id="__span-7-58"><a id="__codelineno-7-58" name="__codelineno-7-58" href="#__codelineno-7-58"></a>    <span class="n">res</span> <span class="o">=</span> <span class="n">DynamicResource</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="s2">&quot;Line_A&quot;</span><span class="p">,</span> <span class="s2">&quot;lathe&quot;</span><span class="p">)</span>
+</span><span id="__span-7-59"><a id="__codelineno-7-59" name="__codelineno-7-59" href="#__codelineno-7-59"></a>    <span class="n">sampler</span> <span class="o">=</span> <span class="n">Sampler</span><span class="p">(</span><span class="n">rng</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">))</span>
+</span><span id="__span-7-60"><a id="__codelineno-7-60" name="__codelineno-7-60" href="#__codelineno-7-60"></a>
+</span><span id="__span-7-61"><a id="__codelineno-7-61" name="__codelineno-7-61" href="#__codelineno-7-61"></a>    <span class="c1"># 4. Define Simulation Logic</span>
+</span><span id="__span-7-62"><a id="__codelineno-7-62" name="__codelineno-7-62" href="#__codelineno-7-62"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">arrival_process</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">DynamicRealtimeEnvironment</span><span class="p">,</span> <span class="n">res</span><span class="p">:</span> <span class="n">DynamicResource</span><span class="p">):</span>
+</span><span id="__span-7-63"><a id="__codelineno-7-63" name="__codelineno-7-63" href="#__codelineno-7-63"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates tasks based on the dynamic arrival rate.&quot;&quot;&quot;</span>
+</span><span id="__span-7-64"><a id="__codelineno-7-64" name="__codelineno-7-64" href="#__codelineno-7-64"></a>        <span class="n">arrival_cfg</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">get_config</span><span class="p">(</span><span class="s2">&quot;Line_A.arrival.standard&quot;</span><span class="p">)</span>
+</span><span id="__span-7-65"><a id="__codelineno-7-65" name="__codelineno-7-65" href="#__codelineno-7-65"></a>        <span class="n">service_path</span> <span class="o">=</span> <span class="s2">&quot;Line_A.service.milling&quot;</span>
+</span><span id="__span-7-66"><a id="__codelineno-7-66" name="__codelineno-7-66" href="#__codelineno-7-66"></a>        <span class="n">task_id</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-7-67"><a id="__codelineno-7-67" name="__codelineno-7-67" href="#__codelineno-7-67"></a>
+</span><span id="__span-7-68"><a id="__codelineno-7-68" name="__codelineno-7-68" href="#__codelineno-7-68"></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span id="__span-7-69"><a id="__codelineno-7-69" name="__codelineno-7-69" href="#__codelineno-7-69"></a>            <span class="c1"># Reference-based: arrival_cfg updates automatically via Registry</span>
+</span><span id="__span-7-70"><a id="__codelineno-7-70" name="__codelineno-7-70" href="#__codelineno-7-70"></a>            <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">arrival_cfg</span><span class="p">))</span>
+</span><span id="__span-7-71"><a id="__codelineno-7-71" name="__codelineno-7-71" href="#__codelineno-7-71"></a>            <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">work_task</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">service_path</span><span class="p">))</span>
+</span><span id="__span-7-72"><a id="__codelineno-7-72" name="__codelineno-7-72" href="#__codelineno-7-72"></a>            <span class="n">task_id</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-7-73"><a id="__codelineno-7-73" name="__codelineno-7-73" href="#__codelineno-7-73"></a>
+</span><span id="__span-7-74"><a id="__codelineno-7-74" name="__codelineno-7-74" href="#__codelineno-7-74"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">work_task</span><span class="p">(</span>
+</span><span id="__span-7-75"><a id="__codelineno-7-75" name="__codelineno-7-75" href="#__codelineno-7-75"></a>        <span class="n">env</span><span class="p">:</span> <span class="n">DynamicRealtimeEnvironment</span><span class="p">,</span>
+</span><span id="__span-7-76"><a id="__codelineno-7-76" name="__codelineno-7-76" href="#__codelineno-7-76"></a>        <span class="n">task_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-7-77"><a id="__codelineno-7-77" name="__codelineno-7-77" href="#__codelineno-7-77"></a>        <span class="n">res</span><span class="p">:</span> <span class="n">DynamicResource</span><span class="p">,</span>
+</span><span id="__span-7-78"><a id="__codelineno-7-78" name="__codelineno-7-78" href="#__codelineno-7-78"></a>        <span class="n">path_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-7-79"><a id="__codelineno-7-79" name="__codelineno-7-79" href="#__codelineno-7-79"></a>    <span class="p">):</span>
+</span><span id="__span-7-80"><a id="__codelineno-7-80" name="__codelineno-7-80" href="#__codelineno-7-80"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Models task lifecycle: queued -&gt; started -&gt; finished.&quot;&quot;&quot;</span>
+</span><span id="__span-7-81"><a id="__codelineno-7-81" name="__codelineno-7-81" href="#__codelineno-7-81"></a>        <span class="n">task_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;task-</span><span class="si">{</span><span class="n">task_id</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-7-82"><a id="__codelineno-7-82" name="__codelineno-7-82" href="#__codelineno-7-82"></a>        <span class="n">env</span><span class="o">.</span><span class="n">publish_event</span><span class="p">(</span><span class="n">task_key</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;path_id&quot;</span><span class="p">:</span> <span class="n">path_id</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;queued&quot;</span><span class="p">})</span>
+</span><span id="__span-7-83"><a id="__codelineno-7-83" name="__codelineno-7-83" href="#__codelineno-7-83"></a>
+</span><span id="__span-7-84"><a id="__codelineno-7-84" name="__codelineno-7-84" href="#__codelineno-7-84"></a>        <span class="k">with</span> <span class="n">res</span><span class="o">.</span><span class="n">request</span><span class="p">()</span> <span class="k">as</span> <span class="n">req</span><span class="p">:</span>
+</span><span id="__span-7-85"><a id="__codelineno-7-85" name="__codelineno-7-85" href="#__codelineno-7-85"></a>            <span class="k">yield</span> <span class="n">req</span>
+</span><span id="__span-7-86"><a id="__codelineno-7-86" name="__codelineno-7-86" href="#__codelineno-7-86"></a>            <span class="c1"># Late Binding: Fetch latest config only when work actually starts</span>
+</span><span id="__span-7-87"><a id="__codelineno-7-87" name="__codelineno-7-87" href="#__codelineno-7-87"></a>            <span class="n">current_service_cfg</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">registry</span><span class="o">.</span><span class="n">get_config</span><span class="p">(</span><span class="n">path_id</span><span class="p">)</span>
+</span><span id="__span-7-88"><a id="__codelineno-7-88" name="__codelineno-7-88" href="#__codelineno-7-88"></a>
+</span><span id="__span-7-89"><a id="__codelineno-7-89" name="__codelineno-7-89" href="#__codelineno-7-89"></a>            <span class="n">env</span><span class="o">.</span><span class="n">publish_event</span><span class="p">(</span><span class="n">task_key</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;path_id&quot;</span><span class="p">:</span> <span class="n">path_id</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;started&quot;</span><span class="p">})</span>
+</span><span id="__span-7-90"><a id="__codelineno-7-90" name="__codelineno-7-90" href="#__codelineno-7-90"></a>
+</span><span id="__span-7-91"><a id="__codelineno-7-91" name="__codelineno-7-91" href="#__codelineno-7-91"></a>            <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">current_service_cfg</span><span class="p">))</span>
+</span><span id="__span-7-92"><a id="__codelineno-7-92" name="__codelineno-7-92" href="#__codelineno-7-92"></a>            <span class="n">env</span><span class="o">.</span><span class="n">publish_event</span><span class="p">(</span><span class="n">task_key</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;path_id&quot;</span><span class="p">:</span> <span class="n">path_id</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;finished&quot;</span><span class="p">})</span>
+</span><span id="__span-7-93"><a id="__codelineno-7-93" name="__codelineno-7-93" href="#__codelineno-7-93"></a>
+</span><span id="__span-7-94"><a id="__codelineno-7-94" name="__codelineno-7-94" href="#__codelineno-7-94"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">telemetry_monitor</span><span class="p">(</span><span class="n">env</span><span class="p">:</span> <span class="n">DynamicRealtimeEnvironment</span><span class="p">,</span> <span class="n">res</span><span class="p">:</span> <span class="n">DynamicResource</span><span class="p">):</span>
+</span><span id="__span-7-95"><a id="__codelineno-7-95" name="__codelineno-7-95" href="#__codelineno-7-95"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Streams system health metrics every 2 seconds.&quot;&quot;&quot;</span>
+</span><span id="__span-7-96"><a id="__codelineno-7-96" name="__codelineno-7-96" href="#__codelineno-7-96"></a>        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+</span><span id="__span-7-97"><a id="__codelineno-7-97" name="__codelineno-7-97" href="#__codelineno-7-97"></a>            <span class="n">env</span><span class="o">.</span><span class="n">publish_telemetry</span><span class="p">(</span><span class="s2">&quot;Line_A.resources.lathe.capacity&quot;</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">capacity</span><span class="p">)</span>
+</span><span id="__span-7-98"><a id="__codelineno-7-98" name="__codelineno-7-98" href="#__codelineno-7-98"></a>            <span class="n">env</span><span class="o">.</span><span class="n">publish_telemetry</span><span class="p">(</span><span class="s2">&quot;Line_A.resources.lathe.in_use&quot;</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">in_use</span><span class="p">)</span>
+</span><span id="__span-7-99"><a id="__codelineno-7-99" name="__codelineno-7-99" href="#__codelineno-7-99"></a>            <span class="n">env</span><span class="o">.</span><span class="n">publish_telemetry</span><span class="p">(</span>
+</span><span id="__span-7-100"><a id="__codelineno-7-100" name="__codelineno-7-100" href="#__codelineno-7-100"></a>                <span class="s2">&quot;Line_A.resources.lathe.queue_length&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">items</span><span class="p">)</span>
+</span><span id="__span-7-101"><a id="__codelineno-7-101" name="__codelineno-7-101" href="#__codelineno-7-101"></a>            <span class="p">)</span>
+</span><span id="__span-7-102"><a id="__codelineno-7-102" name="__codelineno-7-102" href="#__codelineno-7-102"></a>
+</span><span id="__span-7-103"><a id="__codelineno-7-103" name="__codelineno-7-103" href="#__codelineno-7-103"></a>            <span class="n">util</span> <span class="o">=</span> <span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">in_use</span> <span class="o">/</span> <span class="n">res</span><span class="o">.</span><span class="n">capacity</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span> <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">capacity</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+</span><span id="__span-7-104"><a id="__codelineno-7-104" name="__codelineno-7-104" href="#__codelineno-7-104"></a>            <span class="n">env</span><span class="o">.</span><span class="n">publish_telemetry</span><span class="p">(</span><span class="s2">&quot;Line_A.resources.lathe.utilization&quot;</span><span class="p">,</span> <span class="n">util</span><span class="p">)</span>
+</span><span id="__span-7-105"><a id="__codelineno-7-105" name="__codelineno-7-105" href="#__codelineno-7-105"></a>            <span class="k">yield</span> <span class="n">env</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+</span><span id="__span-7-106"><a id="__codelineno-7-106" name="__codelineno-7-106" href="#__codelineno-7-106"></a>
+</span><span id="__span-7-107"><a id="__codelineno-7-107" name="__codelineno-7-107" href="#__codelineno-7-107"></a>    <span class="c1"># 5. Run the Simulation</span>
+</span><span id="__span-7-108"><a id="__codelineno-7-108" name="__codelineno-7-108" href="#__codelineno-7-108"></a>    <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">arrival_process</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">res</span><span class="p">))</span>
+</span><span id="__span-7-109"><a id="__codelineno-7-109" name="__codelineno-7-109" href="#__codelineno-7-109"></a>    <span class="n">env</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">telemetry_monitor</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">res</span><span class="p">))</span>
+</span><span id="__span-7-110"><a id="__codelineno-7-110" name="__codelineno-7-110" href="#__codelineno-7-110"></a>
+</span><span id="__span-7-111"><a id="__codelineno-7-111" name="__codelineno-7-111" href="#__codelineno-7-111"></a>    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Simulation started. Watch capacity change at t=10.0s and 20.0s...&quot;</span><span class="p">)</span>
+</span><span id="__span-7-112"><a id="__codelineno-7-112" name="__codelineno-7-112" href="#__codelineno-7-112"></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-7-113"><a id="__codelineno-7-113" name="__codelineno-7-113" href="#__codelineno-7-113"></a>        <span class="n">env</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">until</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+</span><span id="__span-7-114"><a id="__codelineno-7-114" name="__codelineno-7-114" href="#__codelineno-7-114"></a>    <span class="k">finally</span><span class="p">:</span>
+</span><span id="__span-7-115"><a id="__codelineno-7-115" name="__codelineno-7-115" href="#__codelineno-7-115"></a>        <span class="n">env</span><span class="o">.</span><span class="n">teardown</span><span class="p">()</span>
+</span><span id="__span-7-116"><a id="__codelineno-7-116" name="__codelineno-7-116" href="#__codelineno-7-116"></a>
+</span><span id="__span-7-117"><a id="__codelineno-7-117" name="__codelineno-7-117" href="#__codelineno-7-117"></a>
+</span><span id="__span-7-118"><a id="__codelineno-7-118" name="__codelineno-7-118" href="#__codelineno-7-118"></a><span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+</span><span id="__span-7-119"><a id="__codelineno-7-119" name="__codelineno-7-119" href="#__codelineno-7-119"></a>    <span class="n">run</span><span class="p">()</span>
+</span></code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>This example builds the same simulation as the declarative example in the Declarative tab, from a YAML blueprint and nothing else. No Python is written: the arrival loop, the task and the telemetry loop are all declared in the file.</p>
+<p>It writes to <code>ConsoleEgress</code> and needs no container, so it is the place to start.</p>
+<p><strong>Quick Start</strong></p>
+<p>Download the blueprint, then run it.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/local.yaml
+</span></code></pre></div>
+<p><strong>With uv</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># 1. Run the blueprint</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span>dynamic-des<span class="w"> </span>ddes<span class="w"> </span>run<span class="w"> </span>local.yaml
+</span></code></pre></div>
+<p><strong>With pip</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># 1. Install the package</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>pip<span class="w"> </span>install<span class="w"> </span>dynamic-des
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># 2. Run the blueprint</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>ddes<span class="w"> </span>run<span class="w"> </span>local.yaml
+</span></code></pre></div>
+<p><strong>What It Does</strong></p>
+<p>The run prints every record to the terminal and stops after 60 simulation seconds, which at <code>factor: 1.0</code> is one real minute. Telemetry lines carry <code>[TEL]</code> and events carry <code>[EVT]</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>[TEL] {&#39;sim_ts&#39;: 0.0, &#39;timestamp&#39;: &#39;...&#39;, &#39;path_id&#39;: &#39;Factory_A.utilization&#39;, &#39;value&#39;: 0.0}
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>[EVT] {&#39;sim_ts&#39;: 0.328, &#39;timestamp&#39;: &#39;...&#39;, &#39;key&#39;: &#39;task-0&#39;, &#39;value&#39;: {&#39;path_id&#39;: &#39;Factory_A.service.milling&#39;, &#39;status&#39;: &#39;queued&#39;}}
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>[EVT] {&#39;sim_ts&#39;: 3.754, &#39;timestamp&#39;: &#39;...&#39;, &#39;key&#39;: &#39;task-0&#39;, &#39;value&#39;: {&#39;event_type&#39;: &#39;part_produced&#39;, &#39;quality&#39;: &#39;A&#39;, &#39;part_id&#39;: 0}}
+</span></code></pre></div>
+<p>Each part produces a <code>queued</code>, a <code>started</code> and a finished event. The finished event is the task's <code>payload</code>, with the task id added as <code>part_id</code> because of <code>id_field</code>. Add <code>--until 10</code> to stop after 10 simulation seconds instead.</p>
+<p><strong>Full Source Code</strong></p>
+<p>The blueprint declares one resource, one service and one arrival. <code>spawn</code> names the task each arrival starts, and the <code>telemetry</code> entry publishes two statistics of the lathe every 2 simulation seconds.</p>
+<p>Files live in the <a href="https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples/yaml"><code>examples/yaml/</code> folder</a> of the repository, and the label on each block below is its path there.</p>
+<div class="language-yaml highlight"><span class="filename">examples/yaml/local.yaml</span><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Local simulation in YAML, with no Python and no containers.</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="c1">#</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1"># The twin of examples/declarative/local_example.py. Factory_A writes to</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="c1"># ConsoleEgress, so events and telemetry are printed to the terminal, and the run</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1"># ends on its own after 60 simulation seconds.</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="c1">#</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="c1"># Run it with: ddes run examples/yaml/local.yaml</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="nt">simulation</span><span class="p">:</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">  </span><span class="nt">sim_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Factory_A</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">  </span><span class="nt">factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="nt">egress</span><span class="p">:</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Console</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="nt">resources</span><span class="p">:</span>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">  </span><span class="nt">lathe</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">current_cap</span><span class="p">:</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="nt"> max_cap</span><span class="p">:</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">}</span>
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>
+</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="w">  </span><span class="nt">milling</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">dist</span><span class="p">:</span><span class="w"> </span><span class="nv">normal</span><span class="p p-Indicator">,</span><span class="nt"> mean</span><span class="p">:</span><span class="w"> </span><span class="nv">3.0</span><span class="p p-Indicator">,</span><span class="nt"> std</span><span class="p">:</span><span class="w"> </span><span class="nv">0.5</span><span class="p p-Indicator">}</span>
+</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>
+</span><span id="__span-12-22"><a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="nt">arrivals</span><span class="p">:</span>
+</span><span id="__span-12-23"><a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="w">  </span><span class="c1"># Each arrival spawns one process_part task.</span>
+</span><span id="__span-12-24"><a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="w">  </span><span class="nt">standard</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">dist</span><span class="p">:</span><span class="w"> </span><span class="nv">exponential</span><span class="p p-Indicator">,</span><span class="nt"> rate</span><span class="p">:</span><span class="w"> </span><span class="nv">1.0</span><span class="p p-Indicator">,</span><span class="nt"> spawn</span><span class="p">:</span><span class="w"> </span><span class="nv">process_part</span><span class="p p-Indicator">}</span>
+</span><span id="__span-12-25"><a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a>
+</span><span id="__span-12-26"><a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="nt">tasks</span><span class="p">:</span>
+</span><span id="__span-12-27"><a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="w">  </span><span class="nt">process_part</span><span class="p">:</span>
+</span><span id="__span-12-28"><a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="w">    </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">milling</span>
+</span><span id="__span-12-29"><a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="w">    </span><span class="nt">resource</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lathe</span>
+</span><span id="__span-12-30"><a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="w">    </span><span class="c1"># The value of the task&#39;s finished event. id_field adds the task id as part_id.</span>
+</span><span id="__span-12-31"><a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a><span class="w">    </span><span class="nt">payload</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{</span><span class="nt">event_type</span><span class="p">:</span><span class="w"> </span><span class="nv">part_produced</span><span class="p p-Indicator">,</span><span class="nt"> quality</span><span class="p">:</span><span class="w"> </span><span class="nv">A</span><span class="p p-Indicator">}</span>
+</span><span id="__span-12-32"><a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a><span class="w">    </span><span class="nt">id_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">part_id</span>
+</span><span id="__span-12-33"><a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a>
+</span><span id="__span-12-34"><a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a><span class="nt">telemetry</span><span class="p">:</span>
+</span><span id="__span-12-35"><a id="__codelineno-12-35" name="__codelineno-12-35" href="#__codelineno-12-35"></a><span class="w">  </span><span class="c1"># Samples the lathe every 2 simulation seconds.</span>
+</span><span id="__span-12-36"><a id="__codelineno-12-36" name="__codelineno-12-36" href="#__codelineno-12-36"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.0</span>
+</span><span id="__span-12-37"><a id="__codelineno-12-37" name="__codelineno-12-37" href="#__codelineno-12-37"></a><span class="w">    </span><span class="nt">publish</span><span class="p">:</span>
+</span><span id="__span-12-38"><a id="__codelineno-12-38" name="__codelineno-12-38" href="#__codelineno-12-38"></a><span class="w">      </span><span class="nt">utilization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lathe.utilization</span>
+</span><span id="__span-12-39"><a id="__codelineno-12-39" name="__codelineno-12-39" href="#__codelineno-12-39"></a><span class="w">      </span><span class="nt">queue_length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lathe.queue_length</span>
+</span><span id="__span-12-40"><a id="__codelineno-12-40" name="__codelineno-12-40" href="#__codelineno-12-40"></a>
+</span><span id="__span-12-41"><a id="__codelineno-12-41" name="__codelineno-12-41" href="#__codelineno-12-41"></a><span class="nt">run</span><span class="p">:</span>
+</span><span id="__span-12-42"><a id="__codelineno-12-42" name="__codelineno-12-42" href="#__codelineno-12-42"></a><span class="w">  </span><span class="nt">until</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">60</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
