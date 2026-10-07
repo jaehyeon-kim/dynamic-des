@@ -1,9 +1,32 @@
+import asyncio
 import queue
 
 import pytest
 
 from dynamic_des.core.environment import DynamicRealtimeEnvironment
 from dynamic_des.models.params import CapacityConfig, DistributionConfig, SimParameter
+
+
+@pytest.fixture
+def run_until():
+    """
+    Runs a coroutine as a task until `done()` is true, then cancels it.
+
+    Egress tests used to cancel after a fixed sleep, which a slow CI runner can
+    outlast before the first write. Waiting on the result itself, with a time limit,
+    removes that race; the test's own assertions then report what went wrong.
+    """
+
+    async def _run(coro, done, timeout=5.0):
+        task = asyncio.create_task(coro)
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + timeout
+        while not done() and loop.time() < deadline:
+            await asyncio.sleep(0.01)
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+
+    return _run
 
 
 @pytest.fixture

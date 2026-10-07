@@ -1,4 +1,3 @@
-import asyncio
 import json
 import queue
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -9,7 +8,7 @@ from dynamic_des.connectors.egress.redis import RedisEgress
 
 
 @pytest.mark.asyncio
-async def test_redis_egress():
+async def test_redis_egress(run_until):
     egress_queue = queue.Queue()
 
     # Put two batches
@@ -33,14 +32,10 @@ async def test_redis_egress():
         mock_client.pipeline = MagicMock(return_value=mock_pipe)
         mock_from_url.return_value = mock_client
 
-        task = asyncio.create_task(egress.run(egress_queue))
-        await asyncio.sleep(0.1)
-        task.cancel()
-
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
+        await run_until(
+            egress.run(egress_queue),
+            lambda: mock_pipe.execute.called and egress_queue.empty(),
+        )
 
         mock_from_url.assert_called_once_with("redis://localhost:6379/0")
         assert mock_pipe.xadd.call_count == 3
@@ -55,7 +50,7 @@ async def test_redis_egress():
 
 
 @pytest.mark.asyncio
-async def test_stream_key_is_read_from_the_nested_payload():
+async def test_stream_key_is_read_from_the_nested_payload(run_until):
     """`publish_event` nests the caller's dict under `value`, so `__stream__` is there
     rather than at the top level. Reading only the top level sent every record to the
     default stream and the documented routing silently did nothing."""
@@ -77,9 +72,7 @@ async def test_stream_key_is_read_from_the_nested_payload():
         ]
     )
 
-    task = asyncio.create_task(egress.run(q))
-    await asyncio.sleep(0.2)
-    task.cancel()
+    await run_until(egress.run(q), lambda: pipe.execute.called and q.empty())
 
     targets = [call.args[0] for call in pipe.xadd.call_args_list]
     assert targets == ["part_events", "default_events"]

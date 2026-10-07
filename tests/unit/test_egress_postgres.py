@@ -1,4 +1,3 @@
-import asyncio
 import queue
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
@@ -26,7 +25,7 @@ async def test_postgres_egress_initialization():
 @patch(
     "dynamic_des.connectors.egress.postgres.asyncpg.create_pool", new_callable=AsyncMock
 )
-async def test_postgres_egress_run(mock_create_pool, mock_pool):
+async def test_postgres_egress_run(mock_create_pool, mock_pool, run_until):
     pool, conn = mock_pool
     mock_create_pool.return_value = pool
     conn.fetch.return_value = [{"column_name": "id"}, {"column_name": "value"}]
@@ -38,13 +37,10 @@ async def test_postgres_egress_run(mock_create_pool, mock_pool):
         {"value": {"id": 3, "value": "c"}},
     ]
     egress_queue.put(batch)
-    task = asyncio.create_task(egress.run(egress_queue))
-    await asyncio.sleep(0.1)
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    await run_until(
+        egress.run(egress_queue),
+        lambda: conn.executemany.called and egress_queue.empty(),
+    )
     mock_create_pool.assert_called_once()
     assert conn.executemany.call_count == 1
     call_args = conn.executemany.call_args[0]
@@ -135,7 +131,9 @@ def test_records_with_different_columns_are_written_in_separate_runs():
 @patch(
     "dynamic_des.connectors.egress.postgres.asyncpg.create_pool", new_callable=AsyncMock
 )
-async def test_iso_strings_are_converted_for_time_columns(mock_create_pool, mock_pool):
+async def test_iso_strings_are_converted_for_time_columns(
+    mock_create_pool, mock_pool, run_until
+):
     """asyncpg rejects a string for a timestamp column, so the writer converts it."""
     from datetime import date, datetime, timezone
 
@@ -163,13 +161,10 @@ async def test_iso_strings_are_converted_for_time_columns(mock_create_pool, mock
             }
         ]
     )
-    task = asyncio.create_task(egress.run(egress_queue))
-    await asyncio.sleep(0.1)
-    task.cancel()
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    await run_until(
+        egress.run(egress_queue),
+        lambda: conn.executemany.called and egress_queue.empty(),
+    )
 
     query, values = conn.executemany.call_args[0]
     row = dict(zip(query.split("(")[1].split(")")[0].split(", "), values[0]))
