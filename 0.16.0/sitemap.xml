@@ -1,143 +1,143 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/api/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/api/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/getting-started/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/getting-started/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/batching/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/batching/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/connectors/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/connectors/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/context/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/context/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/environment/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/environment/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/low-level/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/low-level/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/overview/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/overview/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/records/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/records/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/registry/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/registry/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/resources/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/resources/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/time/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/time/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/architecture/yaml/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/architecture/yaml/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/examples/advanced-postgres-orders/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/examples/advanced-postgres-orders/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/examples/backfill-live/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/examples/backfill-live/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/examples/iceberg/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/examples/iceberg/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/examples/kafka/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/examples/kafka/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/examples/local/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/examples/local/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/examples/parquet/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/examples/parquet/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/examples/postgres/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/examples/postgres/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/examples/redis/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/examples/redis/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/guides/avro-and-pydantic/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/guides/avro-and-pydantic/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/guides/backfill-then-live/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/guides/backfill-then-live/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/guides/complex-routing/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/guides/complex-routing/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/guides/dynamic-topology/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/guides/dynamic-topology/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/guides/kafka-security/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/guides/kafka-security/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/guides/live-parameters/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/guides/live-parameters/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/guides/multi-resource-handoffs/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/guides/multi-resource-handoffs/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/guides/preemptive-breakdowns/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/guides/preemptive-breakdowns/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/guides/yaml-advanced/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/guides/yaml-advanced/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/guides/yaml-blueprints/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/guides/yaml-blueprints/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/tutorials/declarative/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/tutorials/declarative/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/tutorials/low-level/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/tutorials/low-level/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
     <url>
-         <loc>https://jaehyeon.me/dynamic-des/latest/0.16.0/tutorials/yaml/</loc>
+         <loc>https://jaehyeon.me/dynamic-des/latest/tutorials/yaml/</loc>
          <lastmod>2026-10-07</lastmod>
     </url>
 </urlset>
