@@ -101,7 +101,7 @@ def test_avro_serializers_construct_with_extras_installed():
 
 @pytest.mark.asyncio
 @patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
-async def test_kafka_egress_pluggable_serializers(MockProducer):
+async def test_kafka_egress_pluggable_serializers(MockProducer, run_until):
     """Verify that topic_serializers correctly route payloads to custom serializers."""
     mock_producer_instance = AsyncMock()
     MockProducer.return_value = mock_producer_instance
@@ -125,14 +125,10 @@ async def test_kafka_egress_pluggable_serializers(MockProducer):
         topic_serializers={"sim-events": mock_serializer},
     )
 
-    task = asyncio.create_task(egress.run(mock_egress_queue))
-    await asyncio.sleep(0.1)
-    task.cancel()
-
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    await run_until(
+        egress.run(mock_egress_queue),
+        lambda: mock_producer_instance.send.called and mock_egress_queue.empty(),
+    )
 
     assert mock_producer_instance.send.call_count == 2
 
@@ -150,7 +146,7 @@ async def test_kafka_egress_pluggable_serializers(MockProducer):
 
 @pytest.mark.asyncio
 @patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
-async def test_kafka_egress_default_telemetry_routing(MockProducer):
+async def test_kafka_egress_default_telemetry_routing(MockProducer, run_until):
     """Verify default routing for telemetry streams."""
     mock_producer_instance = AsyncMock()
     MockProducer.return_value = mock_producer_instance
@@ -173,14 +169,10 @@ async def test_kafka_egress_default_telemetry_routing(MockProducer):
         bootstrap_servers=servers,
     )
 
-    task = asyncio.create_task(egress.run(mock_egress_queue))
-    await asyncio.sleep(0.1)
-    task.cancel()
-
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    await run_until(
+        egress.run(mock_egress_queue),
+        lambda: mock_producer_instance.send.called and mock_egress_queue.empty(),
+    )
 
     mock_producer_instance.start.assert_called_once()
     mock_producer_instance.send.assert_called_once()
@@ -202,7 +194,7 @@ async def test_kafka_egress_default_telemetry_routing(MockProducer):
 
 @pytest.mark.asyncio
 @patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
-async def test_kafka_egress_default_event_routing(MockProducer):
+async def test_kafka_egress_default_event_routing(MockProducer, run_until):
     """Verify default routing for event streams."""
     mock_producer_instance = AsyncMock()
     MockProducer.return_value = mock_producer_instance
@@ -221,14 +213,10 @@ async def test_kafka_egress_default_event_routing(MockProducer):
         bootstrap_servers="localhost:9092",
     )
 
-    task = asyncio.create_task(egress.run(mock_egress_queue))
-    await asyncio.sleep(0.1)
-    task.cancel()
-
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    await run_until(
+        egress.run(mock_egress_queue),
+        lambda: mock_producer_instance.send.called and mock_egress_queue.empty(),
+    )
 
     call_args = mock_producer_instance.send.call_args
     target_topic = call_args.args[0]
@@ -244,7 +232,7 @@ async def test_kafka_egress_default_event_routing(MockProducer):
 
 @pytest.mark.asyncio
 @patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
-async def test_kafka_egress_omits_stream_type_by_default(MockProducer):
+async def test_kafka_egress_omits_stream_type_by_default(MockProducer, run_until):
     """Verify the default keeps stream_type out of the message and off the record.
 
     The published payload is the part users depend on, and it must not change. The
@@ -261,14 +249,10 @@ async def test_kafka_egress_omits_stream_type_by_default(MockProducer):
 
     egress = KafkaEgress(bootstrap_servers="localhost:9092")
 
-    task = asyncio.create_task(egress.run(mock_egress_queue))
-    await asyncio.sleep(0.1)
-    task.cancel()
-
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    await run_until(
+        egress.run(mock_egress_queue),
+        lambda: mock_producer_instance.send.called and mock_egress_queue.empty(),
+    )
 
     decoded_payload = orjson.loads(
         mock_producer_instance.send.call_args.kwargs["value"]
@@ -279,7 +263,7 @@ async def test_kafka_egress_omits_stream_type_by_default(MockProducer):
 
 @pytest.mark.asyncio
 @patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
-async def test_kafka_egress_include_stream_type(MockProducer):
+async def test_kafka_egress_include_stream_type(MockProducer, run_until):
     """Verify include_stream_type=True keeps the field in the published message."""
     mock_producer_instance = AsyncMock()
     MockProducer.return_value = mock_producer_instance
@@ -296,14 +280,10 @@ async def test_kafka_egress_include_stream_type(MockProducer):
         include_stream_type=True,
     )
 
-    task = asyncio.create_task(egress.run(mock_egress_queue))
-    await asyncio.sleep(0.1)
-    task.cancel()
-
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    await run_until(
+        egress.run(mock_egress_queue),
+        lambda: mock_producer_instance.send.called and mock_egress_queue.empty(),
+    )
 
     assert mock_producer_instance.send.call_count == 2
 
@@ -322,7 +302,9 @@ async def test_kafka_egress_include_stream_type(MockProducer):
 
 @pytest.mark.asyncio
 @patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
-async def test_kafka_egress_include_stream_type_with_topic_router(MockProducer):
+async def test_kafka_egress_include_stream_type_with_topic_router(
+    MockProducer, run_until
+):
     """Verify the flag also applies when a topic_router chooses the destination."""
     mock_producer_instance = AsyncMock()
     MockProducer.return_value = mock_producer_instance
@@ -336,14 +318,10 @@ async def test_kafka_egress_include_stream_type_with_topic_router(MockProducer):
         include_stream_type=True,
     )
 
-    task = asyncio.create_task(egress.run(mock_egress_queue))
-    await asyncio.sleep(0.1)
-    task.cancel()
-
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    await run_until(
+        egress.run(mock_egress_queue),
+        lambda: mock_producer_instance.send.called and mock_egress_queue.empty(),
+    )
 
     call_args = mock_producer_instance.send.call_args
     assert call_args.args[0] == "mill-lifecycle"
@@ -384,7 +362,7 @@ def test_avro_drops_stream_type_when_schema_omits_it():
 
 @pytest.mark.asyncio
 @patch("dynamic_des.connectors.egress.kafka.AIOKafkaProducer")
-async def test_kafka_egress_custom_topic_router(MockProducer):
+async def test_kafka_egress_custom_topic_router(MockProducer, run_until):
     """Verify that a custom router function correctly overrides default behavior."""
     mock_producer_instance = AsyncMock()
     MockProducer.return_value = mock_producer_instance
@@ -416,14 +394,10 @@ async def test_kafka_egress_custom_topic_router(MockProducer):
         bootstrap_servers="localhost:9092", topic_router=custom_topic_router
     )
 
-    task = asyncio.create_task(egress.run(mock_egress_queue))
-    await asyncio.sleep(0.1)
-    task.cancel()
-
-    try:
-        await task
-    except asyncio.CancelledError:
-        pass
+    await run_until(
+        egress.run(mock_egress_queue),
+        lambda: mock_producer_instance.send.called and mock_egress_queue.empty(),
+    )
 
     assert mock_producer_instance.send.call_count == 2
 
