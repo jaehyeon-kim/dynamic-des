@@ -2366,7 +2366,7 @@
 <p>Bring up a local Kafka cluster with <a href="https://github.com/jaehyeon-kim/odctl">odctl</a>:
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>odctl<span class="w"> </span>up<span class="w"> </span>kafka-lite
 </span></code></pre></div></p>
-<p>odctl is a separate CLI, installed once with <code>uv tool install "odctl&gt;=0.5.1"</code> or <code>pip install "odctl&gt;=0.5.1"</code>.</p>
+<p>odctl is a separate CLI, installed once with <code>uv tool install "odctl&gt;=1.0,&lt;2"</code> or <code>pip install "odctl&gt;=1.0,&lt;2"</code>.</p>
 <h3 id="32-transitioning-to-kafka-connectors">3.2 Transitioning to Kafka Connectors</h3>
 <p>Swapping from a local script to a distributed twin is simple: we replace <code>ConsoleEgress</code> and <code>LocalIngress</code> with <code>KafkaEgress</code> and <code>KafkaIngress</code> respectively.</p>
 <p>Update your configuration code:</p>

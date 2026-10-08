@@ -1848,7 +1848,7 @@
 <p>This example demonstrates how to run a simulation in <strong>fast-forward mode</strong> using the declarative <strong>Standard API (<code>SimulationContext</code>)</strong> and commit the output straight into an Apache Iceberg table using the <code>IcebergStorageEgress</code> connector.</p>
 <p>Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new <code>metadata.json</code>, so query planning degrades as snapshots accumulate. That is why this example gives the provider a large <code>batch_size</code> of its own: a day of events lands in four snapshots.</p>
 <p><strong>Quick Start</strong></p>
-<p>The catalog is infrastructure, so unlike the Parquet example this one needs a container. <code>odctl</code> comes from <code>uv tool install "odctl&gt;=0.5.1"</code> or <code>pip install "odctl&gt;=0.5.1"</code>. The <code>catalog</code> profile brings up the Iceberg REST catalog backed by Postgres, and SeaweedFS for the data files.</p>
+<p>The catalog is infrastructure, so unlike the Parquet example this one needs a container. <code>odctl</code> comes from <code>uv tool install "odctl&gt;=1.0,&lt;2"</code> or <code>pip install "odctl&gt;=1.0,&lt;2"</code>. The <code>catalog</code> profile brings up the Iceberg REST catalog backed by Postgres, and SeaweedFS for the data files.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/iceberg_example.py
 </span></code></pre></div>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 1. Spin up the Iceberg REST catalog with odctl</span>
@@ -2050,7 +2050,7 @@
 <p>This example demonstrates how to run a simulation in <strong>fast-forward mode</strong> using the low-level <strong>Imperative API (<code>DynamicRealtimeEnvironment</code>)</strong> and commit the output straight into an Apache Iceberg table using the <code>IcebergStorageEgress</code> connector.</p>
 <p>Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new <code>metadata.json</code>, so query planning degrades as snapshots accumulate. That is why this example gives the provider a large <code>batch_size</code> of its own: a day of events lands in four snapshots.</p>
 <p><strong>Quick Start</strong></p>
-<p>The catalog is infrastructure, so unlike the Parquet example this one needs a container. <code>odctl</code> comes from <code>uv tool install "odctl&gt;=0.5.1"</code> or <code>pip install "odctl&gt;=0.5.1"</code>. The <code>catalog</code> profile brings up the Iceberg REST catalog backed by Postgres, and SeaweedFS for the data files.</p>
+<p>The catalog is infrastructure, so unlike the Parquet example this one needs a container. <code>odctl</code> comes from <code>uv tool install "odctl&gt;=1.0,&lt;2"</code> or <code>pip install "odctl&gt;=1.0,&lt;2"</code>. The <code>catalog</code> profile brings up the Iceberg REST catalog backed by Postgres, and SeaweedFS for the data files.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/imperative/iceberg_example.py
 </span></code></pre></div>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 1. Spin up the Iceberg REST catalog with odctl</span>
@@ -2253,7 +2253,7 @@
 </span></code></pre></div>
 <p><strong>With uv</strong></p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># 1. Install odctl, which runs the containers</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;odctl&gt;=0.5.1&quot;</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;odctl&gt;=1.0,&lt;2&quot;</span>
 </span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
 </span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># 2. Start the Iceberg REST catalog</span>
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>odctl<span class="w"> </span>up<span class="w"> </span>catalog
@@ -2266,7 +2266,7 @@
 </span></code></pre></div>
 <p><strong>With pip</strong></p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># 1. Install the package with the iceberg extra, and odctl for the containers</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[iceberg]&quot;</span><span class="w"> </span><span class="s2">&quot;odctl&gt;=0.5.1&quot;</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[iceberg]&quot;</span><span class="w"> </span><span class="s2">&quot;odctl&gt;=1.0,&lt;2&quot;</span>
 </span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
 </span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># 2. Start the Iceberg REST catalog</span>
 </span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>odctl<span class="w"> </span>up<span class="w"> </span>catalog
