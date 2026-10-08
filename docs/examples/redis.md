@@ -49,7 +49,7 @@ A factory that writes part records to a Redis Stream and takes parameter updates
 
     ```bash
     # 1. Install odctl, which runs the containers
-    uv tool install "odctl>=0.5.1"
+    uv tool install "odctl>=1.0,<2"
 
     # 2. Spin up the Valkey database
     odctl up valkey
@@ -62,7 +62,7 @@ A factory that writes part records to a Redis Stream and takes parameter updates
 
     ```bash
     # 1. Install the package with the redis extra, and odctl for the containers
-    pip install "dynamic-des[redis]" "odctl>=0.5.1"
+    pip install "dynamic-des[redis]" "odctl>=1.0,<2"
 
     # 2. Spin up the Valkey database
     odctl up valkey
@@ -171,7 +171,7 @@ A factory that writes part records to a Redis Stream and takes parameter updates
 
     ```bash
     # 1. Install odctl, which runs the containers
-    uv tool install "odctl>=0.5.1"
+    uv tool install "odctl>=1.0,<2"
 
     # 2. Spin up the Valkey database
     odctl up valkey
@@ -184,7 +184,7 @@ A factory that writes part records to a Redis Stream and takes parameter updates
 
     ```bash
     # 1. Install the package with the redis extra, and odctl for the containers
-    pip install "dynamic-des[redis]" "odctl>=0.5.1"
+    pip install "dynamic-des[redis]" "odctl>=1.0,<2"
 
     # 2. Spin up the Valkey database
     odctl up valkey
@@ -317,7 +317,7 @@ A factory that writes part records to a Redis Stream and takes parameter updates
 
     ```bash
     # 1. Install odctl, which runs the containers
-    uv tool install "odctl>=0.5.1"
+    uv tool install "odctl>=1.0,<2"
 
     # 2. Start the Valkey database
     odctl up valkey
@@ -333,7 +333,7 @@ A factory that writes part records to a Redis Stream and takes parameter updates
 
     ```bash
     # 1. Install the package with the redis extra, and odctl for the containers
-    pip install "dynamic-des[redis]" "odctl>=0.5.1"
+    pip install "dynamic-des[redis]" "odctl>=1.0,<2"
 
     # 2. Start the Valkey database
     odctl up valkey

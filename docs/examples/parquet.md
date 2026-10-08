@@ -33,7 +33,7 @@ A week of a production line, generated at `factor=0.0` and written to Parquet fi
     python parquet_example.py
     ```
 
-    To write to S3 instead, start the object store and set `USE_S3`. The chunks land under the `odctl-dev/history/` prefix, browsable at <http://localhost:8889>. `odctl` comes from `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
+    To write to S3 instead, start the object store and set `USE_S3`. The chunks land under the `odctl-dev/history/` prefix, browsable at <http://localhost:8889>. `odctl` comes from `uv tool install "odctl>=1.0,<2"` or `pip install "odctl>=1.0,<2"`.
 
     ```bash
     # 1. Spin up SeaweedFS with odctl
@@ -262,7 +262,7 @@ A week of a production line, generated at `factor=0.0` and written to Parquet fi
     python parquet_example.py
     ```
 
-    To write to S3 instead, start the object store and set `USE_S3`. The chunks land under the `odctl-dev/history/` prefix, browsable at <http://localhost:8889>. `odctl` comes from `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`.
+    To write to S3 instead, start the object store and set `USE_S3`. The chunks land under the `odctl-dev/history/` prefix, browsable at <http://localhost:8889>. `odctl` comes from `uv tool install "odctl>=1.0,<2"` or `pip install "odctl>=1.0,<2"`.
 
     ```bash
     # 1. Spin up SeaweedFS with odctl

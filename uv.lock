@@ -1015,7 +1015,7 @@ dev = [
     { name = "mkdocs-material", specifier = ">=9.7.4" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.3" },
     { name = "mypy", specifier = ">=1.19.1" },
-    { name = "odctl", specifier = ">=0.5.1" },
+    { name = "odctl", specifier = ">=1.0,<2" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-asyncio", specifier = ">=1.3.0" },
     { name = "pytest-cov", specifier = ">=5.0.0" },
@@ -1942,7 +1942,7 @@ wheels = [
 
 [[package]]
 name = "odctl"
-version = "0.5.1"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
@@ -1951,9 +1951,9 @@ dependencies = [
     { name = "rich" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/96/fc/a76e406c66d6cf3893a9cc7305cf9004cef09d6fda35bfed67c34cf1e40a/odctl-0.5.1.tar.gz", hash = "sha256:27de88548a5298d0a59d26a9930356f2bc3e43bacaa90038a54df2ea1809cf86", size = 554241, upload-time = "2026-09-11T08:32:25.813Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/90/ce/c22063db61af7cb97ee21b307f2a29ee540593c0ef7bea5c5f60a40a1da0/odctl-1.0.0.tar.gz", hash = "sha256:371b15e362564e32f1e8e806a9939f8e1631ea126d4b975158703a0f4754aefc", size = 512425, upload-time = "2026-10-08T20:51:03.501Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/90/3b/b387e2d138f23b8bb924e68516ff4e758872d9a1b6aada643f7a65c54e9b/odctl-0.5.1-py3-none-any.whl", hash = "sha256:c5d973e2346ea5deb1664a2f478cb145f74bee150cca65e6747b39525fff4424", size = 76657, upload-time = "2026-09-11T08:32:24.631Z" },
+    { url = "https://files.pythonhosted.org/packages/f1/c0/7510732af4f5721985b79d8849cd4245523e82c19d8b7b4d68771da52d6c/odctl-1.0.0-py3-none-any.whl", hash = "sha256:e47fe92fadabd1f1f5867bcdc11cd20932cf8e042bdfa1f3033c11b1b06552e9", size = 169714, upload-time = "2026-10-08T20:51:01.855Z" },
 ]
 
 [[package]]

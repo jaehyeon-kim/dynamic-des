@@ -18,7 +18,7 @@ One run writes ten minutes of backdated history to Parquet, then publishes to Ka
 
     ```bash
     # 1. Install odctl, which runs the containers
-    uv tool install "odctl>=0.5.1"
+    uv tool install "odctl>=1.0,<2"
 
     # 2. Start the Kafka broker and schema registry
     odctl up kafka-lite
@@ -35,7 +35,7 @@ One run writes ten minutes of backdated history to Parquet, then publishes to Ka
 
     ```bash
     # 1. Install the package with the kafka,parquet extra, and odctl for the containers
-    pip install "dynamic-des[kafka,parquet]" "odctl>=0.5.1"
+    pip install "dynamic-des[kafka,parquet]" "odctl>=1.0,<2"
 
     # 2. Start the Kafka broker and schema registry
     odctl up kafka-lite
@@ -243,7 +243,7 @@ One run writes ten minutes of backdated history to Parquet, then publishes to Ka
 
     ```bash
     # 1. Install odctl, which runs the containers
-    uv tool install "odctl>=0.5.1"
+    uv tool install "odctl>=1.0,<2"
 
     # 2. Start the Kafka broker and schema registry
     odctl up kafka-lite
@@ -259,7 +259,7 @@ One run writes ten minutes of backdated history to Parquet, then publishes to Ka
 
     ```bash
     # 1. Install the package with the kafka,parquet extra, and odctl for the containers
-    pip install "dynamic-des[kafka,parquet]" "odctl>=0.5.1"
+    pip install "dynamic-des[kafka,parquet]" "odctl>=1.0,<2"
 
     # 2. Start the Kafka broker and schema registry
     odctl up kafka-lite

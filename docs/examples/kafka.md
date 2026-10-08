@@ -21,7 +21,7 @@ A production line that takes parameter updates from a Kafka topic and publishes 
 
     ```bash
     # 1. Install odctl, which runs the containers
-    uv tool install "odctl>=0.5.1"
+    uv tool install "odctl>=1.0,<2"
 
     # 2. Start the Kafka broker and schema registry
     odctl up kafka-lite
@@ -42,7 +42,7 @@ A production line that takes parameter updates from a Kafka topic and publishes 
     ```bash
     # 1. Install the package with the kafka extra, odctl for the containers and
     #    nicegui for the dashboard
-    pip install "dynamic-des[kafka]" "odctl>=0.5.1" nicegui
+    pip install "dynamic-des[kafka]" "odctl>=1.0,<2" nicegui
 
     # 2. Start the Kafka broker and schema registry
     odctl up kafka-lite
@@ -223,7 +223,7 @@ A production line that takes parameter updates from a Kafka topic and publishes 
 
     ```bash
     # 1. Install odctl, which runs the containers
-    uv tool install "odctl>=0.5.1"
+    uv tool install "odctl>=1.0,<2"
 
     # 2. Start the Kafka broker and schema registry
     odctl up kafka-lite
@@ -239,7 +239,7 @@ A production line that takes parameter updates from a Kafka topic and publishes 
 
     ```bash
     # 1. Install the package with the kafka extra, and odctl for the containers
-    pip install "dynamic-des[kafka]" "odctl>=0.5.1"
+    pip install "dynamic-des[kafka]" "odctl>=1.0,<2"
 
     # 2. Start the Kafka broker and schema registry
     odctl up kafka-lite
@@ -445,7 +445,7 @@ A production line that takes parameter updates from a Kafka topic and publishes 
 
     ```bash
     # 1. Install odctl, which runs the containers
-    uv tool install "odctl>=0.5.1"
+    uv tool install "odctl>=1.0,<2"
 
     # 2. Start the Kafka broker and schema registry
     odctl up kafka-lite
@@ -461,7 +461,7 @@ A production line that takes parameter updates from a Kafka topic and publishes 
 
     ```bash
     # 1. Install the package with the kafka extra, and odctl for the containers
-    pip install "dynamic-des[kafka]" "odctl>=0.5.1"
+    pip install "dynamic-des[kafka]" "odctl>=1.0,<2"
 
     # 2. Start the Kafka broker and schema registry
     odctl up kafka-lite

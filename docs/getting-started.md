@@ -46,10 +46,10 @@ Every example that needs a broker, a database or an object store gets it from [o
 
 ```bash
 # With uv
-uv tool install "odctl>=0.5.1"
+uv tool install "odctl>=1.0,<2"
 
 # Or with pip
-pip install "odctl>=0.5.1"
+pip install "odctl>=1.0,<2"
 ```
 
 `odctl list -d` shows every profile and the ports it publishes. The examples here use five of them: `kafka-lite`, `postgres`, `valkey`, `storage` and `catalog`.
@@ -92,7 +92,7 @@ curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples
 
 ```bash
 # 1. Install odctl, which runs the containers
-uv tool install "odctl>=0.5.1"
+uv tool install "odctl>=1.0,<2"
 
 # 2. Local, dependency-free simulation
 uv run --no-project --with dynamic-des local_example.py
@@ -120,7 +120,7 @@ odctl down kafka-lite --volumes
 ```bash
 # 1. Install the package with both extras, odctl for the containers and
 #    nicegui for the dashboard
-pip install "dynamic-des[kafka,parquet]" "odctl>=0.5.1" nicegui
+pip install "dynamic-des[kafka,parquet]" "odctl>=1.0,<2" nicegui
 
 # 2. Local, dependency-free simulation
 python local_example.py

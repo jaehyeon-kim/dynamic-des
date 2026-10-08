@@ -17,7 +17,7 @@ curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples
 
 ```bash
 # 1. Install odctl, which runs the containers
-uv tool install "odctl>=0.5.1"
+uv tool install "odctl>=1.0,<2"
 
 # 2. Start the Postgres database
 odctl up postgres
@@ -33,7 +33,7 @@ odctl down postgres --volumes
 
 ```bash
 # 1. Install the package with the postgres extra, and odctl for the containers
-pip install "dynamic-des[postgres]" "odctl>=0.5.1"
+pip install "dynamic-des[postgres]" "odctl>=1.0,<2"
 
 # 2. Start the Postgres database
 odctl up postgres

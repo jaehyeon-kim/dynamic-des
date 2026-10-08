@@ -12,7 +12,7 @@ A day of a production line, generated at `factor=0.0` and appended to an Apache 
 
     **Quick Start**
 
-    The catalog is infrastructure, so unlike the Parquet example this one needs a container. `odctl` comes from `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`. The `catalog` profile brings up the Iceberg REST catalog backed by Postgres, and SeaweedFS for the data files.
+    The catalog is infrastructure, so unlike the Parquet example this one needs a container. `odctl` comes from `uv tool install "odctl>=1.0,<2"` or `pip install "odctl>=1.0,<2"`. The `catalog` profile brings up the Iceberg REST catalog backed by Postgres, and SeaweedFS for the data files.
 
     ```bash
     curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/iceberg_example.py
@@ -230,7 +230,7 @@ A day of a production line, generated at `factor=0.0` and appended to an Apache 
 
     **Quick Start**
 
-    The catalog is infrastructure, so unlike the Parquet example this one needs a container. `odctl` comes from `uv tool install "odctl>=0.5.1"` or `pip install "odctl>=0.5.1"`. The `catalog` profile brings up the Iceberg REST catalog backed by Postgres, and SeaweedFS for the data files.
+    The catalog is infrastructure, so unlike the Parquet example this one needs a container. `odctl` comes from `uv tool install "odctl>=1.0,<2"` or `pip install "odctl>=1.0,<2"`. The `catalog` profile brings up the Iceberg REST catalog backed by Postgres, and SeaweedFS for the data files.
 
     ```bash
     curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/imperative/iceberg_example.py
@@ -452,7 +452,7 @@ A day of a production line, generated at `factor=0.0` and appended to an Apache 
 
     ```bash
     # 1. Install odctl, which runs the containers
-    uv tool install "odctl>=0.5.1"
+    uv tool install "odctl>=1.0,<2"
 
     # 2. Start the Iceberg REST catalog
     odctl up catalog
@@ -468,7 +468,7 @@ A day of a production line, generated at `factor=0.0` and appended to an Apache 
 
     ```bash
     # 1. Install the package with the iceberg extra, and odctl for the containers
-    pip install "dynamic-des[iceberg]" "odctl>=0.5.1"
+    pip install "dynamic-des[iceberg]" "odctl>=1.0,<2"
 
     # 2. Start the Iceberg REST catalog
     odctl up catalog
