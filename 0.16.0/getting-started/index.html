@@ -423,28 +423,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#with-uv" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        With uv
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#with-pip" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        With pip
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#a-yaml-blueprint" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1621,7 +1599,7 @@
   <span class="md-ellipsis">
     
   
-    Absolute Edge Cases (Dynamic Topology)
+    Dynamic Topology (Resources Changed Mid-run)
   
 
     
@@ -1947,6 +1925,88 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -2036,28 +2096,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#with-uv" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        With uv
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#with-pip" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        With pip
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#a-yaml-blueprint" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2105,44 +2143,62 @@
 
 
 <h1 id="getting-started">Getting Started</h1>
-<p>Ready to build real-time digital twins? This guide will walk you through installing Dynamic DES, running the example scripts, and exploring the core infrastructure.</p>
+<p>This page installs Dynamic DES, installs odctl to run the containers the examples need, and runs the first examples.</p>
 <h2 id="installation">Installation</h2>
 <p>Install the core library:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>dynamic-des
 </span></code></pre></div>
-<p>To include specific backends:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># For Kafka support</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka]&quot;</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># For Confluent Schema Registry (Avro)</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka,confluent]&quot;</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># For AWS Glue Schema Registry (Avro)</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka,glue]&quot;</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="c1"># For Redis support</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[redis]&quot;</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># For PostgreSQL support</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[postgres]&quot;</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="c1"># For Parquet support (required for data lake integration)</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[parquet]&quot;</span>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="c1"># For Lakehouse Storage (Apache Iceberg)</span>
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[iceberg]&quot;</span>
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="c1"># For all backends (Kafka, Redis, Postgres, Avro, Parquet, Iceberg)</span>
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[all]&quot;</span>
-</span></code></pre></div>
+<p>The connectors are optional extras, for example <code>pip install "dynamic-des[kafka,parquet]"</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Extra</th>
+<th>Adds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kafka</code></td>
+<td>Kafka ingress and egress</td>
+</tr>
+<tr>
+<td><code>confluent</code></td>
+<td>Avro with the Confluent Schema Registry (includes <code>kafka</code>)</td>
+</tr>
+<tr>
+<td><code>glue</code></td>
+<td>Avro with the AWS Glue Schema Registry (includes <code>kafka</code>)</td>
+</tr>
+<tr>
+<td><code>redis</code></td>
+<td>Redis ingress and egress</td>
+</tr>
+<tr>
+<td><code>postgres</code></td>
+<td>PostgreSQL ingress and egress</td>
+</tr>
+<tr>
+<td><code>parquet</code></td>
+<td>Parquet and JSONL files on local disk or S3-compatible storage</td>
+</tr>
+<tr>
+<td><code>iceberg</code></td>
+<td>Apache Iceberg tables through a REST catalog</td>
+</tr>
+<tr>
+<td><code>all</code></td>
+<td>Every extra above</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="example-infrastructure">Example Infrastructure</h2>
 <p>Every example that needs a broker, a database or an object store gets it from <a href="https://github.com/jaehyeon-kim/odctl">odctl</a>, a separate CLI that manages curated Docker Compose stacks. Install it once:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># With uv</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;odctl&gt;=1.0,&lt;2&quot;</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Or with pip</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;odctl&gt;=1.0,&lt;2&quot;</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># With uv</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;odctl&gt;=1.0,&lt;2&quot;</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Or with pip</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;odctl&gt;=1.0,&lt;2&quot;</span>
 </span></code></pre></div>
 <p><code>odctl list -d</code> shows every profile and the ports it publishes. The examples here use five of them: <code>kafka-lite</code>, <code>postgres</code>, <code>valkey</code>, <code>storage</code> and <code>catalog</code>.</p>
 <h3 id="starting-infrastructure">Starting infrastructure</h3>
@@ -2195,78 +2251,49 @@
 <hr />
 <h2 id="quick-start-running-an-example">Quick Start: Running an Example</h2>
 <p>Dynamic DES ships runnable examples in the <a href="https://github.com/jaehyeon-kim/dynamic-des/tree/main/examples"><code>examples/</code></a> folder of the repository. Download the ones you want, then run them.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/local_example.py
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/kafka_example.py
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/kafka_dashboard.py
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/backfill_live_example.py
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/local_example.py
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/kafka_example.py
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/kafka_dashboard.py
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/backfill_live_example.py
 </span></code></pre></div>
-<h3 id="with-uv">With uv</h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># 1. Install odctl, which runs the containers</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;odctl&gt;=1.0,&lt;2&quot;</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># 2. Local, dependency-free simulation</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span>dynamic-des<span class="w"> </span>local_example.py
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># 3. Start the Kafka broker and schema registry (requires Docker)</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>odctl<span class="w"> </span>up<span class="w"> </span>kafka-lite
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># 4. Run the real-time digital twin (Ctrl + C to stop)</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka]&quot;</span><span class="w"> </span>kafka_example.py
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1"># 5. In a second terminal, watch and steer the run from the dashboard. It serves</span>
-</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="c1">#    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.</span>
-</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka]&quot;</span><span class="w"> </span>--with<span class="w"> </span>nicegui<span class="w"> </span>kafka_dashboard.py
-</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
-</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="c1"># 6. Backfill ten minutes of history to Parquet, generated instantly rather than</span>
-</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="c1">#    waited for, then tail live to Kafka for sixty seconds</span>
-</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka,parquet]&quot;</span><span class="w"> </span>backfill_live_example.py
-</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>
-</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="c1"># 7. Clean up the infrastructure when finished</span>
-</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>odctl<span class="w"> </span>down<span class="w"> </span>kafka-lite<span class="w"> </span>--volumes
+<p>With <a href="https://docs.astral.sh/uv/">uv</a>, and odctl installed as above:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 1. Local, dependency-free simulation</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span>dynamic-des<span class="w"> </span>local_example.py
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># 2. Start the Kafka broker and schema registry (requires Docker)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>odctl<span class="w"> </span>up<span class="w"> </span>kafka-lite
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># 3. Run the real-time digital twin (Ctrl + C to stop)</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka]&quot;</span><span class="w"> </span>kafka_example.py
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># 4. In a second terminal, watch and steer the run from the dashboard. It serves</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1">#    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka]&quot;</span><span class="w"> </span>--with<span class="w"> </span>nicegui<span class="w"> </span>kafka_dashboard.py
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="c1"># 5. Backfill ten minutes of history to Parquet, generated instantly rather than</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="c1">#    waited for, then tail live to Kafka for sixty seconds</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka,parquet]&quot;</span><span class="w"> </span>backfill_live_example.py
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="c1"># 6. Clean up the infrastructure when finished</span>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>odctl<span class="w"> </span>down<span class="w"> </span>kafka-lite<span class="w"> </span>--volumes
 </span></code></pre></div>
-<h3 id="with-pip">With pip</h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 1. Install the package with both extras, odctl for the containers and</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1">#    nicegui for the dashboard</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;dynamic-des[kafka,parquet]&quot;</span><span class="w"> </span><span class="s2">&quot;odctl&gt;=1.0,&lt;2&quot;</span><span class="w"> </span>nicegui
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># 2. Local, dependency-free simulation</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>python<span class="w"> </span>local_example.py
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1"># 3. Start the Kafka broker and schema registry (requires Docker)</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>odctl<span class="w"> </span>up<span class="w"> </span>kafka-lite
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="c1"># 4. Run the real-time digital twin (Ctrl + C to stop)</span>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>python<span class="w"> </span>kafka_example.py
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
-</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="c1"># 5. In a second terminal, watch and steer the run from the dashboard. It serves</span>
-</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="c1">#    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.</span>
-</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>python<span class="w"> </span>kafka_dashboard.py
-</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>
-</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="c1"># 6. Backfill ten minutes of history to Parquet, generated instantly rather than</span>
-</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="c1">#    waited for, then tail live to Kafka for sixty seconds</span>
-</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>python<span class="w"> </span>backfill_live_example.py
-</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>
-</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="c1"># 7. Clean up the infrastructure when finished</span>
-</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a>odctl<span class="w"> </span>down<span class="w"> </span>kafka-lite<span class="w"> </span>--volumes
-</span></code></pre></div>
-<p>Examples that need a broker, a database or an object store get their container from odctl. <a href="#starting-infrastructure">Starting infrastructure</a> above lists the profile each one needs.</p>
-<p>Guide: <a href="../guides/backfill-then-live/">Backfill then live</a>.</p>
-<h3 id="a-yaml-blueprint">A YAML blueprint</h3>
-<p>The same local simulation is also a YAML file, run with the <code>ddes</code> command that the package installs. It needs no Python:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/local.yaml
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># With uv</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span>dynamic-des<span class="w"> </span>ddes<span class="w"> </span>run<span class="w"> </span>local.yaml
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="c1"># Or with pip, after `pip install dynamic-des`</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>ddes<span class="w"> </span>run<span class="w"> </span>local.yaml
-</span></code></pre></div>
-<p>Every declarative example has a YAML twin, in the YAML tab of its <a href="../examples/local/">example page</a>. <a href="../guides/yaml-blueprints/">YAML Blueprints, from First File to Connectors</a> shows how to write one.</p>
-<p>The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:</p>
+<p>With pip, install <code>"dynamic-des[kafka,parquet]" nicegui</code> once and run each file with <code>python</code>. Any other example needs the profile listed in <a href="#starting-infrastructure">Starting infrastructure</a>, and the <a href="../guides/backfill-then-live/">Backfill Then Go Live</a> guide explains step 5.</p>
+<p>The control dashboard from step 4 changes simulation parameters while the run is going, and the telemetry reacts without a restart:</p>
 <div align="center">
   <img src="../assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
 </div>
 
+<h3 id="a-yaml-blueprint">A YAML blueprint</h3>
+<p>The same local simulation is also a YAML file, run with the <code>ddes</code> command that the package installs. It needs no Python:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/yaml/local.yaml
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># With uv</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>uv<span class="w"> </span>run<span class="w"> </span>--no-project<span class="w"> </span>--with<span class="w"> </span>dynamic-des<span class="w"> </span>ddes<span class="w"> </span>run<span class="w"> </span>local.yaml
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># Or with pip, after `pip install dynamic-des`</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>ddes<span class="w"> </span>run<span class="w"> </span>local.yaml
+</span></code></pre></div>
+<p>Every declarative example has a YAML twin, in the YAML tab of its <a href="../examples/local/">example page</a>. <a href="../guides/yaml-blueprints/">YAML Blueprints, from First File to Connectors</a> shows how to write one.</p>
 <h2 id="build-your-own">Build Your Own</h2>
 <p>Each example is written three ways: with the low-level API, with the declarative API and as a YAML blueprint. Its page shows the versions in tabs. Backfill Then Go Live has no low-level version, and the advanced orders example exists only as YAML.</p>
 <table>

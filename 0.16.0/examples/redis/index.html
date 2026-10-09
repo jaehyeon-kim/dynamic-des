@@ -1463,7 +1463,7 @@
   <span class="md-ellipsis">
     
   
-    Absolute Edge Cases (Dynamic Topology)
+    Dynamic Topology (Resources Changed Mid-run)
   
 
     
@@ -1801,6 +1801,88 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -1844,8 +1926,8 @@
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Declarative</label><label for="__tabbed_1_2">Low-level</label><label for="__tabbed_1_3">YAML</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<p>This example demonstrates how to integrate <code>dynamic-des</code> with a high-performance Redis cache using the declarative <strong>Standard API (<code>SimulationContext</code>)</strong>.</p>
-<p>By combining <code>RedisIngress</code> and <code>RedisEgress</code>, your simulation can achieve sub-millisecond latency for both reading dynamic parameters via Pub/Sub and writing high-throughput telemetry data via Redis Streams.</p>
+<p>This example demonstrates how to integrate <code>dynamic-des</code> with Redis using the declarative <strong>Standard API (<code>SimulationContext</code>)</strong>.</p>
+<p>With <code>RedisIngress</code> and <code>RedisEgress</code>, the simulation reads parameter updates through Pub/Sub and writes events and telemetry to Redis Streams.</p>
 <p><strong>1. Streaming to Redis</strong></p>
 <p>When generating events, <code>RedisEgress</code> streams outputs directly into a Redis Stream with <code>XADD</code>. The stream is the one named in the constructor, which this example sets to <code>events</code>.</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">app</span> <span class="o">=</span> <span class="p">(</span>
@@ -1966,7 +2048,7 @@
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
-<p>This example demonstrates how to integrate <code>dynamic-des</code> with a high-performance Redis cache using the low-level <strong>Imperative API (<code>DynamicRealtimeEnvironment</code>)</strong>.</p>
+<p>This example demonstrates how to integrate <code>dynamic-des</code> with Redis using the low-level <strong>Imperative API (<code>DynamicRealtimeEnvironment</code>)</strong>.</p>
 <p>This is useful if you are migrating existing SimPy generators and prefer to handle <code>env.process()</code> and component registration manually rather than using the Builder Pattern.</p>
 <p><strong>1. Quick Start</strong></p>
 <p>Download the script, then run it. The run keeps generating parts until you stop it with Ctrl + C. <strong>To test the dynamic ingress updates</strong>, open a second terminal while the simulation is running and execute the <code>PUBLISH</code> command below.</p>

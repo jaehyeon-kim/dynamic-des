@@ -1463,7 +1463,7 @@
   <span class="md-ellipsis">
     
   
-    Absolute Edge Cases (Dynamic Topology)
+    Dynamic Topology (Resources Changed Mid-run)
   
 
     
@@ -1801,6 +1801,88 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -1841,11 +1923,11 @@
 
 <h1 id="relational-db-postgres">Relational DB (Postgres)</h1>
 <p>A store that writes customer orders to PostgreSQL and takes parameter updates from a PostgreSQL table. Each tab shows the example written one way: with the declarative API, with the low-level API, or as a YAML blueprint. <a href="../../architecture/overview/">Ways to write a simulation</a> compares the three.</p>
+<p>With <code>PostgresEgress</code> in place of the console egress, the simulation runs as a separate data generator. It writes related rows, such as parent <code>orders</code> and child <code>order_items</code>, into PostgreSQL with asynchronous bulk inserts through <code>asyncpg</code>.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Declarative</label><label for="__tabbed_1_2">Low-level</label><label for="__tabbed_1_3">YAML</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
 <p>This example demonstrates how to integrate <code>dynamic-des</code> into a relational database architecture using the declarative <strong>Standard API (<code>SimulationContext</code>)</strong>.</p>
-<p>By replacing the local console egress with <code>PostgresEgress</code>, the simulation becomes a fully detached data generator. It automatically streams complex, interrelated data (like parent <code>orders</code> and child <code>order_items</code>) directly into your PostgreSQL database using high-performance, asynchronous bulk inserts via <code>asyncpg</code>.</p>
 <p><strong>1. Multiplexing Multiple Tables</strong></p>
 <p>When generating complex relational data, a single event loop often produces records that belong in completely different SQL tables.</p>
 <p>Instead of creating separate queues or complex routing logic, <code>PostgresEgress</code> supports <strong>Table Multiplexing</strong>. By attaching multiple instances of <code>PostgresEgress</code> to the simulation and tagging your output dictionaries with a special <code>__table__</code> key, the framework automatically filters and routes the records to their correct destinations.</p>
@@ -2043,7 +2125,6 @@
 </div>
 <div class="tabbed-block">
 <p>This example demonstrates how to integrate <code>dynamic-des</code> into a relational database architecture using the low-level <strong>Imperative API</strong>.</p>
-<p>By replacing the local console egress with <code>PostgresEgress</code>, the simulation becomes a fully detached data generator. It automatically streams complex, interrelated data (like parent <code>orders</code> and child <code>order_items</code>) directly into your PostgreSQL database using high-performance, asynchronous bulk inserts via <code>asyncpg</code>.</p>
 <p><strong>1. Multiplexing Multiple Tables</strong></p>
 <p>When generating complex relational data, a single simulation process often produces records that belong in completely different SQL tables.</p>
 <p>Instead of creating separate queues or complex routing logic, <code>PostgresEgress</code> supports <strong>Table Multiplexing</strong>. By attaching multiple instances of <code>PostgresEgress</code> to the <code>DynamicRealtimeEnvironment</code> and tagging your output dictionaries with a special <code>__table__</code> key, the framework automatically filters and routes the records to their correct destinations.</p>

@@ -27,7 +27,7 @@
     
     
       
-        <title>Absolute Edge Cases (Dynamic Topology) - Dynamic DES</title>
+        <title>Dynamic Topology (Resources Changed Mid-run) - Dynamic DES</title>
       
     
     
@@ -90,7 +90,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#dynamic-topology-absolute-edge-cases" class="md-skip">
+        <a href="#dynamic-topology-resources-changed-mid-run" class="md-skip">
           Skip to content
         </a>
       
@@ -129,7 +129,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Absolute Edge Cases (Dynamic Topology)
+              Dynamic Topology (Resources Changed Mid-run)
             
           </span>
         </div>
@@ -1474,7 +1474,7 @@
   <span class="md-ellipsis">
     
   
-    Absolute Edge Cases (Dynamic Topology)
+    Dynamic Topology (Resources Changed Mid-run)
   
 
     
@@ -1492,7 +1492,7 @@
   <span class="md-ellipsis">
     
   
-    Absolute Edge Cases (Dynamic Topology)
+    Dynamic Topology (Resources Changed Mid-run)
   
 
     
@@ -1849,6 +1849,88 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -1906,7 +1988,7 @@
   
 
 
-<h1 id="dynamic-topology-absolute-edge-cases">Dynamic Topology (Absolute Edge Cases)</h1>
+<h1 id="dynamic-topology-resources-changed-mid-run">Dynamic Topology (Resources Changed Mid-run)</h1>
 <p>The Standard API (<code>SimulationContext</code>) relies on an <strong>immutability constraint</strong>: all physical resources, service distribution schemas, and I/O connections must be fully configured before the clock starts running.</p>
 <p>In some rare digital twin applications, the physical layout itself changes dynamically during execution (e.g., a shipping dock provisions a new bay, or a network threshold triggers the dynamic creation of new Kafka topics and data formats mid-simulation).</p>
 <p>If your twin requires <strong>dynamic topology mutation</strong>, you must bypass <code>SimulationContext</code> and write purely imperative code against the low-level <code>DynamicRealtimeEnvironment</code> and the flat registry keys.</p>

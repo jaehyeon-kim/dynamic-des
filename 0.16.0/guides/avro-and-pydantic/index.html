@@ -1575,7 +1575,7 @@
   <span class="md-ellipsis">
     
   
-    Absolute Edge Cases (Dynamic Topology)
+    Dynamic Topology (Resources Changed Mid-run)
   
 
     
@@ -1901,6 +1901,88 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -2010,7 +2092,7 @@
 
 <h1 id="advanced-serialization-avro-pydantic">Advanced Serialization: Avro &amp; Pydantic</h1>
 <p>By default, <code>KafkaEgress</code> strictly dumps all payloads as highly optimized JSON. While great for lightweight lifecycle and telemetry events, high-velocity ML streams (like <code>PredictionRequests</code>) often require compact, schema-validated binary payloads using Avro.</p>
-<p>Dynamic DES provides a <strong>Pluggable Serialization Strategy</strong>, allowing you to seamlessly mix JSON and Avro streams on the exact same connection, while natively supporting Pydantic validation.</p>
+<p>Dynamic DES has a <strong>pluggable serialization strategy</strong>: JSON and Avro streams can share one connection, and Pydantic models are validated and published as they are.</p>
 <p>The snippets below publish to Kafka, so start a broker first with <code>odctl up kafka-lite</code>. See <a href="../../getting-started/">Getting Started</a> for the one-time odctl install. Tear it down with <code>odctl down kafka-lite --volumes</code>.</p>
 <h2 id="pydantic-duck-typing">Pydantic Duck-Typing</h2>
 <p>You do not need to convert your data to dictionaries manually. <code>publish_event</code> converts Pydantic V2 models to JSON-ready dictionaries before any egress sees them. Pydantic V1 models, including <code>pydantic.v1</code>, are not supported and raise a serialization error.</p>

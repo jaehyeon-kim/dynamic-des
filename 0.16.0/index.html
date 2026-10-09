@@ -1530,7 +1530,7 @@
   <span class="md-ellipsis">
     
   
-    Absolute Edge Cases (Dynamic Topology)
+    Dynamic Topology (Resources Changed Mid-run)
   
 
     
@@ -1856,6 +1856,88 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -1926,28 +2008,25 @@
 
 <h1 id="dynamic-des">Dynamic DES</h1>
 <p>Dynamic DES runs <a href="https://simpy.readthedocs.io/">SimPy</a> discrete-event simulations in step with the system clock, or as fast as the machine allows. A running simulation takes parameter changes (arrival rates, service times, capacities) from <strong>Kafka</strong>, <strong>Redis</strong>, <strong>PostgreSQL</strong> or a timed scenario, without stopping. Its task events and telemetry go to the sinks you attach: <strong>Kafka</strong>, <strong>Redis</strong>, <strong>PostgreSQL</strong>, <strong>Parquet</strong> or <strong>JSONL</strong> files on local disk or <strong>S3-compatible storage</strong> such as AWS S3 or SeaweedFS, or an <strong>Apache Iceberg</strong> table through a REST catalog.</p>
-<p>A simulation can be written three ways: with the low-level <code>DynamicRealtimeEnvironment</code>, with the declarative <code>SimulationContext</code> builder, or as a plain <strong>YAML blueprint</strong> run with the <code>ddes</code> command. One run can generate backdated history at full speed and then continue in real time, so the same model can fill a data lake and then feed a live system.</p>
 <div align="center">
   <img src="assets/architecture.png" alt="Dynamic DES architecture" width="900" />
+</div>
+
+<p>The control dashboard changes simulation parameters while a run is going, and the telemetry reacts without a restart:</p>
+<div align="center">
+  <img src="assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
 </div>
 
 <hr />
 <h2 id="key-features">Key Features</h2>
 <ul>
-<li><strong>⚡ Real-Time Control</strong>: Synchronize SimPy with the system clock using <code>DynamicRealtimeEnvironment</code>.</li>
-<li><strong>🧭 Three Ways to Write a Simulation</strong>: The low-level <code>DynamicRealtimeEnvironment</code>, the declarative <code>SimulationContext</code> builder, or a YAML blueprint. All three build the same parameters and run on the same environment.</li>
-<li><strong>🧾 YAML Blueprints</strong>: Declare parameters, connectors, tasks, telemetry and timed experiments in a plain YAML file and run it with <code>ddes run</code>. Logic that YAML cannot express stays in Python and is referenced through <code>!python</code>.</li>
-<li><strong>⏩ Backfill Then Go Live</strong>: One run generates backdated history unpaced, then switches to real time at <code>go_live_at</code>, with one seed and one seam.</li>
-<li><strong>🔀 Several Sinks per Run</strong>: Attach a stream sink and a lake sink to one run, each with its own <code>when</code> predicate, <code>batch_size</code> and <code>flush_interval</code> on <code>add_egress</code>.</li>
-<li><strong>🔗 Dynamic Registry</strong>: Dynamic, path-based updates (e.g., <code>Line_A.arrival.standard.rate</code>) that trigger instant logic changes.</li>
-<li><strong>🚀 High Throughput</strong>: Optimized to handle high throughput using <code>orjson</code> and local batching.</li>
-<li><strong>🛡️ Enterprise Ready</strong>: Native <code>**kwargs</code> passthrough for SASL, mTLS, OAuth, and AWS IAM Kafka clusters.</li>
-<li><strong>📦 Pluggable Serialization</strong>: Stream lightweight JSON by default, or map specific ML topics to lazy-loaded <strong>Avro/Schema Registry</strong> serializers (Confluent &amp; AWS Glue).</li>
-<li><strong>🗄️ Data Lake Ingestion</strong>: Native PyArrow VFS integration for fast chunked writing (Parquet/JSONL) directly to object storage, with built-in schema inference and drift enforcement.</li>
-<li><strong>🧊 Lakehouse Ingestion</strong>: Append straight into an Apache Iceberg table through an Iceberg REST catalog, with one commit per flush so the snapshot count stays under your control.</li>
-<li><strong>🦆 Pydantic Duck-Typing</strong>: Seamlessly publish strictly-typed Pydantic V2 models straight from your simulation logic.</li>
-<li><strong>📊 System Observability</strong>: Built-in lag monitoring to track simulation drift from real-world time.</li>
-<li><strong>🌍 Domain Agnostic</strong>: Perfect for factory floors, crypto trading bots, or RPG game state management.</li>
+<li><strong>Real time or full speed</strong>: <code>DynamicRealtimeEnvironment</code> runs SimPy in step with the system clock, or unpaced, and reports how far the simulation lags behind real time.</li>
+<li><strong>Live parameters</strong>: arrival rates, service times and capacities change mid-run through registry paths such as <code>Line_A.arrival.standard.rate</code>. A resource grows at once, and shrinks only as busy units are released, so no work in progress is lost.</li>
+<li><strong>Several sinks per run</strong>: each sink added with <code>add_egress</code> has its own <code>when</code> filter, <code>batch_size</code> and <code>flush_interval</code>, so one run can feed a stream and a data lake together.</li>
+<li><strong>Backfill then go live</strong>: one run generates backdated history at full speed, then switches to real time at <code>go_live_at</code>.</li>
+<li><strong>Three ways to write a simulation</strong>: the low-level <code>DynamicRealtimeEnvironment</code>, the declarative <code>SimulationContext</code> builder, or a YAML blueprint run with <code>ddes run</code>.</li>
+<li><strong>Serialisation</strong>: JSON through <code>orjson</code> by default, Avro through the Confluent or AWS Glue Schema Registry for chosen topics, and Pydantic models published as they are.</li>
+<li><strong>Kafka security</strong>: extra keyword arguments go to the Kafka client, so SASL, mTLS, OAuth and AWS IAM clusters work.</li>
 </ul>
 <hr />
 <h2 id="documentation-layout">Documentation Layout</h2>
@@ -1971,9 +2050,10 @@
 <li><strong>YAML</strong>: <a href="guides/yaml-blueprints/">YAML Blueprints, from First File to Connectors</a>.</li>
 </ul>
 </li>
-<li><strong>Advanced</strong>: <a href="guides/yaml-advanced/">Advanced YAML: Custom Logic with <code>!python</code></a>, <a href="guides/multi-resource-handoffs/">Multi-Resource Handoffs</a>, <a href="guides/preemptive-breakdowns/">Preemptive Machine Breakdowns</a>, <a href="guides/dynamic-topology/">Absolute Edge Cases (Dynamic Topology)</a>.</li>
+<li><strong>Advanced</strong>: <a href="guides/yaml-advanced/">Advanced YAML: Custom Logic with <code>!python</code></a>, <a href="guides/multi-resource-handoffs/">Multi-Resource Handoffs</a>, <a href="guides/preemptive-breakdowns/">Preemptive Machine Breakdowns</a>, <a href="guides/dynamic-topology/">Dynamic Topology (Resources Changed Mid-run)</a>.</li>
 <li><strong>Examples</strong>, one page per example, with a tab for each way it is written. Backfill Then Go Live has declarative and YAML tabs, and the advanced orders example is YAML only: <a href="examples/local/">Local</a>, <a href="examples/kafka/">Kafka</a>, <a href="examples/parquet/">Parquet</a>, <a href="examples/iceberg/">Iceberg</a>, <a href="examples/postgres/">Postgres</a>, <a href="examples/redis/">Redis</a>, <a href="examples/backfill-live/">Backfill Then Go Live</a>, <a href="examples/advanced-postgres-orders/">Orders with Line Items (Advanced YAML)</a>.</li>
 <li><strong><a href="api/">API Reference</a></strong>: Technical reference for all public classes.</li>
+<li><strong>About</strong>: <a href="about/roadmap/">Roadmap</a>, what is planned next and what 1.0 means.</li>
 </ul>
 
 

@@ -1463,7 +1463,7 @@
   <span class="md-ellipsis">
     
   
-    Absolute Edge Cases (Dynamic Topology)
+    Dynamic Topology (Resources Changed Mid-run)
   
 
     
@@ -1801,6 +1801,88 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -1841,10 +1923,10 @@
 
 <h1 id="fast-forward-to-parquet">Fast-Forward to Parquet</h1>
 <p>A week of a production line, generated at <code>factor=0.0</code> and written to Parquet files on the local disk or in S3-compatible storage. Each tab shows the example written one way: with the declarative API, with the low-level API, or as a YAML blueprint. <a href="../../architecture/overview/">Ways to write a simulation</a> compares the three.</p>
+<p>Dynamic DES is built for real-time digital twins, but the same model can also run faster than real time. With the time factor at 0 and a chosen start time, a run generates a large amount of historical data in seconds, or predicts future states.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Declarative</label><label for="__tabbed_1_2">Low-level</label><label for="__tabbed_1_3">YAML</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<p>While <code>dynamic-des</code> is designed for real-time digital twins, it is equally powerful as a <strong>synchronized forecasting engine</strong>. By manipulating the environment's time factor and initial state, you can run simulations to generate vast amounts of historical data or instantly predict future states.</p>
 <p>This example demonstrates how to run a simulation in <strong>fast-forward mode</strong> using the declarative <strong>Standard API (<code>SimulationContext</code>)</strong> and write compressed columnar data (Parquet) directly to local storage or an AWS S3 data lake using the <code>ParquetStorageEgress</code> connector.</p>
 <p><strong>Quick Start</strong></p>
 <p>Download the script, then run it. The run writes Parquet chunks to a local <code>data/</code> folder by default, so no infrastructure is needed.</p>
@@ -2052,7 +2134,6 @@
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
-<p>While <code>dynamic-des</code> is designed for real-time digital twins, it is equally powerful as a <strong>synchronized forecasting engine</strong>. By manipulating the environment's time factor and initial state, you can run simulations to generate vast amounts of historical data or instantly predict future states.</p>
 <p>This example demonstrates how to run a simulation in <strong>fast-forward mode</strong> using the low-level <strong>Imperative API</strong> and write compressed columnar data (Parquet) directly to local storage or an AWS S3 data lake using the <code>ParquetStorageEgress</code> connector.</p>
 <p><strong>Quick Start</strong></p>
 <p>Download the script, then run it. The run writes Parquet chunks to a local <code>data/</code> folder by default, so no infrastructure is needed.</p>
@@ -2163,7 +2244,7 @@
 </span><span id="__span-9-75"><a id="__codelineno-9-75" name="__codelineno-9-75" href="#__codelineno-9-75"></a>
 </span><span id="__span-9-76"><a id="__codelineno-9-76" name="__codelineno-9-76" href="#__codelineno-9-76"></a>    <span class="k">if</span> <span class="n">use_s3</span><span class="p">:</span>
 </span><span id="__span-9-77"><a id="__codelineno-9-77" name="__codelineno-9-77" href="#__codelineno-9-77"></a>        <span class="c1"># Lazy import PyArrow so the script doesn&#39;t crash if running purely local</span>
-</span><span id="__span-9-78"><a id="__codelineno-9-78" name="__codelineno-9-78" href="#__codelineno-9-78"></a>        <span class="c1"># without the [parquet] extra installed (though it is needed for ParquetEgress)</span>
+</span><span id="__span-9-78"><a id="__codelineno-9-78" name="__codelineno-9-78" href="#__codelineno-9-78"></a>        <span class="c1"># without the [parquet] extra installed (though it is needed for ParquetStorageEgress)</span>
 </span><span id="__span-9-79"><a id="__codelineno-9-79" name="__codelineno-9-79" href="#__codelineno-9-79"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">pyarrow</span><span class="w"> </span><span class="kn">import</span> <span class="n">fs</span>
 </span><span id="__span-9-80"><a id="__codelineno-9-80" name="__codelineno-9-80" href="#__codelineno-9-80"></a>
 </span><span id="__span-9-81"><a id="__codelineno-9-81" name="__codelineno-9-81" href="#__codelineno-9-81"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Configuring S3 Egress. Target Bucket: &#39;</span><span class="si">{</span><span class="n">base_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>

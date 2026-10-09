@@ -1463,7 +1463,7 @@
   <span class="md-ellipsis">
     
   
-    Absolute Edge Cases (Dynamic Topology)
+    Dynamic Topology (Resources Changed Mid-run)
   
 
     
@@ -1801,6 +1801,88 @@
   
 
     
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
   </ul>
 </nav>
                   </div>
@@ -1841,12 +1923,12 @@
 
 <h1 id="fast-forward-to-iceberg">Fast-Forward to Iceberg</h1>
 <p>A day of a production line, generated at <code>factor=0.0</code> and appended to an Apache Iceberg table through an Iceberg REST catalog. Each tab shows the example written one way: with the declarative API, with the low-level API, or as a YAML blueprint. <a href="../../architecture/overview/">Ways to write a simulation</a> compares the three.</p>
+<p><code>ParquetStorageEgress</code> writes files and leaves registering them as a table to you. <code>IcebergStorageEgress</code> appends into an Iceberg table instead, so one run ends with a table another engine can query.</p>
+<p>Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new <code>metadata.json</code>, so query planning slows down as snapshots accumulate. That is why this example gives the provider a large <code>batch_size</code> of its own: a day of events lands in four snapshots.</p>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Declarative</label><label for="__tabbed_1_2">Low-level</label><label for="__tabbed_1_3">YAML</label></div>
 <div class="tabbed-content">
 <div class="tabbed-block">
-<p><code>ParquetStorageEgress</code> writes files and leaves registering them as a table to you. This connector appends into an Iceberg table instead, so one run ends with something another engine can query.</p>
 <p>This example demonstrates how to run a simulation in <strong>fast-forward mode</strong> using the declarative <strong>Standard API (<code>SimulationContext</code>)</strong> and commit the output straight into an Apache Iceberg table using the <code>IcebergStorageEgress</code> connector.</p>
-<p>Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new <code>metadata.json</code>, so query planning degrades as snapshots accumulate. That is why this example gives the provider a large <code>batch_size</code> of its own: a day of events lands in four snapshots.</p>
 <p><strong>Quick Start</strong></p>
 <p>The catalog is infrastructure, so unlike the Parquet example this one needs a container. <code>odctl</code> comes from <code>uv tool install "odctl&gt;=1.0,&lt;2"</code> or <code>pip install "odctl&gt;=1.0,&lt;2"</code>. The <code>catalog</code> profile brings up the Iceberg REST catalog backed by Postgres, and SeaweedFS for the data files.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/iceberg_example.py
@@ -2046,9 +2128,7 @@
 </span></code></pre></div>
 </div>
 <div class="tabbed-block">
-<p><code>ParquetStorageEgress</code> writes files and leaves registering them as a table to you. This connector appends into an Iceberg table instead, so one run ends with something another engine can query.</p>
 <p>This example demonstrates how to run a simulation in <strong>fast-forward mode</strong> using the low-level <strong>Imperative API (<code>DynamicRealtimeEnvironment</code>)</strong> and commit the output straight into an Apache Iceberg table using the <code>IcebergStorageEgress</code> connector.</p>
-<p>Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new <code>metadata.json</code>, so query planning degrades as snapshots accumulate. That is why this example gives the provider a large <code>batch_size</code> of its own: a day of events lands in four snapshots.</p>
 <p><strong>Quick Start</strong></p>
 <p>The catalog is infrastructure, so unlike the Parquet example this one needs a container. <code>odctl</code> comes from <code>uv tool install "odctl&gt;=1.0,&lt;2"</code> or <code>pip install "odctl&gt;=1.0,&lt;2"</code>. The <code>catalog</code> profile brings up the Iceberg REST catalog backed by Postgres, and SeaweedFS for the data files.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/imperative/iceberg_example.py
