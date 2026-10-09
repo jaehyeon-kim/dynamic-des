@@ -120,10 +120,10 @@ class JsonlStorageEgress(BaseEgress):
     """
     High-throughput JSONL batch writer for local file systems or object storage.
 
-    This connector utilizes PyArrow's Virtual File System (VFS) to seamlessly
-    write data to local disks or S3-compatible storage such as AWS S3 or SeaweedFS.
-    It implements an enterprise-grade chunking strategy, generating a uniquely
-    named file for every batch to prevent file locking and ensure crash resilience.
+    This connector uses PyArrow's Virtual File System (VFS) to write data to local
+    disks or S3-compatible storage such as AWS S3 or SeaweedFS. It writes a uniquely
+    named file for every batch, so no two writes go to the same file and a
+    file, once written, is never changed.
 
     By default, events are appended to the `default_path` as flat rows: each
     event's `value` mapping is unpacked into top-level fields, and telemetry is left
@@ -262,7 +262,7 @@ class JsonlStorageEgress(BaseEgress):
 
 class ParquetStorageEgress(BaseEgress):
     """
-    High-performance columnar Parquet writer for Data Lake ingestion patterns.
+    Columnar Parquet writer for local disks or object storage.
 
     This connector buffers simulation records and converts them into heavily
     compressed Parquet tables using `pyarrow`. It natively supports writing to

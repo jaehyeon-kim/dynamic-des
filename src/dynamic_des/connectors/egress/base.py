@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 def extract_dict(data: Any) -> dict:
     """
-    Helper to seamlessly extract dicts from Pydantic V1/V2 objects.
+    Returns a dict from a Pydantic V1 or V2 object, or from a dict.
 
     Args:
         data (Any): A raw dictionary or a Pydantic model.

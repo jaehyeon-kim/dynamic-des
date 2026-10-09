@@ -2,13 +2,13 @@
 
 A day of a production line, generated at `factor=0.0` and appended to an Apache Iceberg table through an Iceberg REST catalog. Each tab shows the example written one way: with the declarative API, with the low-level API, or as a YAML blueprint. [Ways to write a simulation](../architecture/overview.md) compares the three.
 
+`ParquetStorageEgress` writes files and leaves registering them as a table to you. `IcebergStorageEgress` appends into an Iceberg table instead, so one run ends with a table another engine can query.
+
+Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new `metadata.json`, so query planning slows down as snapshots accumulate. That is why this example gives the provider a large `batch_size` of its own: a day of events lands in four snapshots.
+
 === "Declarative"
 
-    `ParquetStorageEgress` writes files and leaves registering them as a table to you. This connector appends into an Iceberg table instead, so one run ends with something another engine can query.
-
     This example demonstrates how to run a simulation in **fast-forward mode** using the declarative **Standard API (`SimulationContext`)** and commit the output straight into an Apache Iceberg table using the `IcebergStorageEgress` connector.
-
-    Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new `metadata.json`, so query planning degrades as snapshots accumulate. That is why this example gives the provider a large `batch_size` of its own: a day of events lands in four snapshots.
 
     **Quick Start**
 
@@ -222,11 +222,7 @@ A day of a production line, generated at `factor=0.0` and appended to an Apache 
 
 === "Low-level"
 
-    `ParquetStorageEgress` writes files and leaves registering them as a table to you. This connector appends into an Iceberg table instead, so one run ends with something another engine can query.
-
     This example demonstrates how to run a simulation in **fast-forward mode** using the low-level **Imperative API (`DynamicRealtimeEnvironment`)** and commit the output straight into an Apache Iceberg table using the `IcebergStorageEgress` connector.
-
-    Each flush of the buffer is one Iceberg commit. Every commit writes a manifest, a manifest list and a new `metadata.json`, so query planning degrades as snapshots accumulate. That is why this example gives the provider a large `batch_size` of its own: a day of events lands in four snapshots.
 
     **Quick Start**
 

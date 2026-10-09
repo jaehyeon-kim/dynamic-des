@@ -2,7 +2,7 @@
 
 By default, `KafkaEgress` strictly dumps all payloads as highly optimized JSON. While great for lightweight lifecycle and telemetry events, high-velocity ML streams (like `PredictionRequests`) often require compact, schema-validated binary payloads using Avro.
 
-Dynamic DES provides a **Pluggable Serialization Strategy**, allowing you to seamlessly mix JSON and Avro streams on the exact same connection, while natively supporting Pydantic validation.
+Dynamic DES has a **pluggable serialization strategy**: JSON and Avro streams can share one connection, and Pydantic models are validated and published as they are.
 
 The snippets below publish to Kafka, so start a broker first with `odctl up kafka-lite`. See [Getting Started](../getting-started.md) for the one-time odctl install. Tear it down with `odctl down kafka-lite --volumes`.
 

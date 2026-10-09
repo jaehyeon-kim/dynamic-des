@@ -1,4 +1,4 @@
-# Dynamic Topology (Absolute Edge Cases)
+# Dynamic Topology (Resources Changed Mid-run)
 
 The Standard API (`SimulationContext`) relies on an **immutability constraint**: all physical resources, service distribution schemas, and I/O connections must be fully configured before the clock starts running.
 

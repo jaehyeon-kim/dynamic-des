@@ -1,6 +1,6 @@
 # Getting Started
 
-Ready to build real-time digital twins? This guide will walk you through installing Dynamic DES, running the example scripts, and exploring the core infrastructure.
+This page installs Dynamic DES, installs odctl to run the containers the examples need, and runs the first examples.
 
 ## Installation
 
@@ -10,33 +10,18 @@ Install the core library:
 pip install dynamic-des
 ```
 
-To include specific backends:
+The connectors are optional extras, for example `pip install "dynamic-des[kafka,parquet]"`:
 
-```bash
-# For Kafka support
-pip install "dynamic-des[kafka]"
-
-# For Confluent Schema Registry (Avro)
-pip install "dynamic-des[kafka,confluent]"
-
-# For AWS Glue Schema Registry (Avro)
-pip install "dynamic-des[kafka,glue]"
-
-# For Redis support
-pip install "dynamic-des[redis]"
-
-# For PostgreSQL support
-pip install "dynamic-des[postgres]"
-
-# For Parquet support (required for data lake integration)
-pip install "dynamic-des[parquet]"
-
-# For Lakehouse Storage (Apache Iceberg)
-pip install "dynamic-des[iceberg]"
-
-# For all backends (Kafka, Redis, Postgres, Avro, Parquet, Iceberg)
-pip install "dynamic-des[all]"
-```
+| Extra | Adds |
+|---|---|
+| `kafka` | Kafka ingress and egress |
+| `confluent` | Avro with the Confluent Schema Registry (includes `kafka`) |
+| `glue` | Avro with the AWS Glue Schema Registry (includes `kafka`) |
+| `redis` | Redis ingress and egress |
+| `postgres` | PostgreSQL ingress and egress |
+| `parquet` | Parquet and JSONL files on local disk or S3-compatible storage |
+| `iceberg` | Apache Iceberg tables through a REST catalog |
+| `all` | Every extra above |
 
 ---
 
@@ -88,64 +73,37 @@ curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples
 curl -O https://raw.githubusercontent.com/jaehyeon-kim/dynamic-des/main/examples/declarative/backfill_live_example.py
 ```
 
-### With uv
+With [uv](https://docs.astral.sh/uv/), and odctl installed as above:
 
 ```bash
-# 1. Install odctl, which runs the containers
-uv tool install "odctl>=1.0,<2"
-
-# 2. Local, dependency-free simulation
+# 1. Local, dependency-free simulation
 uv run --no-project --with dynamic-des local_example.py
 
-# 3. Start the Kafka broker and schema registry (requires Docker)
+# 2. Start the Kafka broker and schema registry (requires Docker)
 odctl up kafka-lite
 
-# 4. Run the real-time digital twin (Ctrl + C to stop)
+# 3. Run the real-time digital twin (Ctrl + C to stop)
 uv run --no-project --with "dynamic-des[kafka]" kafka_example.py
 
-# 5. In a second terminal, watch and steer the run from the dashboard. It serves
+# 4. In a second terminal, watch and steer the run from the dashboard. It serves
 #    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
 uv run --no-project --with "dynamic-des[kafka]" --with nicegui kafka_dashboard.py
 
-# 6. Backfill ten minutes of history to Parquet, generated instantly rather than
+# 5. Backfill ten minutes of history to Parquet, generated instantly rather than
 #    waited for, then tail live to Kafka for sixty seconds
 uv run --no-project --with "dynamic-des[kafka,parquet]" backfill_live_example.py
 
-# 7. Clean up the infrastructure when finished
+# 6. Clean up the infrastructure when finished
 odctl down kafka-lite --volumes
 ```
 
-### With pip
+With pip, install `"dynamic-des[kafka,parquet]" nicegui` once and run each file with `python`. Any other example needs the profile listed in [Starting infrastructure](#starting-infrastructure), and the [Backfill Then Go Live](guides/backfill-then-live.md) guide explains step 5.
 
-```bash
-# 1. Install the package with both extras, odctl for the containers and
-#    nicegui for the dashboard
-pip install "dynamic-des[kafka,parquet]" "odctl>=1.0,<2" nicegui
+The control dashboard from step 4 changes simulation parameters while the run is going, and the telemetry reacts without a restart:
 
-# 2. Local, dependency-free simulation
-python local_example.py
-
-# 3. Start the Kafka broker and schema registry (requires Docker)
-odctl up kafka-lite
-
-# 4. Run the real-time digital twin (Ctrl + C to stop)
-python kafka_example.py
-
-# 5. In a second terminal, watch and steer the run from the dashboard. It serves
-#    http://localhost:8080 rather than opening a browser. Ctrl + C to stop.
-python kafka_dashboard.py
-
-# 6. Backfill ten minutes of history to Parquet, generated instantly rather than
-#    waited for, then tail live to Kafka for sixty seconds
-python backfill_live_example.py
-
-# 7. Clean up the infrastructure when finished
-odctl down kafka-lite --volumes
-```
-
-Examples that need a broker, a database or an object store get their container from odctl. [Starting infrastructure](#starting-infrastructure) above lists the profile each one needs.
-
-Guide: [Backfill then live](guides/backfill-then-live.md).
+<div align="center">
+  <img src="../assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
+</div>
 
 ### A YAML blueprint
 
@@ -162,12 +120,6 @@ ddes run local.yaml
 ```
 
 Every declarative example has a YAML twin, in the YAML tab of its [example page](examples/local.md). [YAML Blueprints, from First File to Connectors](guides/yaml-blueprints.md) shows how to write one.
-
-The control dashboard lets you update simulation parameters live and watch the telemetry react without restarting the run:
-
-<div align="center">
-  <img src="../assets/dashboard-preview.gif" alt="Live parameter updates from the control dashboard" width="800" />
-</div>
 
 ## Build Your Own
 

@@ -2,11 +2,11 @@
 
 A store that writes customer orders to PostgreSQL and takes parameter updates from a PostgreSQL table. Each tab shows the example written one way: with the declarative API, with the low-level API, or as a YAML blueprint. [Ways to write a simulation](../architecture/overview.md) compares the three.
 
+With `PostgresEgress` in place of the console egress, the simulation runs as a separate data generator. It writes related rows, such as parent `orders` and child `order_items`, into PostgreSQL with asynchronous bulk inserts through `asyncpg`.
+
 === "Declarative"
 
     This example demonstrates how to integrate `dynamic-des` into a relational database architecture using the declarative **Standard API (`SimulationContext`)**.
-
-    By replacing the local console egress with `PostgresEgress`, the simulation becomes a fully detached data generator. It automatically streams complex, interrelated data (like parent `orders` and child `order_items`) directly into your PostgreSQL database using high-performance, asynchronous bulk inserts via `asyncpg`.
 
     **1. Multiplexing Multiple Tables**
 
@@ -235,8 +235,6 @@ A store that writes customer orders to PostgreSQL and takes parameter updates fr
 === "Low-level"
 
     This example demonstrates how to integrate `dynamic-des` into a relational database architecture using the low-level **Imperative API**.
-
-    By replacing the local console egress with `PostgresEgress`, the simulation becomes a fully detached data generator. It automatically streams complex, interrelated data (like parent `orders` and child `order_items`) directly into your PostgreSQL database using high-performance, asynchronous bulk inserts via `asyncpg`.
 
     **1. Multiplexing Multiple Tables**
 

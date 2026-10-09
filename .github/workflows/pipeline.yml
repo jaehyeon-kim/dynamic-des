@@ -266,3 +266,13 @@ jobs:
 
           # Set 'latest' as the default landing page when navigating to the root URL
           uv run mike set-default --push latest
+
+          # GitHub Pages answers every missing path under the site with the 404.html
+          # at the root of gh-pages, but mike writes one into each version folder
+          # only. Copy this version's page to the root. Its links point at latest/,
+          # so it renders at any depth.
+          git worktree add "$RUNNER_TEMP/gh-pages" gh-pages
+          cp "$RUNNER_TEMP/gh-pages/$VERSION/404.html" "$RUNNER_TEMP/gh-pages/404.html"
+          git -C "$RUNNER_TEMP/gh-pages" add 404.html
+          git -C "$RUNNER_TEMP/gh-pages" diff --cached --quiet || git -C "$RUNNER_TEMP/gh-pages" commit -m "Root 404 page from $VERSION"
+          git -C "$RUNNER_TEMP/gh-pages" push origin gh-pages

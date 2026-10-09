@@ -2,11 +2,11 @@
 
 A production line that takes parameter updates from a Kafka topic and publishes its events and telemetry to Kafka topics. Each tab shows the example written one way: with the declarative API, with the low-level API, or as a YAML blueprint. [Ways to write a simulation](../architecture/overview.md) compares the three.
 
+With `KafkaIngress` and `KafkaEgress` in place of the local connectors, the simulation runs as a separate service. It reads JSON parameter updates from a topic, and publishes telemetry and typed Pydantic events to other topics.
+
 === "Declarative"
 
     This example demonstrates how to integrate `dynamic-des` into a full event-driven architecture using the declarative **Standard API (`SimulationContext`)**.
-
-    By replacing the local connectors with `KafkaIngress` and `KafkaEgress`, the simulation becomes a fully detached microservice. It listens for external JSON commands to mutate its state, and streams telemetry and strictly-typed Pydantic events to outbound topics.
 
     **Quick Start**
 
@@ -209,8 +209,6 @@ A production line that takes parameter updates from a Kafka topic and publishes 
 
     This example demonstrates how to integrate `dynamic-des` into a full event-driven architecture using the low-level **Imperative API**.
 
-    By replacing the Local connectors with `KafkaIngress` and `KafkaEgress`, the simulation becomes a fully detached microservice. It listens for external JSON commands to mutate its state, and streams telemetry and strictly-typed Pydantic events to outbound topics.
-
     **Quick Start**
 
     Download the script, then run it.
@@ -300,8 +298,8 @@ A production line that takes parameter updates from a Kafka topic and publishes 
     class TaskEvent(BaseModel):
         """
         Thanks to dynamic-des's duck-typing, we can pass this Pydantic model
-        directly into env.publish_event(). The KafkaEgress layer will seamlessly
-        extract it and serialize it (either to JSON or Avro).
+        directly into env.publish_event(). KafkaEgress converts it to a dict and
+        serializes it, to JSON or to Avro.
         """
 
         path_id: str

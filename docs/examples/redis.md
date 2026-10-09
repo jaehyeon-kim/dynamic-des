@@ -4,9 +4,9 @@ A factory that writes part records to a Redis Stream and takes parameter updates
 
 === "Declarative"
 
-    This example demonstrates how to integrate `dynamic-des` with a high-performance Redis cache using the declarative **Standard API (`SimulationContext`)**.
+    This example demonstrates how to integrate `dynamic-des` with Redis using the declarative **Standard API (`SimulationContext`)**.
 
-    By combining `RedisIngress` and `RedisEgress`, your simulation can achieve sub-millisecond latency for both reading dynamic parameters via Pub/Sub and writing high-throughput telemetry data via Redis Streams.
+    With `RedisIngress` and `RedisEgress`, the simulation reads parameter updates through Pub/Sub and writes events and telemetry to Redis Streams.
 
     **1. Streaming to Redis**
 
@@ -155,7 +155,7 @@ A factory that writes part records to a Redis Stream and takes parameter updates
 
 === "Low-level"
 
-    This example demonstrates how to integrate `dynamic-des` with a high-performance Redis cache using the low-level **Imperative API (`DynamicRealtimeEnvironment`)**.
+    This example demonstrates how to integrate `dynamic-des` with Redis using the low-level **Imperative API (`DynamicRealtimeEnvironment`)**.
 
     This is useful if you are migrating existing SimPy generators and prefer to handle `env.process()` and component registration manually rather than using the Builder Pattern.
 

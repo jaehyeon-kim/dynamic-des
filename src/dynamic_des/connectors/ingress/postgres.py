@@ -71,7 +71,7 @@ class PostgresIngress(BaseIngress):
         """
         await self._init_pool()
 
-        # Phase 1: Load the most recent applied state to resume seamlessly
+        # Phase 1: Load the most recently applied state, so a restart resumes from it
         try:
             assert self.pool is not None
             async with self.pool.acquire() as conn:

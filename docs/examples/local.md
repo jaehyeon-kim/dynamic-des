@@ -2,11 +2,13 @@
 
 A production line that prints its events and telemetry to the terminal. It needs no container, so it is the place to start. Each tab shows the example written one way: with the declarative API, with the low-level API, or as a YAML blueprint. [Ways to write a simulation](../architecture/overview.md) compares the three.
 
+Local connectors need no Docker, Kafka or other external store, so this example is useful for testing and benchmarking.
+
 === "Declarative"
 
     This example demonstrates how to build a dynamic simulation using the declarative **Standard API (`SimulationContext`)** and **Local Connectors**.
 
-    Local connectors do not require Docker, Kafka, or any external data stores. They are perfect for testing and benchmarking. This example adds `ConsoleEgress` and no ingress, so the lathe keeps the capacity it starts with for the whole run. Its low-level twin, in the Low-level tab, shows how `LocalIngress` schedules parameter changes at set times.
+    This example adds `ConsoleEgress` and no ingress, so the lathe keeps the capacity it starts with for the whole run. Its low-level twin, in the Low-level tab, shows how `LocalIngress` schedules parameter changes at set times.
 
     **Quick Start**
 
@@ -121,8 +123,6 @@ A production line that prints its events and telemetry to the terminal. It needs
 === "Low-level"
 
     This example demonstrates how to build a dynamic simulation using the low-level **Imperative API** and **Local Connectors**.
-
-    Local connectors do not require Docker, Kafka, or any external data stores. They are perfect for testing, benchmarking, or scenarios where parameter changes need to occur at specific wall-clock intervals.
 
     **Quick Start**
 

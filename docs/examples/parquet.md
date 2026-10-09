@@ -2,9 +2,9 @@
 
 A week of a production line, generated at `factor=0.0` and written to Parquet files on the local disk or in S3-compatible storage. Each tab shows the example written one way: with the declarative API, with the low-level API, or as a YAML blueprint. [Ways to write a simulation](../architecture/overview.md) compares the three.
 
-=== "Declarative"
+Dynamic DES is built for real-time digital twins, but the same model can also run faster than real time. With the time factor at 0 and a chosen start time, a run generates a large amount of historical data in seconds, or predicts future states.
 
-    While `dynamic-des` is designed for real-time digital twins, it is equally powerful as a **synchronized forecasting engine**. By manipulating the environment's time factor and initial state, you can run simulations to generate vast amounts of historical data or instantly predict future states.
+=== "Declarative"
 
     This example demonstrates how to run a simulation in **fast-forward mode** using the declarative **Standard API (`SimulationContext`)** and write compressed columnar data (Parquet) directly to local storage or an AWS S3 data lake using the `ParquetStorageEgress` connector.
 
@@ -233,8 +233,6 @@ A week of a production line, generated at `factor=0.0` and written to Parquet fi
 
 === "Low-level"
 
-    While `dynamic-des` is designed for real-time digital twins, it is equally powerful as a **synchronized forecasting engine**. By manipulating the environment's time factor and initial state, you can run simulations to generate vast amounts of historical data or instantly predict future states.
-
     This example demonstrates how to run a simulation in **fast-forward mode** using the low-level **Imperative API** and write compressed columnar data (Parquet) directly to local storage or an AWS S3 data lake using the `ParquetStorageEgress` connector.
 
     **Quick Start**
@@ -364,7 +362,7 @@ A week of a production line, generated at `factor=0.0` and written to Parquet fi
 
         if use_s3:
             # Lazy import PyArrow so the script doesn't crash if running purely local
-            # without the [parquet] extra installed (though it is needed for ParquetEgress)
+            # without the [parquet] extra installed (though it is needed for ParquetStorageEgress)
             from pyarrow import fs
 
             logger.info(f"Configuring S3 Egress. Target Bucket: '{base_path}'")

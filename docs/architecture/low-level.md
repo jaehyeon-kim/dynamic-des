@@ -10,7 +10,7 @@ The low-level API is `DynamicRealtimeEnvironment` used directly. A script regist
 
 The Low-Level API exposes `DynamicRealtimeEnvironment` directly. You are responsible for instantiating and configuring the registry, setting up I/O connectors manually, and writing raw SimPy generators.
 
-This is ideal when you need to bypass standard telemetry rules or dynamically construct new topics and environments on the fly.
+Use it when you need to bypass the standard telemetry rules, or to create new topics and environments while the simulation runs.
 
 ```python
 import numpy as np

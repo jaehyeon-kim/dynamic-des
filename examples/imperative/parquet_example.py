@@ -75,7 +75,7 @@ def run():
 
     if use_s3:
         # Lazy import PyArrow so the script doesn't crash if running purely local
-        # without the [parquet] extra installed (though it is needed for ParquetEgress)
+        # without the [parquet] extra installed (though it is needed for ParquetStorageEgress)
         from pyarrow import fs
 
         logger.info(f"Configuring S3 Egress. Target Bucket: '{base_path}'")

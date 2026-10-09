@@ -60,8 +60,8 @@ class SimulationRegistry:
     A centralized 'Switchboard' that maps dot-notation paths to dynamic simulation parameters.
 
     The Registry acts as the single source of truth for the simulation's state. It allows
-    external streams (like Kafka or Redis) to update parameters on the fly, seamlessly
-    synchronizing them with the underlying SimPy processes.
+    external streams (like Kafka or Redis) to update parameters while the simulation
+    runs, and passes each change to the SimPy processes that use it.
 
     Attributes:
         env (Environment): The active SimPy environment.

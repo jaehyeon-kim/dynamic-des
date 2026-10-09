@@ -38,8 +38,8 @@ logger = logging.getLogger("kafka_example")
 class TaskEvent(BaseModel):
     """
     Thanks to dynamic-des's duck-typing, we can pass this Pydantic model
-    directly into env.publish_event(). The KafkaEgress layer will seamlessly
-    extract it and serialize it (either to JSON or Avro).
+    directly into env.publish_event(). KafkaEgress converts it to a dict and
+    serializes it, to JSON or to Avro.
     """
 
     path_id: str

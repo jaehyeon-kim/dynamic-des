@@ -94,7 +94,7 @@ nav:
       - "Advanced YAML: Custom Logic with !python": guides/yaml-advanced.md
       - Multi-Resource Handoffs (Hybrid Pattern): guides/multi-resource-handoffs.md
       - Preemptive Machine Breakdowns (Hybrid Pattern): guides/preemptive-breakdowns.md
-      - Absolute Edge Cases (Dynamic Topology): guides/dynamic-topology.md
+      - Dynamic Topology (Resources Changed Mid-run): guides/dynamic-topology.md
   - Examples:
       - Local Simulation: examples/local.md
       - Kafka Digital Twin: examples/kafka.md
@@ -105,6 +105,8 @@ nav:
       - Backfill Then Go Live: examples/backfill-live.md
       - Orders with Line Items (Advanced YAML): examples/advanced-postgres-orders.md
   - API Reference: api.md
+  - About:
+      - Roadmap: about/roadmap.md
 
 markdown_extensions:
   - pymdownx.highlight:
