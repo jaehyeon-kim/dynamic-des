@@ -162,9 +162,8 @@ The same kind of model can be a YAML file with no Python, such as [`examples/yam
 
 ## Roadmap
 
-- **Next:** a simulation server (`ddes serve`) with a REST API, then a browser UI and an odctl profile, then cron schedules.
-- **1.0:** after the server. The YAML format, the `ddes` command and the Python API then stay compatible across 1.x.
-- **After 1.0:** generated values in blueprints, a preview loop, delivery faults, and more storage backends and sinks.
+- **Planned for 1.0:** routing between tasks, entity state, more distributions, stores and containers, built-in statistics and `ddes explain`; a simulation server (`ddes serve`) with a REST API, a browser UI and schedules, run locally through [odctl](https://github.com/jaehyeon-kim/odctl); Concepts docs on the simulation building blocks.
+- **Future work:** breakdowns and schedules, transport on maps, data-driven inputs, experiments and analysis, animation, generated values in YAML, more sinks and delivery faults.
 
 The [roadmap page](https://jaehyeon.me/dynamic-des/latest/about/roadmap/) has the details.
 
